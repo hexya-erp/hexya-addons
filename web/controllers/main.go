@@ -93,6 +93,22 @@ func QWeb(c *gin.Context) {
 	c.String(http.StatusOK, string(res))
 }
 
+func BootstrapTranslations(c *gin.Context) {
+	res := gin.H{
+		"lang_parameters": tools.LangParameters{
+			DateFormat: "%m/%d/%Y",
+			Direction: tools.LANG_DIRECTION_LTR,
+			ThousandsSep: ",",
+			TimeFormat: "%H:%M:%S",
+			DecimalPoint: ".",
+			ID: 1,
+			Grouping: "[]",
+		},
+		"modules": gin.H{},
+	}
+	server.RPC(c, http.StatusOK, res)
+}
+
 func init() {
 	server := server.GetServer()
 	server.GET("/", func(c *gin.Context) {
@@ -117,6 +133,7 @@ func init() {
 		webClient := web.Group("/webclient")
 		{
 			webClient.GET("/qweb", QWeb)
+			webClient.POST("/bootstrap_translations", BootstrapTranslations)
 		}
 	}
 }
