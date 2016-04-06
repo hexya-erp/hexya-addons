@@ -19,6 +19,7 @@
 
 package base
 
+/*
 import (
 	"fmt"
 	"github.com/jinzhu/gorm"
@@ -97,26 +98,27 @@ type BaseResPartner struct {
 
 }
 
-type ResPartner struct {
-	BaseResPartner `yep:"include"`
-}
-
-func (brp *BaseResPartner) DisplayName() string {
-	return brp.Name
-}
-
-func (brp *BaseResPartner) ParentName() string {
-	return brp.Parent.Name
-}
-
-func (brp *BaseResPartner) HasImage() bool {
-	return bool(brp.Image)
-}
-
-func (brp *BaseResPartner) ContactAddress() string {
-	return fmt.Sprintf("%s\n%s\n%s %s\n%s\n%s", brp.Street, brp.Street2, brp.Zip, brp.City, brp.State, brp.Country)
-}
-
-//func (brp *BaseResPartner) CommercialPartner() *ResPartner {
+//type ResPartner struct {
+//	BaseResPartner `yep:"include"`
+//}
+//
+//func (brp *BaseResPartner) DisplayName() string {
+//	return brp.Name
+//}
+//
+//func (brp *BaseResPartner) ParentName() string {
+//	return brp.Parent.Name
+//}
+//
+//func (brp *BaseResPartner) HasImage() bool {
+//	return bool(brp.Image)
+//}
+//
+//func (brp *BaseResPartner) ContactAddress() string {
+//	return fmt.Sprintf("%s\n%s\n%s %s\n%s\n%s", brp.Street, brp.Street2, brp.Zip, brp.City, brp.State, brp.Country)
+//}
+//
+////func (brp *BaseResPartner) CommercialPartner() *ResPartner {
 //	return &ResPartner(*brp)
 //}
+*/

@@ -19,6 +19,10 @@
 
 package base
 
+import (
+	_ "github.com/npiganeau/yep-addons/base/controllers"
+)
+
 const (
 	SEQUENCE    uint8  = 100
 	NAME        string = "Base"
