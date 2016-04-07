@@ -117,7 +117,7 @@
 
 {{ define "web.menu" }}
     <ul class="nav navbar-nav navbar-left oe_application_menu_placeholder">
-        {{ range .Children }}
+        {{ range .Menus }}
         <li>
             {{ template "web.menu_link" .}}
         </li>
@@ -133,11 +133,11 @@
 {{ end }}
 
 {{ define "web.menu_link" }}
-    <a href="{{ printf `/web#menu_id=%s&amp;action=%s` (.Id) (index .Action 1) }}"
-        class="{{ if ne .Children nil }}oe_menu_toggler{{ else }}oe_menu_leaf{{ end }}"
-        data-menu="{{ .Id }}"
-        action-model="{{ index .Action 0 }}"
-        action-id="{{ index .Action 1 }}">
+    <a href="{{ if .HasAction }}{{ printf `/web#menu_id=%s&action=%s` (.ID) (.Action.ID) }}{{ end }}"
+        class="{{ if .HasChildren }}oe_menu_toggler{{ else }}oe_menu_leaf{{ end }}"
+        data-menu="{{ .ID }}"
+        action-model="{{ if .HasAction }}{{ .Action.Model }}{{ end }}"
+        action-id="{{ if .HasAction }}{{ .Action.ID }}{{ end }}">
         <span class="oe_menu_text">
             {{ .Name }}
         </span>
@@ -152,13 +152,15 @@
     <div>
         <div>
             <div class="oe_secondary_menus_container">
-                {{ range .Children }}
-                    <div style="display: none" class="oe_secondary_menu" menu-parent="{{ .Id }}">
-                        {{ range .Children }}
-                            <div class="oe_secondary_menu_section">
-                                {{ .Name }}
-                            </div>
-                            {{ template "web.menu_secondary_submenu" .}}
+                {{ range .Menus }}
+                    <div style="display: none" class="oe_secondary_menu" menu-parent="{{ .ID }}">
+                        {{ if .HasChildren }}
+                            {{ range .Children.Menus }}
+                                <div class="oe_secondary_menu_section">
+                                    {{ .Name }}
+                                </div>
+                                {{ template "web.menu_secondary_submenu" .}}
+                            {{ end }}
                         {{ end }}
                     </div>
                 {{ end }}
@@ -171,13 +173,13 @@
 {{ end }}
 
 {{ define "web.menu_secondary_submenu" }}
-    {{ if ne .Children nil }}
+    {{ if .HasChildren }}
         <ul class="oe_secondary_submenu nav nav-pills nav-stacked">
-            {{ range .Children }}
-            <li>
-                {{ template "web.menu_link" . }}
-                {{ template "web.menu_secondary_submenu" . }}
-            </li>
+            {{ range .Children.Menus }}
+                <li>
+                    {{ template "web.menu_link" . }}
+                    {{ template "web.menu_secondary_submenu" . }}
+                </li>
             {{ end }}
         </ul>
     {{ end }}
@@ -214,7 +216,7 @@
             </button>
         </div>
         <div class="navbar-collapse collapse" id="oe_main_menu_placeholder">
-            {{ template "web.menu" . }}
+            {{ template "web.menu" .Menu }}
         </div>
     </nav>
     <div class="openerp openerp_webclient_container">
@@ -223,7 +225,7 @@
                 <td class="oe_leftbar" valign="top">
                     <div>
                         <!--groups="base.group_user,base.group_portal">-->
-                        {{ template "web.menu_secondary" . }}
+                        {{ template "web.menu_secondary" .Menu }}
                     </div>
                 </td>
                 <td class="oe_application"/>

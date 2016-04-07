@@ -21,9 +21,11 @@ package base
 
 import (
 	_ "github.com/npiganeau/yep-addons/base/controllers"
+	"github.com/npiganeau/yep/yep/server"
 )
 
 const (
+	MODULE_NAME string = "base"
 	SEQUENCE    uint8  = 100
 	NAME        string = "Base"
 	VERSION     string = "0.1"
@@ -36,3 +38,9 @@ The kernel of YEP, needed for all installation
 	MAINTAINER string = "NDP Systèmes"
 	WEBSITE    string = "http://www.ndp-systemes.fr"
 )
+
+func init() {
+	server.RegisterModule(MODULE_NAME)
+	createActions()
+	createMenus()
+}

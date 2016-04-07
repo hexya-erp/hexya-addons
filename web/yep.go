@@ -17,8 +17,13 @@ package web
 import (
 	_ "github.com/npiganeau/yep-addons/base"
 	_ "github.com/npiganeau/yep-addons/web/controllers"
+	"github.com/npiganeau/yep/yep/server"
 )
 
 const (
 	MODULE_NAME = "web"
 )
+
+func init() {
+	server.RegisterModule(MODULE_NAME)
+}
