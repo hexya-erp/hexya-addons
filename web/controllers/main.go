@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/npiganeau/yep-addons/base"
+	"github.com/npiganeau/yep-addons/base/ir"
 	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/server"
 	"github.com/npiganeau/yep/yep/tools"
@@ -37,7 +37,7 @@ func WebClient(c *gin.Context) {
 	sess.Set("user_context", ctx)
 	sess.Save()
 	data := gin.H{
-		"Menu": base.TopMenu,
+		"Menu": ir.TopMenu,
 	}
 	c.HTML(http.StatusOK, "web.webclient_bootstrap", data)
 }
@@ -69,7 +69,11 @@ func GetSessionInfo(c *gin.Context) {
 }
 
 func Modules(c *gin.Context) {
-	server.RPC(c, http.StatusOK, server.Modules)
+	mods := make([]string, len(server.Modules))
+	for i, m := range server.Modules {
+		mods[i] = m.Name
+	}
+	server.RPC(c, http.StatusOK, mods)
 }
 
 func Load(c *gin.Context) {
@@ -157,7 +161,7 @@ func ActionLoad(c *gin.Context) {
 		AdditionalContext string `json:"additional_context"`
 	}{}
 	server.BindRPCParams(c, &params)
-	action := base.ActionsRegistry.GetActionById(params.ActionID)
+	action := ir.ActionsRegistry.GetActionById(params.ActionID)
 	server.RPC(c, http.StatusOK, action)
 }
 

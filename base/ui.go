@@ -18,11 +18,8 @@ import (
 	"github.com/npiganeau/yep-addons/base/ir"
 )
 
-var TopMenu *ir.MenuCollection
-var ActionsRegistry *ir.ActionsCollection
-
 func createActions() {
-	ActionsRegistry = ir.NewActionsCollection()
+	ir.ActionsRegistry = ir.NewActionsCollection()
 
 	dashboardAction := ir.BaseAction{
 		ID:    "base_action_dashboard",
@@ -30,7 +27,7 @@ func createActions() {
 		Name:  "Dashboard",
 		Model: "Dashboard",
 	}
-	ActionsRegistry.AddAction(&dashboardAction)
+	ir.ActionsRegistry.AddAction(&dashboardAction)
 
 	reportingConfigAction := ir.BaseAction{
 		ID:    "base_action_reporting_config",
@@ -38,7 +35,7 @@ func createActions() {
 		Name:  "Configuration",
 		Model: "DashboardSettings",
 	}
-	ActionsRegistry.AddAction(&reportingConfigAction)
+	ir.ActionsRegistry.AddAction(&reportingConfigAction)
 
 	usersAction := ir.BaseAction{
 		ID:    "base_action_res_users",
@@ -46,11 +43,11 @@ func createActions() {
 		Name:  "Users",
 		Model: "ResUsers",
 	}
-	ActionsRegistry.AddAction(&usersAction)
+	ir.ActionsRegistry.AddAction(&usersAction)
 }
 
 func createMenus() {
-	TopMenu = new(ir.MenuCollection)
+	ir.TopMenu = new(ir.MenuCollection)
 
 	// Reporting Menu
 	menuReporting := ir.UiMenu{
@@ -58,7 +55,7 @@ func createMenus() {
 		Name:     "Reporting",
 		Sequence: 170,
 	}
-	TopMenu.AddMenu(&menuReporting)
+	ir.TopMenu.AddMenu(&menuReporting)
 
 	menuDashboard := ir.UiMenu{
 		ID:       "base_menu_reporting_dashboard",
@@ -66,25 +63,25 @@ func createMenus() {
 		Parent:   &menuReporting,
 		Sequence: 0,
 	}
-	TopMenu.AddMenu(&menuDashboard)
+	ir.TopMenu.AddMenu(&menuDashboard)
 
 	menuMyDashboard := ir.UiMenu{
 		ID:       "base_menu_reporting_dashboard_my",
 		Name:     "My Dashboard",
 		Parent:   &menuDashboard,
 		Sequence: 0,
-		Action:   ActionsRegistry.GetActionById("base.action_dashboard"),
+		Action:   ir.ActionsRegistry.GetActionById("base_action_dashboard"),
 	}
-	TopMenu.AddMenu(&menuMyDashboard)
+	ir.TopMenu.AddMenu(&menuMyDashboard)
 
 	menuConfiguration := ir.UiMenu{
 		ID:       "base_menu_reporting_config",
 		Name:     "Configuration",
 		Parent:   &menuReporting,
 		Sequence: 100,
-		Action:   ActionsRegistry.GetActionById("base.action_reporting_config"),
+		Action:   ir.ActionsRegistry.GetActionById("base_action_reporting_config"),
 	}
-	TopMenu.AddMenu(&menuConfiguration)
+	ir.TopMenu.AddMenu(&menuConfiguration)
 
 	// Settings menu
 	menuSettings := ir.UiMenu{
@@ -92,7 +89,7 @@ func createMenus() {
 		Name:     "Settings",
 		Sequence: 255,
 	}
-	TopMenu.AddMenu(&menuSettings)
+	ir.TopMenu.AddMenu(&menuSettings)
 
 	menuUsers := ir.UiMenu{
 		ID:       "base_menu_users",
@@ -100,14 +97,14 @@ func createMenus() {
 		Parent:   &menuSettings,
 		Sequence: 4,
 	}
-	TopMenu.AddMenu(&menuUsers)
+	ir.TopMenu.AddMenu(&menuUsers)
 
 	menuActionUsers := ir.UiMenu{
 		ID:       "base_menu_action_users",
 		Name:     "Users",
 		Parent:   &menuUsers,
 		Sequence: 1,
-		Action:   ActionsRegistry.GetActionById("base.action_res_users"),
+		Action:   ir.ActionsRegistry.GetActionById("base_action_res_users"),
 	}
-	TopMenu.AddMenu(&menuActionUsers)
+	ir.TopMenu.AddMenu(&menuActionUsers)
 }

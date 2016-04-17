@@ -18,6 +18,8 @@ import (
 	"sort"
 )
 
+var TopMenu *MenuCollection
+
 type MenuCollection struct {
 	Menus []*UiMenu
 }

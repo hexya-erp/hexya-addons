@@ -35,16 +35,17 @@ import (
 
 */
 type ResPartner struct {
+	ID   int64
 	Name string
-	Date time.Time
+	Date time.Time `orm:"null"`
 	//Title            *PartnerTitle
-	Parent   *ResPartner   `orm:"rel(fk)"`
-	Children []*ResPartner `orm:"reverse(many)"`
+	Parent   *ResPartner   `orm:"rel(fk);null"`
+	Children []*ResPartner `orm:"reverse(many);null"`
 	Ref      string
 	Lang     string
 	TZ       string
 	TZOffset string
-	User     *ResUsers `orm:"rel(fk)"`
+	User     *ResUsers `orm:"reverse(one);null"`
 	VAT      string
 	//Banks            []*PartnerBank
 	Website string
@@ -68,13 +69,13 @@ type ResPartner struct {
 	Phone            string
 	Fax              string
 	Mobile           string
-	Birthdate        time.Time
+	Birthdate        time.Time `orm:"null"`
 	IsCompany        bool
 	UseParentAddress bool
 	//Image            image.Image
 	//Company          *Company
 	//Color            color.Color
-	Users []*ResUsers `orm:"reverse(many)"`
+	//Users []*ResUsers `orm:"reverse(many)"`
 
 	//'has_image': fields.function(_has_image, type="boolean"),
 	//'company_id': fields.many2one('res.company', 'Company', select=1),

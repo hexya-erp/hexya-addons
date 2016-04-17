@@ -15,6 +15,7 @@
 package ir
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/orm"
@@ -29,11 +30,21 @@ const (
 	ACTION_SERVER     ActionType = "ir.actions.server"
 )
 
+var ActionsRegistry *ActionsCollection
+
+func MakeActionRef(id string) ActionRef {
+	action := ActionsRegistry.GetActionById(id)
+	if action == nil {
+		return ActionRef{}
+	}
+	return ActionRef{id, action.Name}
+}
+
 type ActionRef [2]string
 
 func (e *ActionRef) String() string {
 	sl := []string{e[0], e[1]}
-	return fmt.Sprintf(`["%s"]`, strings.Join(sl, ","))
+	return fmt.Sprintf(`[%s]`, strings.Join(sl, ","))
 }
 
 func (e *ActionRef) FieldType() int {
@@ -58,6 +69,14 @@ func (e *ActionRef) SetRaw(value interface{}) error {
 
 func (e *ActionRef) RawValue() interface{} {
 	return e.String()
+}
+
+func (e *ActionRef) MarshalJSON() ([]byte, error) {
+	if e[0] == "" {
+		return json.Marshal(nil)
+	}
+	sl := []string{e[0], e[1]}
+	return json.Marshal(sl)
 }
 
 var _ orm.Fielder = new(ActionRef)

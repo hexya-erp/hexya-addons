@@ -26,8 +26,9 @@ import (
 )
 
 type ResUsers struct {
-	LoginDate   time.Time
-	Partner     *ResPartner `orm:"rel(fk)"`
+	ID          int64
+	LoginDate   time.Time   `orm:"null"`
+	Partner     *ResPartner `orm:"rel(one)"`
 	Name        string
 	Login       string
 	Password    string
