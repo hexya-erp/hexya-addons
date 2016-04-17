@@ -14,13 +14,8 @@
 
 package res
 
-import "github.com/npiganeau/yep/yep/models"
-
-type ResCompany struct {
-	Name string
-}
-
-func initCompany() {
-	models.CreateModel("ResCompany")
-	models.ExtendModel("ResCompany", new(ResCompany))
+func init() {
+	initPartner()
+	initCompany()
+	initUsers()
 }

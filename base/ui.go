@@ -25,7 +25,7 @@ func createActions() {
 	ActionsRegistry = ir.NewActionsCollection()
 
 	dashboardAction := ir.BaseAction{
-		ID:    "base.action_dashboard",
+		ID:    "base_action_dashboard",
 		Type:  ir.ACTION_ACT_WINDOW,
 		Name:  "Dashboard",
 		Model: "Dashboard",
@@ -33,7 +33,7 @@ func createActions() {
 	ActionsRegistry.AddAction(&dashboardAction)
 
 	reportingConfigAction := ir.BaseAction{
-		ID:    "base.action_reporting_config",
+		ID:    "base_action_reporting_config",
 		Type:  ir.ACTION_ACT_WINDOW,
 		Name:  "Configuration",
 		Model: "DashboardSettings",
@@ -41,7 +41,7 @@ func createActions() {
 	ActionsRegistry.AddAction(&reportingConfigAction)
 
 	usersAction := ir.BaseAction{
-		ID:    "base.action_res_users",
+		ID:    "base_action_res_users",
 		Type:  ir.ACTION_ACT_WINDOW,
 		Name:  "Users",
 		Model: "ResUsers",
@@ -54,14 +54,14 @@ func createMenus() {
 
 	// Reporting Menu
 	menuReporting := ir.UiMenu{
-		ID:       "base.menu_reporting",
+		ID:       "base_menu_reporting",
 		Name:     "Reporting",
 		Sequence: 170,
 	}
 	TopMenu.AddMenu(&menuReporting)
 
 	menuDashboard := ir.UiMenu{
-		ID:       "base.menu_reporting_dashboard",
+		ID:       "base_menu_reporting_dashboard",
 		Name:     "Dashboards",
 		Parent:   &menuReporting,
 		Sequence: 0,
@@ -69,7 +69,7 @@ func createMenus() {
 	TopMenu.AddMenu(&menuDashboard)
 
 	menuMyDashboard := ir.UiMenu{
-		ID:       "base.menu_reporting_dashboard_my",
+		ID:       "base_menu_reporting_dashboard_my",
 		Name:     "My Dashboard",
 		Parent:   &menuDashboard,
 		Sequence: 0,
@@ -78,7 +78,7 @@ func createMenus() {
 	TopMenu.AddMenu(&menuMyDashboard)
 
 	menuConfiguration := ir.UiMenu{
-		ID:       "base.menu_reporting_config",
+		ID:       "base_menu_reporting_config",
 		Name:     "Configuration",
 		Parent:   &menuReporting,
 		Sequence: 100,
@@ -88,14 +88,14 @@ func createMenus() {
 
 	// Settings menu
 	menuSettings := ir.UiMenu{
-		ID:       "base.menu_administration",
+		ID:       "base_menu_administration",
 		Name:     "Settings",
 		Sequence: 255,
 	}
 	TopMenu.AddMenu(&menuSettings)
 
 	menuUsers := ir.UiMenu{
-		ID:       "base.menu_users",
+		ID:       "base_menu_users",
 		Name:     "Users",
 		Parent:   &menuSettings,
 		Sequence: 4,
@@ -103,7 +103,7 @@ func createMenus() {
 	TopMenu.AddMenu(&menuUsers)
 
 	menuActionUsers := ir.UiMenu{
-		ID:       "base.menu_action_users",
+		ID:       "base_menu_action_users",
 		Name:     "Users",
 		Parent:   &menuUsers,
 		Sequence: 1,

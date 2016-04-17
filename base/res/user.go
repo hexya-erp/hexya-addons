@@ -17,14 +17,30 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package base
+package res
 
-import "github.com/jinzhu/gorm"
+import (
+	"github.com/npiganeau/yep-addons/base/ir"
+	"github.com/npiganeau/yep/yep/models"
+	"time"
+)
 
-type BaseResUser struct {
-	gorm.Model
+type ResUsers struct {
+	LoginDate   time.Time
+	Partner     *ResPartner `orm:"rel(fk)"`
+	Name        string
+	Login       string
+	Password    string
+	NewPassword string
+	Signature   string
+	Active      bool
+	ActionId    ir.ActionRef `orm:"null;type(text)"`
+	//GroupsID *ir.Group
+	Company *ResCompany `orm:"rel(fk);null"`
+	//CompanyIDS []*Company
 }
 
-type ResUser struct {
-	BaseResUser `yep:"include"`
+func initUsers() {
+	models.CreateModel("ResUsers")
+	models.ExtendModel("ResUsers", new(ResUsers))
 }

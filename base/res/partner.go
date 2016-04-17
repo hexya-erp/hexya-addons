@@ -17,7 +17,12 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package base
+package res
+
+import (
+	"github.com/npiganeau/yep/yep/models"
+	"time"
+)
 
 /*
 import (
@@ -28,53 +33,37 @@ import (
 	"time"
 )
 
-type BaseResPartnerTitle struct {
-	gorm.Model
-}
-
-type ResPartnerTitle struct {
-	BaseResPartnerTitle `yep:"include"`
-}
-
-type BaseResPartnerCategory struct {
-	gorm.Model
-}
-
-type ResPartnerCategory struct {
-	BaseResPartnerCategory `yep:"include"`
-}
-
-type BaseResPartner struct {
-	gorm.Model
-	Name             string
-	Date             time.Time
-	Title            *ResPartnerTitle
-	Parent           *ResPartner
-	Children         []*ResPartner
-	Ref              string
-	Lang             string
-	TZ               string
-	TZOffset         string
-	User             *ResUser
-	VAT              string
-	Banks            []*ResPartnerBank
-	Website          string
-	Comment          string
-	Categories       []*ResPartnerCategory
-	CreditLimit      float64
-	EAN13            string
-	Active           bool
-	Customer         bool
-	Supplier         bool
-	Employee         bool
-	Function         string
-	Type             string
-	Street           string
-	Street2          string
-	Zip              string
-	City             string
-	State            *ResCountryState
-	Country          *ResCountry
+*/
+type ResPartner struct {
+	Name string
+	Date time.Time
+	//Title            *PartnerTitle
+	Parent   *ResPartner   `orm:"rel(fk)"`
+	Children []*ResPartner `orm:"reverse(many)"`
+	Ref      string
+	Lang     string
+	TZ       string
+	TZOffset string
+	User     *ResUsers `orm:"rel(fk)"`
+	VAT      string
+	//Banks            []*PartnerBank
+	Website string
+	Comment string
+	//Categories       []*PartnerCategory
+	CreditLimit float64
+	EAN13       string
+	Active      bool
+	Customer    bool
+	Supplier    bool
+	Employee    bool
+	Function    string
+	Type        string
+	Street      string
+	Street2     string
+	Zip         string
+	City        string
+	//State            *CountryState
+	//Country          *Country
 	Email            string
 	Phone            string
 	Fax              string
@@ -82,10 +71,10 @@ type BaseResPartner struct {
 	Birthdate        time.Time
 	IsCompany        bool
 	UseParentAddress bool
-	Image            image.Image
-	Company          *ResCompany
-	Color            color.Color
-	Users            []*ResUser
+	//Image            image.Image
+	//Company          *Company
+	//Color            color.Color
+	Users []*ResUsers `orm:"reverse(many)"`
 
 	//'has_image': fields.function(_has_image, type="boolean"),
 	//'company_id': fields.many2one('res.company', 'Company', select=1),
@@ -98,27 +87,7 @@ type BaseResPartner struct {
 
 }
 
-//type ResPartner struct {
-//	BaseResPartner `yep:"include"`
-//}
-//
-//func (brp *BaseResPartner) DisplayName() string {
-//	return brp.Name
-//}
-//
-//func (brp *BaseResPartner) ParentName() string {
-//	return brp.Parent.Name
-//}
-//
-//func (brp *BaseResPartner) HasImage() bool {
-//	return bool(brp.Image)
-//}
-//
-//func (brp *BaseResPartner) ContactAddress() string {
-//	return fmt.Sprintf("%s\n%s\n%s %s\n%s\n%s", brp.Street, brp.Street2, brp.Zip, brp.City, brp.State, brp.Country)
-//}
-//
-////func (brp *BaseResPartner) CommercialPartner() *ResPartner {
-//	return &ResPartner(*brp)
-//}
-*/
+func initPartner() {
+	models.CreateModel("ResPartner")
+	models.ExtendModel("ResPartner", new(ResPartner))
+}

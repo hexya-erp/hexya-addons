@@ -30,7 +30,7 @@ import (
 
 func WebClient(c *gin.Context) {
 	sess := sessions.Default(c)
-	sess.Set("uid", 1)
+	sess.Set("uid", int64(1))
 	sess.Set("ID", 123)
 	sess.Set("login", "admin")
 	ctx, _ := json.Marshal(&models.Context{"tz": "Europe/Paris", "lang": "en_US"})
@@ -134,12 +134,31 @@ func JSList(c *gin.Context) {
 
 func VersionInfo(c *gin.Context) {
 	data := gin.H{
-		"server_serie": "8.0",
+		"server_serie":        "8.0",
 		"server_version_info": []int8{8, 0, 0, 0, 0},
-		"server_version": "8.0",
-		"protocol": 1,
+		"server_version":      "8.0",
+		"protocol":            1,
 	}
 	server.RPC(c, http.StatusOK, data)
+}
+
+func CallKW(c *gin.Context) {
+	sess := sessions.Default(c)
+	uid := sess.Get("uid").(int64)
+	var params server.CallParams
+	server.BindRPCParams(c, &params)
+	res := server.Execute(uid, params)
+	server.RPC(c, http.StatusOK, res)
+}
+
+func ActionLoad(c *gin.Context) {
+	params := struct {
+		ActionID          string `json:"action_id"`
+		AdditionalContext string `json:"additional_context"`
+	}{}
+	server.BindRPCParams(c, &params)
+	action := base.ActionsRegistry.GetActionById(params.ActionID)
+	server.RPC(c, http.StatusOK, action)
 }
 
 func init() {
@@ -172,6 +191,14 @@ func init() {
 			webClient.POST("/csslist", CSSList)
 			webClient.POST("/jslist", JSList)
 			webClient.POST("/version_info", VersionInfo)
+		}
+		dataset := web.Group("/dataset")
+		{
+			dataset.POST("/call_kw/*path", CallKW)
+		}
+		action := web.Group("/action")
+		{
+			action.POST("/load", ActionLoad)
 		}
 	}
 }

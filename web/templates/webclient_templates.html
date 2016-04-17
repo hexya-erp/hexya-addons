@@ -136,8 +136,8 @@
     <a href="{{ if .HasAction }}{{ printf `/web#menu_id=%s&action=%s` (.ID) (.Action.ID) }}{{ end }}"
         class="{{ if .HasChildren }}oe_menu_toggler{{ else }}oe_menu_leaf{{ end }}"
         data-menu="{{ .ID }}"
-        action-model="{{ if .HasAction }}{{ .Action.Model }}{{ end }}"
-        action-id="{{ if .HasAction }}{{ .Action.ID }}{{ end }}">
+        data-action-model="{{ if .HasAction }}{{ .Action.Model }}{{ end }}"
+        data-action-id="{{ if .HasAction }}{{ .Action.ID }}{{ end }}">
         <span class="oe_menu_text">
             {{ .Name }}
         </span>
@@ -153,7 +153,7 @@
         <div>
             <div class="oe_secondary_menus_container">
                 {{ range .Menus }}
-                    <div style="display: none" class="oe_secondary_menu" menu-parent="{{ .ID }}">
+                    <div style="display: none" class="oe_secondary_menu" data-menu-parent="{{ .ID }}">
                         {{ if .HasChildren }}
                             {{ range .Children.Menus }}
                                 <div class="oe_secondary_menu_section">

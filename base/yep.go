@@ -21,6 +21,7 @@ package base
 
 import (
 	_ "github.com/npiganeau/yep-addons/base/controllers"
+	_ "github.com/npiganeau/yep-addons/base/res"
 	"github.com/npiganeau/yep/yep/server"
 )
 
