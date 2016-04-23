@@ -20,7 +20,7 @@
 package res
 
 import (
-	"github.com/npiganeau/yep-addons/base/ir"
+	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 	"time"
 )
@@ -39,6 +39,7 @@ type ResUsers struct {
 	//GroupsID *ir.Group
 	Company *ResCompany `orm:"rel(fk);null"`
 	//CompanyIDS []*Company
+	ImageSmall string `orm:"type(text)"`
 }
 
 func initUsers() {

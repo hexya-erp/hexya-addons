@@ -15,11 +15,10 @@
 package base
 
 import (
-	"github.com/npiganeau/yep-addons/base/ir"
+	"github.com/npiganeau/yep/yep/ir"
 )
 
 func createActions() {
-	ir.ActionsRegistry = ir.NewActionsCollection()
 
 	dashboardAction := ir.BaseAction{
 		ID:    "base_action_dashboard",
@@ -37,17 +36,9 @@ func createActions() {
 	}
 	ir.ActionsRegistry.AddAction(&reportingConfigAction)
 
-	usersAction := ir.BaseAction{
-		ID:    "base_action_res_users",
-		Type:  ir.ACTION_ACT_WINDOW,
-		Name:  "Users",
-		Model: "ResUsers",
-	}
-	ir.ActionsRegistry.AddAction(&usersAction)
 }
 
 func createMenus() {
-	ir.TopMenu = new(ir.MenuCollection)
 
 	// Reporting Menu
 	menuReporting := ir.UiMenu{
@@ -55,7 +46,7 @@ func createMenus() {
 		Name:     "Reporting",
 		Sequence: 170,
 	}
-	ir.TopMenu.AddMenu(&menuReporting)
+	ir.MenusRegistry.AddMenu(&menuReporting)
 
 	menuDashboard := ir.UiMenu{
 		ID:       "base_menu_reporting_dashboard",
@@ -63,7 +54,7 @@ func createMenus() {
 		Parent:   &menuReporting,
 		Sequence: 0,
 	}
-	ir.TopMenu.AddMenu(&menuDashboard)
+	ir.MenusRegistry.AddMenu(&menuDashboard)
 
 	menuMyDashboard := ir.UiMenu{
 		ID:       "base_menu_reporting_dashboard_my",
@@ -72,39 +63,6 @@ func createMenus() {
 		Sequence: 0,
 		Action:   ir.ActionsRegistry.GetActionById("base_action_dashboard"),
 	}
-	ir.TopMenu.AddMenu(&menuMyDashboard)
+	ir.MenusRegistry.AddMenu(&menuMyDashboard)
 
-	menuConfiguration := ir.UiMenu{
-		ID:       "base_menu_reporting_config",
-		Name:     "Configuration",
-		Parent:   &menuReporting,
-		Sequence: 100,
-		Action:   ir.ActionsRegistry.GetActionById("base_action_reporting_config"),
-	}
-	ir.TopMenu.AddMenu(&menuConfiguration)
-
-	// Settings menu
-	menuSettings := ir.UiMenu{
-		ID:       "base_menu_administration",
-		Name:     "Settings",
-		Sequence: 255,
-	}
-	ir.TopMenu.AddMenu(&menuSettings)
-
-	menuUsers := ir.UiMenu{
-		ID:       "base_menu_users",
-		Name:     "Users",
-		Parent:   &menuSettings,
-		Sequence: 4,
-	}
-	ir.TopMenu.AddMenu(&menuUsers)
-
-	menuActionUsers := ir.UiMenu{
-		ID:       "base_menu_action_users",
-		Name:     "Users",
-		Parent:   &menuUsers,
-		Sequence: 1,
-		Action:   ir.ActionsRegistry.GetActionById("base_action_res_users"),
-	}
-	ir.TopMenu.AddMenu(&menuActionUsers)
 }

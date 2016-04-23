@@ -16,16 +16,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/npiganeau/yep-addons/base/ir"
-	"github.com/npiganeau/yep/yep/models"
+	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/server"
 	"github.com/npiganeau/yep/yep/tools"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
 )
 
 func WebClient(c *gin.Context) {
@@ -33,136 +30,13 @@ func WebClient(c *gin.Context) {
 	sess.Set("uid", int64(1))
 	sess.Set("ID", 123)
 	sess.Set("login", "admin")
-	ctx, _ := json.Marshal(&models.Context{"tz": "Europe/Paris", "lang": "en_US"})
+	ctx, _ := json.Marshal(&tools.Context{"tz": "Europe/Paris", "lang": "en_US"})
 	sess.Set("user_context", ctx)
 	sess.Save()
 	data := gin.H{
-		"Menu": ir.TopMenu,
+		"Menu": ir.MenusRegistry,
 	}
 	c.HTML(http.StatusOK, "web.webclient_bootstrap", data)
-}
-
-func CompanyLogo(c *gin.Context) {
-	c.File("config/img/logo.png")
-}
-
-func SessionInfo(sess sessions.Session) gin.H {
-	var userContext models.Context
-	if sess.Get("uid") != nil && sess.Get("user_context") != nil {
-		if json.Unmarshal(sess.Get("user_context").([]byte), &userContext) != nil {
-			userContext = models.Context{}
-		}
-	}
-	return gin.H{
-		"session_id":   sess.Get("ID"),
-		"uid":          sess.Get("uid"),
-		"user_context": userContext,
-		"db":           "default",
-		"username":     sess.Get("login"),
-		"company_id":   1,
-	}
-}
-
-func GetSessionInfo(c *gin.Context) {
-	sess := sessions.Default(c)
-	server.RPC(c, http.StatusOK, SessionInfo(sess))
-}
-
-func Modules(c *gin.Context) {
-	mods := make([]string, len(server.Modules))
-	for i, m := range server.Modules {
-		mods[i] = m.Name
-	}
-	server.RPC(c, http.StatusOK, mods)
-}
-
-func Load(c *gin.Context) {
-	qwebParams := struct {
-		Path string `json:"path"`
-	}{}
-	server.BindRPCParams(c, &qwebParams)
-	path, _ := url.ParseRequestURI(qwebParams.Path)
-	targetURL := tools.AbsolutizeURL(c.Request, path.RequestURI())
-	resp, err := http.Get(targetURL)
-	if err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	server.RPC(c, http.StatusOK, string(body))
-}
-
-func QWeb(c *gin.Context) {
-	mods := strings.Split(c.Query("mods"), ",")
-	fileNames := tools.ListStaticFiles("src/xml", mods)
-	res, _ := tools.ConcatXML(fileNames)
-	c.String(http.StatusOK, string(res))
-}
-
-func BootstrapTranslations(c *gin.Context) {
-	res := gin.H{
-		"lang_parameters": tools.LangParameters{
-			DateFormat:   "%m/%d/%Y",
-			Direction:    tools.LANG_DIRECTION_LTR,
-			ThousandsSep: ",",
-			TimeFormat:   "%H:%M:%S",
-			DecimalPoint: ".",
-			ID:           1,
-			Grouping:     "[]",
-		},
-		"modules": gin.H{},
-	}
-	server.RPC(c, http.StatusOK, res)
-}
-
-func CSSList(c *gin.Context) {
-	Params := struct {
-		Mods string `json:"mods"`
-	}{}
-	server.BindRPCParams(c, &Params)
-	mods := strings.Split(Params.Mods, ",")
-	fileNames := tools.ListStaticFiles("src/css", mods)
-	server.RPC(c, http.StatusOK, fileNames)
-}
-
-func JSList(c *gin.Context) {
-	Params := struct {
-		Mods string `json:"mods"`
-	}{}
-	server.BindRPCParams(c, &Params)
-	mods := strings.Split(Params.Mods, ",")
-	fileNames := tools.ListStaticFiles("src/js", mods)
-	server.RPC(c, http.StatusOK, fileNames)
-}
-
-func VersionInfo(c *gin.Context) {
-	data := gin.H{
-		"server_serie":        "8.0",
-		"server_version_info": []int8{8, 0, 0, 0, 0},
-		"server_version":      "8.0",
-		"protocol":            1,
-	}
-	server.RPC(c, http.StatusOK, data)
-}
-
-func CallKW(c *gin.Context) {
-	sess := sessions.Default(c)
-	uid := sess.Get("uid").(int64)
-	var params server.CallParams
-	server.BindRPCParams(c, &params)
-	res := server.Execute(uid, params)
-	server.RPC(c, http.StatusOK, res)
-}
-
-func ActionLoad(c *gin.Context) {
-	params := struct {
-		ActionID          string `json:"action_id"`
-		AdditionalContext string `json:"additional_context"`
-	}{}
-	server.BindRPCParams(c, &params)
-	action := ir.ActionsRegistry.GetActionById(params.ActionID)
-	server.RPC(c, http.StatusOK, action)
 }
 
 func init() {
@@ -173,8 +47,13 @@ func init() {
 	web := server.Group("/web")
 	{
 		web.Static("/static", "yep/server/static/web/")
+
 		web.GET("/", WebClient)
-		web.GET("/binary/company_logo", CompanyLogo)
+		binary := web.Group("/binary")
+		{
+			binary.GET("/company_logo", CompanyLogo)
+			binary.GET("/image", Image)
+		}
 
 		sess := web.Group("/session")
 		{

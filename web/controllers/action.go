@@ -12,38 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package res
+package controllers
 
 import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 	"github.com/npiganeau/yep/yep/ir"
-	"github.com/npiganeau/yep/yep/models"
+	"github.com/npiganeau/yep/yep/server"
 	"github.com/npiganeau/yep/yep/tools"
 )
 
-func init() {
-	initPartner()
-	initCompany()
-	initUsers()
-}
-
-func PostInit() {
-	env := models.NewCursorEnvironment(tools.SUPERUSER_ID)
-	companyBase := ResCompany{
-		Name: "Your Company",
-	}
-	partnerAdmin := ResPartner{
-		Name: "Administrator",
-	}
-	userAdmin := ResUsers{
-		Name:     "Administrator",
-		Active:   true,
-		Company:  &companyBase,
-		Login:    "admin",
-		Password: "admin",
-		Partner:  &partnerAdmin,
-		ActionId: ir.MakeActionRef("base_action_res_users"),
-	}
-	env.Pool("ResPartner").Call("Create", &partnerAdmin)
-	env.Pool("ResCompany").Call("Create", &companyBase)
-	env.Pool("ResUsers").Call("Create", &userAdmin)
+func ActionLoad(c *gin.Context) {
+	params := struct {
+		ActionID          string        `json:"action_id"`
+		AdditionalContext tools.Context `json:"additional_context"`
+	}{}
+	server.BindRPCParams(c, &params)
+	action := ir.ActionsRegistry.GetActionById(params.ActionID)
+	server.RPC(c, http.StatusOK, action)
 }
