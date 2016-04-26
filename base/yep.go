@@ -21,8 +21,7 @@ package base
 
 import (
 	_ "github.com/npiganeau/yep-addons/base/controllers"
-	"github.com/npiganeau/yep-addons/base/res"
-	_ "github.com/npiganeau/yep-addons/base/res"
+	"github.com/npiganeau/yep-addons/base/defs"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/server"
 )
@@ -55,5 +54,5 @@ func init() {
 }
 
 func PostInit() {
-	res.PostInit()
+	defs.PostInit()
 }

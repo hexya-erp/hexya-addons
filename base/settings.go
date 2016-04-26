@@ -47,7 +47,7 @@ func createSettings() {
 			<tree string="Users">
 				<field name="Name"/>
 				<field name="Login"/>
-				<field name="Lang"/>
+			<!--    <field name="Lang"/> -->
 				<field name="LoginDate"/>
 			</tree>`,
 	}
@@ -59,8 +59,8 @@ func createSettings() {
 		Model: "ResUsers",
 		Arch: `
 			<search string="Users">
-            	<field name="name" filter_domain="['|', '|', ('name','ilike',self), ('login','ilike',self), ('email','ilike',self)]" string="User"/>
-                <field name="company_ids" string="Company" groups="base_group_multi_company"/>
+            	<field name="Name" filter_domain="['|', '|', ('Name','ilike',self), ('Login','ilike',self), ('Email','ilike',self)]" string="User"/>
+                <field name="CompanyIds" string="Company"/><!-- groups="base_group_multi_company"/>-->
             </search>`,
 	}
 	ir.ViewsRegistry.AddView(&usersViewSearch)
@@ -84,4 +84,51 @@ func createSettings() {
 		Action:   &usersAction,
 	}
 	ir.MenusRegistry.AddMenu(&menuActionUsers)
+
+	// Partners
+	partnersViewTree := ir.View{
+		ID:    "base_view_partner_tree",
+		Name:  "res.partner.tree",
+		Model: "ResPartner",
+		Arch: `
+			<tree string="Users">
+				<field name="Name"/>
+			    <field name="Function"/>
+			    <field name="Lang"/>
+			    <field name="Ref"/>
+			</tree>`,
+	}
+	ir.ViewsRegistry.AddView(&partnersViewTree)
+
+	partnersViewSearch := ir.View{
+		ID:    "base_view_partner_search",
+		Name:  "res.partner.search",
+		Model: "ResPartner",
+		Arch: `
+			<search string="Partners">
+            	<field name="Name" filter_domain="['|', '|', ('Name','ilike',self), ('Email','ilike',self)]" string="Partner"/>
+            </search>`,
+	}
+	ir.ViewsRegistry.AddView(&partnersViewSearch)
+
+	partnersAction := ir.BaseAction{
+		ID:         "base_action_res_partner",
+		Type:       ir.ACTION_ACT_WINDOW,
+		Name:       "Partners",
+		Model:      "ResPartner",
+		View:       ir.MakeViewRef("base_view_partner_tree"),
+		SearchView: ir.MakeViewRef("base_view_partner_search"),
+		ViewMode:   "list",
+	}
+	ir.ActionsRegistry.AddAction(&partnersAction)
+
+	menuActionPartners := ir.UiMenu{
+		ID:       "base_menu_action_partner",
+		Name:     "Partners",
+		Parent:   &menuUsers,
+		Sequence: 1,
+		Action:   &partnersAction,
+	}
+	ir.MenusRegistry.AddMenu(&menuActionPartners)
+
 }

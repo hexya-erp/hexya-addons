@@ -78,6 +78,7 @@ func init() {
 		dataset := web.Group("/dataset")
 		{
 			dataset.POST("/call_kw/*path", CallKW)
+			dataset.POST("/search_read", SearchRead)
 		}
 		action := web.Group("/action")
 		{

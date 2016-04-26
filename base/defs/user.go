@@ -17,7 +17,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
-package res
+package defs
 
 import (
 	"github.com/npiganeau/yep/yep/ir"
@@ -29,7 +29,7 @@ type ResUsers struct {
 	ID          int64
 	LoginDate   time.Time   `orm:"null"`
 	Partner     *ResPartner `orm:"rel(one)"`
-	Name        string
+	Name        string      `json:"name"`
 	Login       string
 	Password    string
 	NewPassword string
@@ -37,9 +37,9 @@ type ResUsers struct {
 	Active      bool
 	ActionId    ir.ActionRef `orm:"null;type(text)"`
 	//GroupsID *ir.Group
-	Company *ResCompany `orm:"rel(fk);null"`
-	//CompanyIDS []*Company
-	ImageSmall string `orm:"type(text)"`
+	Company    *ResCompany   `orm:"rel(fk);null"`
+	CompanyIds []*ResCompany `orm:"rel(m2m)" json:"company_ids"`
+	ImageSmall string        `orm:"type(text)"`
 }
 
 func initUsers() {

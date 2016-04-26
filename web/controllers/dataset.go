@@ -15,10 +15,11 @@
 package controllers
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/npiganeau/yep/yep/server"
-	"net/http"
 )
 
 func CallKW(c *gin.Context) {
@@ -27,5 +28,14 @@ func CallKW(c *gin.Context) {
 	var params server.CallParams
 	server.BindRPCParams(c, &params)
 	res := server.Execute(uid, params)
+	server.RPC(c, http.StatusOK, res)
+}
+
+func SearchRead(c *gin.Context) {
+	sess := sessions.Default(c)
+	uid := sess.Get("uid").(int64)
+	var params server.SearchParams
+	server.BindRPCParams(c, &params)
+	res := server.SearchRead(uid, params)
 	server.RPC(c, http.StatusOK, res)
 }
