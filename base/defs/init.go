@@ -18,6 +18,7 @@ import (
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/tools"
+	"time"
 )
 
 func init() {
@@ -33,16 +34,18 @@ func PostInit() {
 		Name: "Your Company",
 	}
 	partnerAdmin := ResPartner{
-		Name: "Administrator",
+		Name:     "Administrator",
+		Function: "IT Manager",
 	}
 	userAdmin := ResUsers{
-		Name:     "Administrator",
-		Active:   true,
-		Company:  &companyBase,
-		Login:    "admin",
-		Password: "admin",
-		Partner:  &partnerAdmin,
-		ActionId: ir.MakeActionRef("base_action_res_users"),
+		Name:      "Administrator",
+		Active:    true,
+		Company:   &companyBase,
+		Login:     "admin",
+		LoginDate: time.Now(),
+		Password:  "admin",
+		Partner:   &partnerAdmin,
+		ActionId:  ir.MakeActionRef("base_action_res_users"),
 	}
 	env.Pool("ResPartner").Call("Create", &partnerAdmin)
 	env.Pool("ResCompany").Call("Create", &companyBase)

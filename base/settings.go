@@ -48,7 +48,8 @@ func createSettings() {
 				<field name="Name"/>
 				<field name="Login"/>
 			<!--    <field name="Lang"/> -->
-				<field name="LoginDate"/>
+			<!--	<field name="LoginDate"/> -->
+				<field name="Active"/>
 			</tree>`,
 	}
 	ir.ViewsRegistry.AddView(&usersViewTree)
