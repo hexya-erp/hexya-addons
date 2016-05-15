@@ -26,6 +26,7 @@ func init() {
 	initCompany()
 	initUsers()
 	initFilters()
+	initAttachment()
 }
 
 func PostInit() {
