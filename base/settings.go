@@ -54,6 +54,26 @@ func createSettings() {
 	}
 	ir.ViewsRegistry.AddView(&usersViewTree)
 
+	usersViewForm := ir.View{
+		ID:    "base_view_users_form",
+		Name:  "res.users.form",
+		Model: "ResUsers",
+		Arch: `
+			<form string="Users">
+			<header></header>
+			<sheet>
+				<group>
+					<field name="Name"/>
+					<field name="Login"/>
+				<!--    <field name="Lang"/> -->
+				<!--	<field name="LoginDate"/> -->
+					<field name="Active"/>
+				</group>
+			</sheet>
+			</form>`,
+	}
+	ir.ViewsRegistry.AddView(&usersViewForm)
+
 	usersViewSearch := ir.View{
 		ID:    "base_view_users_search",
 		Name:  "res.users.search",
@@ -73,7 +93,7 @@ func createSettings() {
 		Model:      "ResUsers",
 		View:       ir.MakeViewRef("base_view_users_tree"),
 		SearchView: ir.MakeViewRef("base_view_users_search"),
-		ViewMode:   "list",
+		ViewMode:   "tree,form",
 	}
 	ir.ActionsRegistry.AddAction(&usersAction)
 
@@ -119,7 +139,7 @@ func createSettings() {
 		Model:      "ResPartner",
 		View:       ir.MakeViewRef("base_view_partner_tree"),
 		SearchView: ir.MakeViewRef("base_view_partner_search"),
-		ViewMode:   "list",
+		ViewMode:   "tree",
 	}
 	ir.ActionsRegistry.AddAction(&partnersAction)
 

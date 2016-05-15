@@ -15,54 +15,54 @@
 package base
 
 import (
-	"github.com/npiganeau/yep/yep/ir"
+//"github.com/npiganeau/yep/yep/ir"
 )
 
 func createActions() {
-
-	dashboardAction := ir.BaseAction{
-		ID:    "base_action_dashboard",
-		Type:  ir.ACTION_ACT_WINDOW,
-		Name:  "Dashboard",
-		Model: "Dashboard",
-	}
-	ir.ActionsRegistry.AddAction(&dashboardAction)
-
-	reportingConfigAction := ir.BaseAction{
-		ID:    "base_action_reporting_config",
-		Type:  ir.ACTION_ACT_WINDOW,
-		Name:  "Configuration",
-		Model: "DashboardSettings",
-	}
-	ir.ActionsRegistry.AddAction(&reportingConfigAction)
-
+	//
+	//dashboardAction := ir.BaseAction{
+	//	ID:    "base_action_dashboard",
+	//	Type:  ir.ACTION_ACT_WINDOW,
+	//	Name:  "Dashboard",
+	//	Model: "Dashboard",
+	//}
+	//ir.ActionsRegistry.AddAction(&dashboardAction)
+	//
+	//reportingConfigAction := ir.BaseAction{
+	//	ID:    "base_action_reporting_config",
+	//	Type:  ir.ACTION_ACT_WINDOW,
+	//	Name:  "Configuration",
+	//	Model: "DashboardSettings",
+	//}
+	//ir.ActionsRegistry.AddAction(&reportingConfigAction)
+	//
 }
 
 func createMenus() {
 
-	// Reporting Menu
-	menuReporting := ir.UiMenu{
-		ID:       "base_menu_reporting",
-		Name:     "Reporting",
-		Sequence: 170,
-	}
-	ir.MenusRegistry.AddMenu(&menuReporting)
-
-	menuDashboard := ir.UiMenu{
-		ID:       "base_menu_reporting_dashboard",
-		Name:     "Dashboards",
-		Parent:   &menuReporting,
-		Sequence: 0,
-	}
-	ir.MenusRegistry.AddMenu(&menuDashboard)
-
-	menuMyDashboard := ir.UiMenu{
-		ID:       "base_menu_reporting_dashboard_my",
-		Name:     "My Dashboard",
-		Parent:   &menuDashboard,
-		Sequence: 0,
-		Action:   ir.ActionsRegistry.GetActionById("base_action_dashboard"),
-	}
-	ir.MenusRegistry.AddMenu(&menuMyDashboard)
+	//// Reporting Menu
+	//menuReporting := ir.UiMenu{
+	//	ID:       "base_menu_reporting",
+	//	Name:     "Reporting",
+	//	Sequence: 170,
+	//}
+	//ir.MenusRegistry.AddMenu(&menuReporting)
+	//
+	//menuDashboard := ir.UiMenu{
+	//	ID:       "base_menu_reporting_dashboard",
+	//	Name:     "Dashboards",
+	//	Parent:   &menuReporting,
+	//	Sequence: 0,
+	//}
+	//ir.MenusRegistry.AddMenu(&menuDashboard)
+	//
+	//menuMyDashboard := ir.UiMenu{
+	//	ID:       "base_menu_reporting_dashboard_my",
+	//	Name:     "My Dashboard",
+	//	Parent:   &menuDashboard,
+	//	Sequence: 0,
+	//	Action:   ir.ActionsRegistry.GetActionById("base_action_dashboard"),
+	//}
+	//ir.MenusRegistry.AddMenu(&menuMyDashboard)
 
 }
