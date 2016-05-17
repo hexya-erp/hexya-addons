@@ -22,7 +22,6 @@ package base
 import (
 	_ "github.com/npiganeau/yep-addons/base/controllers"
 	"github.com/npiganeau/yep-addons/base/defs"
-	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/server"
 )
 
@@ -43,14 +42,6 @@ The kernel of YEP, needed for all installation
 
 func init() {
 	server.RegisterModule(&server.Module{Name: MODULE_NAME, PostInit: PostInit})
-
-	ir.ActionsRegistry = ir.NewActionsCollection()
-	ir.MenusRegistry = new(ir.MenuCollection)
-	ir.ViewsRegistry = ir.NewViewsCollection()
-
-	createSettings()
-	createActions()
-	createMenus()
 }
 
 func PostInit() {
