@@ -84,5 +84,9 @@ func init() {
 		{
 			action.POST("/load", ActionLoad)
 		}
+		menu := web.Group("/menu")
+		{
+			menu.POST("/load_needaction", MenuLoadNeedaction)
+		}
 	}
 }
