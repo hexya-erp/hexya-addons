@@ -20,15 +20,17 @@
 package defs
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
-	"time"
 )
 
 type ResUsers struct {
 	ID          int64
 	LoginDate   time.Time   `orm:"null"`
-	Partner     *ResPartner `orm:"rel(one)"`
+	Partner     *ResPartner `orm:"rel(one);null"`
 	Name        string      `json:"name"`
 	Login       string
 	Password    string
@@ -39,10 +41,21 @@ type ResUsers struct {
 	//GroupsID *ir.Group
 	Company    *ResCompany   `orm:"rel(fk);null"`
 	CompanyIds []*ResCompany `orm:"rel(m2m)" json:"company_ids"`
-	ImageSmall string        `orm:"type(text)"`
+	ImageSmall string        `orm:"type(text);null"`
+}
+
+func NameGet(rs models.RecordSet) string {
+	res := rs.Super()
+	user := struct {
+		ID    int64
+		Login string
+	}{}
+	rs.ReadOne(&user)
+	return fmt.Sprintf("%s (%s)", res, user.Login)
 }
 
 func initUsers() {
 	models.CreateModel("ResUsers")
 	models.ExtendModel("ResUsers", new(ResUsers))
+	models.DeclareMethod("ResUsers", "NameGet", NameGet)
 }
