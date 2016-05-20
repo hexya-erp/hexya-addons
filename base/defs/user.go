@@ -40,7 +40,7 @@ type ResUsers struct {
 	ActionId    ir.ActionRef `orm:"null;type(text)"`
 	//GroupsID *ir.Group
 	Company    *ResCompany   `orm:"rel(fk);null"`
-	CompanyIds []*ResCompany `orm:"rel(m2m)" json:"company_ids"`
+	CompanyIds []*ResCompany `orm:"rel(m2m)" yep:"json(company_ids)"`
 	ImageSmall string        `orm:"type(text);null"`
 }
 
