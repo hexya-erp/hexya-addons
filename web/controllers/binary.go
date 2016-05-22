@@ -34,9 +34,9 @@ func Image(c *gin.Context) {
 	id, err := strconv.ParseInt(c.Query("id"), 10, 64)
 	sess := sessions.Default(c)
 	uid := sess.Get("uid").(int64)
-	img := server.GetFieldValue(uid, id, model, field)
+	img, gErr := server.GetFieldValue(uid, id, model, field)
 	res, err := base64.StdEncoding.DecodeString(img.(string))
-	if err != nil {
+	if err != nil || gErr != nil {
 		c.Error(fmt.Errorf("Unable to fetch image"))
 		return
 	}

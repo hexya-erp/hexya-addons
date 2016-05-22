@@ -27,8 +27,8 @@ func CallKW(c *gin.Context) {
 	uid := sess.Get("uid").(int64)
 	var params server.CallParams
 	server.BindRPCParams(c, &params)
-	res := server.Execute(uid, params)
-	server.RPC(c, http.StatusOK, res)
+	res, err := server.Execute(uid, params)
+	server.RPC(c, http.StatusOK, res, err)
 }
 
 func SearchRead(c *gin.Context) {
@@ -36,6 +36,6 @@ func SearchRead(c *gin.Context) {
 	uid := sess.Get("uid").(int64)
 	var params server.SearchReadParams
 	server.BindRPCParams(c, &params)
-	res := server.SearchRead(uid, params)
-	server.RPC(c, http.StatusOK, res)
+	res, err := server.SearchRead(uid, params)
+	server.RPC(c, http.StatusOK, res, err)
 }
