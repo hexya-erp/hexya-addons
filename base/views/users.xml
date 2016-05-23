@@ -42,8 +42,8 @@
             <field name="arch" type="xml">
                 <search string="Users">
                     <field name="Name"
-                           filter_domain="['|', '|', ('Name','ilike',self), ('Login','ilike',self), ('Email','ilike',self)]"
-                           string="User"/>
+                           filter_domain="['|', ('Name','ilike',self), ('Login','ilike',self)]"
+                           string="User"/><!--, ('Email','ilike',self)]"-->
                     <field name="CompanyIds" string="Company"/><!-- groups="base_group_multi_company"/>-->
                 </search>
             </field>
