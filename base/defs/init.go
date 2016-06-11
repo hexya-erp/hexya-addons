@@ -14,13 +14,6 @@
 
 package defs
 
-import (
-	"github.com/npiganeau/yep/yep/ir"
-	"github.com/npiganeau/yep/yep/models"
-	"github.com/npiganeau/yep/yep/tools"
-	"time"
-)
-
 func init() {
 	initPartner()
 	initCompany()
@@ -30,25 +23,25 @@ func init() {
 }
 
 func PostInit() {
-	env := models.NewCursorEnvironment(tools.SUPERUSER_ID)
-	companyBase := ResCompany{
-		Name: "Your Company",
-	}
-	partnerAdmin := ResPartner{
-		Name:     "Administrator",
-		Function: "IT Manager",
-	}
-	userAdmin := ResUsers{
-		Name:      "Administrator",
-		Active:    true,
-		Company:   &companyBase,
-		Login:     "admin",
-		LoginDate: time.Now(),
-		Password:  "admin",
-		Partner:   &partnerAdmin,
-		ActionId:  ir.MakeActionRef("base_action_res_users"),
-	}
-	env.Pool("ResPartner").Call("Create", &partnerAdmin)
-	env.Pool("ResCompany").Call("Create", &companyBase)
-	env.Pool("ResUsers").Call("Create", &userAdmin)
+	//env := models.NewCursorEnvironment(tools.SUPERUSER_ID)
+	//companyBase := ResCompany{
+	//	Name: "Your Company",
+	//}
+	//partnerAdmin := ResPartner{
+	//	Name:     "Administrator",
+	//	Function: "IT Manager",
+	//}
+	//userAdmin := ResUsers{
+	//	Name:      "Administrator",
+	//	Active:    true,
+	//	Company:   &companyBase,
+	//	Login:     "admin",
+	//	LoginDate: time.Now(),
+	//	Password:  "admin",
+	//	Partner:   &partnerAdmin,
+	//	ActionId:  ir.MakeActionRef("base_action_res_users"),
+	//}
+	//env.Pool("ResPartner").Call("Create", &partnerAdmin)
+	//env.Pool("ResCompany").Call("Create", &companyBase)
+	//env.Pool("ResUsers").Call("Create", &userAdmin)
 }

@@ -20,7 +20,6 @@
 package defs
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/npiganeau/yep/yep/ir"
@@ -45,13 +44,14 @@ type ResUsers struct {
 }
 
 func NameGet(rs models.RecordSet) string {
-	res := rs.Super()
-	user := struct {
-		ID    int64
-		Login string
-	}{}
-	rs.ReadOne(&user)
-	return fmt.Sprintf("%s (%s)", res, user.Login)
+	//res := rs.Super()
+	//user := struct {
+	//	ID    int64
+	//	Login string
+	//}{}
+	//rs.ReadOne(&user)
+	//return fmt.Sprintf("%s (%s)", res, user.Login)
+	return "Foo"
 }
 
 func initUsers() {

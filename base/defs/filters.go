@@ -37,8 +37,8 @@ type IrFilters struct {
 
 func GetFilters(rs models.RecordSet, modelName, actionID string) []*IrFilters {
 	var res []*IrFilters
-	actRef := ir.MakeActionRef(actionID)
-	rs.Filter("Model", modelName).Filter("ActionId", actRef.String()).Filter("User__ID", rs.Env().Uid()).ReadAll(&res)
+	//actRef := ir.MakeActionRef(actionID)
+	//rs.Filter("Model", modelName).Filter("ActionId", actRef.String()).Filter("User__ID", rs.Env().Uid()).ReadAll(&res)
 	return res
 }
 
