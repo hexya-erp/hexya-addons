@@ -27,18 +27,18 @@ import (
 type IrFilters struct {
 	ID        int64
 	Model     string
-	Domain    string `orm:"type(text)"`
-	Context   string `orm:"type(text)"`
+	Domain    string
+	Context   string
 	Name      string
 	IsDefault bool
-	User      *ResUsers    `orm:"rel(fk)"`
-	ActionId  ir.ActionRef `orm:"null;type(text)"`
+	User      *ResUsers
+	ActionId  ir.ActionRef `yep:"type(char)"`
 }
 
 func GetFilters(rs models.RecordSet, modelName, actionID string) []*IrFilters {
 	var res []*IrFilters
-	//actRef := ir.MakeActionRef(actionID)
-	//rs.Filter("Model", modelName).Filter("ActionId", actRef.String()).Filter("User__ID", rs.Env().Uid()).ReadAll(&res)
+	actRef := ir.MakeActionRef(actionID)
+	rs.Filter("Model", "=", modelName).Filter("ActionId", "=", actRef.String()).Filter("User.ID", "=", rs.Env().Uid()).ReadAll(&res)
 	return res
 }
 

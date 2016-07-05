@@ -20,6 +20,7 @@
 package defs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/npiganeau/yep/yep/ir"
@@ -28,30 +29,29 @@ import (
 
 type ResUsers struct {
 	ID          int64
-	LoginDate   time.Time   `orm:"null"`
-	Partner     *ResPartner `orm:"rel(one);null"`
-	Name        string      `json:"name"`
+	LoginDate   time.Time `yep:"type(datetime)"`
+	Partner     *ResPartner
+	Name        string
 	Login       string
 	Password    string
 	NewPassword string
 	Signature   string
 	Active      bool
-	ActionId    ir.ActionRef `orm:"null;type(text)"`
+	ActionId    ir.ActionRef `yep:"type(char)"`
 	//GroupsID *ir.Group
-	Company    *ResCompany   `orm:"rel(fk);null"`
-	CompanyIds []*ResCompany `orm:"rel(m2m)" yep:"json(company_ids)"`
-	ImageSmall string        `orm:"type(text);null"`
+	Company    *ResCompany
+	CompanyIds []*ResCompany `yep:"json(company_ids);type(many2many)"`
+	ImageSmall string
 }
 
 func NameGet(rs models.RecordSet) string {
-	//res := rs.Super()
-	//user := struct {
-	//	ID    int64
-	//	Login string
-	//}{}
-	//rs.ReadOne(&user)
-	//return fmt.Sprintf("%s (%s)", res, user.Login)
-	return "Foo"
+	res := rs.Super()
+	user := struct {
+		ID    int64
+		Login string
+	}{}
+	rs.ReadOne(&user)
+	return fmt.Sprintf("%s (%s)", res, user.Login)
 }
 
 func initUsers() {

@@ -20,32 +20,23 @@
 package defs
 
 import (
+	"time"
+
 	"github.com/npiganeau/yep/yep/models"
-	"time"
 )
 
-/*
-import (
-	"fmt"
-	"github.com/jinzhu/gorm"
-	"image"
-	"image/color"
-	"time"
-)
-
-*/
 type ResPartner struct {
 	ID   int64
 	Name string
-	Date time.Time `orm:"null"`
+	Date time.Time `yep:"type(date)"`
 	//Title            *PartnerTitle
-	Parent   *ResPartner   `orm:"rel(fk);null"`
-	Children []*ResPartner `orm:"reverse(many);null"`
+	Parent   *ResPartner
+	Children []*ResPartner `yep:"type(one2many)"`
 	Ref      string
 	Lang     string
 	TZ       string
 	TZOffset string
-	User     *ResUsers `orm:"reverse(one);null"`
+	User     *ResUsers
 	VAT      string
 	//Banks            []*PartnerBank
 	Website string
@@ -69,7 +60,7 @@ type ResPartner struct {
 	Phone            string
 	Fax              string
 	Mobile           string
-	Birthdate        time.Time `orm:"null"`
+	Birthdate        time.Time `yep:"type(date)"`
 	IsCompany        bool
 	UseParentAddress bool
 	//Image            image.Image

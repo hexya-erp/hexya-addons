@@ -14,6 +14,14 @@
 
 package defs
 
+import (
+	"time"
+
+	"github.com/npiganeau/yep/yep/ir"
+	"github.com/npiganeau/yep/yep/models"
+	"github.com/npiganeau/yep/yep/tools"
+)
+
 func init() {
 	initPartner()
 	initCompany()
@@ -23,25 +31,41 @@ func init() {
 }
 
 func PostInit() {
-	//env := models.NewCursorEnvironment(tools.SUPERUSER_ID)
-	//companyBase := ResCompany{
-	//	Name: "Your Company",
-	//}
-	//partnerAdmin := ResPartner{
-	//	Name:     "Administrator",
-	//	Function: "IT Manager",
-	//}
-	//userAdmin := ResUsers{
-	//	Name:      "Administrator",
-	//	Active:    true,
-	//	Company:   &companyBase,
-	//	Login:     "admin",
-	//	LoginDate: time.Now(),
-	//	Password:  "admin",
-	//	Partner:   &partnerAdmin,
-	//	ActionId:  ir.MakeActionRef("base_action_res_users"),
-	//}
-	//env.Pool("ResPartner").Call("Create", &partnerAdmin)
-	//env.Pool("ResCompany").Call("Create", &companyBase)
-	//env.Pool("ResUsers").Call("Create", &userAdmin)
+	env := models.NewEnvironment(tools.SUPERUSER_ID)
+	defer func() {
+		if r := recover(); r != nil {
+			env.Cr().Rollback()
+			panic(r)
+		}
+		env.Cr().Commit()
+	}()
+	companyBase := ResCompany{
+		ID:   1,
+		Name: "Your Company",
+	}
+	partnerAdmin := ResPartner{
+		ID:       1,
+		Name:     "Administrator",
+		Function: "IT Manager",
+	}
+	userAdmin := ResUsers{
+		ID:        1,
+		Name:      "Administrator",
+		Active:    true,
+		Company:   &companyBase,
+		Login:     "admin",
+		LoginDate: time.Now(),
+		Password:  "admin",
+		Partner:   &partnerAdmin,
+		ActionId:  ir.MakeActionRef("base_action_res_users"),
+	}
+	if env.Pool("ResPartner").Filter("ID", "=", 1).SearchCount() == 0 {
+		env.Pool("ResPartner").Create(&partnerAdmin)
+	}
+	if env.Pool("ResCompany").Filter("ID", "=", 1).SearchCount() == 0 {
+		env.Pool("ResCompany").Call("Create", &companyBase)
+	}
+	if env.Pool("ResUsers").Filter("ID", "=", 1).SearchCount() == 0 {
+		env.Pool("ResUsers").Call("Create", &userAdmin)
+	}
 }
