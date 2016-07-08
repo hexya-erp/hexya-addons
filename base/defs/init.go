@@ -15,14 +15,19 @@
 package defs
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/inconshreveable/log15"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/tools"
 )
 
+var log log15.Logger
+
 func init() {
+	log = tools.GetLogger("base")
 	initPartner()
 	initCompany()
 	initUsers()
@@ -35,7 +40,7 @@ func PostInit() {
 	defer func() {
 		if r := recover(); r != nil {
 			env.Cr().Rollback()
-			panic(r)
+			tools.LogAndPanic(log, fmt.Sprintf("%v", r))
 		}
 		env.Cr().Commit()
 	}()
