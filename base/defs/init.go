@@ -18,10 +18,12 @@ import (
 	"fmt"
 	"time"
 
+	"encoding/base64"
 	"github.com/inconshreveable/log15"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/tools"
+	"io/ioutil"
 )
 
 var log log15.Logger
@@ -53,16 +55,18 @@ func PostInit() {
 		Name:     "Administrator",
 		Function: "IT Manager",
 	}
+	avatarImg, _ := ioutil.ReadFile("yep/server/static/base/src/img/avatar.png")
 	userAdmin := ResUsers{
-		ID:        1,
-		Name:      "Administrator",
-		Active:    true,
-		Company:   &companyBase,
-		Login:     "admin",
-		LoginDate: time.Now(),
-		Password:  "admin",
-		Partner:   &partnerAdmin,
-		ActionId:  ir.MakeActionRef("base_action_res_users"),
+		ID:         1,
+		Name:       "Administrator",
+		Active:     true,
+		Company:    &companyBase,
+		Login:      "admin",
+		LoginDate:  time.Now(),
+		Password:   "admin",
+		Partner:    &partnerAdmin,
+		ActionId:   ir.MakeActionRef("base_action_res_users"),
+		ImageSmall: base64.StdEncoding.EncodeToString(avatarImg),
 	}
 	if env.Pool("ResPartner").Filter("ID", "=", 1).SearchCount() == 0 {
 		env.Pool("ResPartner").Create(&partnerAdmin)
