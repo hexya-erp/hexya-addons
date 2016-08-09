@@ -35,7 +35,7 @@ type ResPartner struct {
 	Ref      string
 	Lang     string
 	TZ       string
-	TZOffset string
+	TzOffset string
 	User     *ResUsers
 	VAT      string
 	//Banks            []*PartnerBank

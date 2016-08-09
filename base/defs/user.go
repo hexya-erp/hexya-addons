@@ -29,8 +29,8 @@ import (
 
 type ResUsers struct {
 	ID          int64
-	LoginDate   time.Time `yep:"type(datetime)"`
-	Partner     *ResPartner
+	LoginDate   time.Time   `yep:"type(datetime)"`
+	Partner     *ResPartner `yep:"inherits"`
 	Name        string
 	Login       string
 	Password    string
