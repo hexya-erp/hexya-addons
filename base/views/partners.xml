@@ -15,6 +15,21 @@
             </field>
         </view>
 
+        <view id="base_view_partner_form">
+            <field name="name">res.partner.form</field>
+            <field name="model">ResPartner</field>
+            <field name="arch" type="xml">
+                <form>
+                    <h1><label for="Name"/> : <field name="Name"/></h1>
+                    <group>
+                        <field name="Function"/>
+                        <field name="Lang"/>
+                        <field name="Ref"/>
+                    </group>
+                </form>
+            </field>
+        </view>
+
         <view id="base_view_partner_search">
             <field name="name">res.partner.search</field>
             <field name="model">ResPartner</field>
@@ -32,7 +47,7 @@
             <field name="res_model">ResPartner</field>
             <field name="view_id" ref="base_view_partner_tree"/>
             <field name="search_view_id" ref="base_view_partner_search"/>
-            <field name="view_mode">tree</field>
+            <field name="view_mode">tree,form</field>
         </action>
 
         <menuitem id="base_menu_action_partner" name="Partners" parent="base_menu_partners" sequence="1"

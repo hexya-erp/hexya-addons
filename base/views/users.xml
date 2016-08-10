@@ -31,6 +31,9 @@
                             <!--	<field name="LoginDate"/> -->
                             <field name="Active"/>
                         </group>
+                        <group>
+                            <field name="Partner"/>
+                        </group>
                     </sheet>
                 </form>
             </field>
