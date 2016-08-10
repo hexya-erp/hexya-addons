@@ -60,7 +60,7 @@ type ResPartner struct {
 	Phone            string
 	Fax              string
 	Mobile           string
-	Birthdate        time.Time `yep:"type(date)"`
+	Birthdate        models.Date
 	IsCompany        bool
 	UseParentAddress bool
 	//Image            image.Image

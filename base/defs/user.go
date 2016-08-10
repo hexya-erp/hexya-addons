@@ -21,7 +21,6 @@ package defs
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
@@ -29,7 +28,7 @@ import (
 
 type ResUsers struct {
 	ID          int64
-	LoginDate   time.Time   `yep:"type(datetime)"`
+	LoginDate   models.DateTime
 	Partner     *ResPartner `yep:"inherits"`
 	Name        string
 	Login       string

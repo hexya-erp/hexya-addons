@@ -15,15 +15,14 @@
 package defs
 
 import (
-	"fmt"
-	"time"
-
 	"encoding/base64"
+	"fmt"
+	"io/ioutil"
+
 	"github.com/inconshreveable/log15"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/tools"
-	"io/ioutil"
 )
 
 var log log15.Logger
@@ -62,7 +61,7 @@ func PostInit() {
 		Active:     true,
 		Company:    &companyBase,
 		Login:      "admin",
-		LoginDate:  time.Now(),
+		LoginDate:  models.DateTime{},
 		Password:   "admin",
 		Partner:    &partnerAdmin,
 		ActionId:   ir.MakeActionRef("base_action_res_users"),
