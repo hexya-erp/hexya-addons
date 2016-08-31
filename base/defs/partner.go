@@ -17,6 +17,7 @@ package defs
 import (
 	"time"
 
+	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/models"
 )
 
@@ -25,13 +26,13 @@ type ResPartner struct {
 	Name string
 	Date time.Time `yep:"type(date)"`
 	//Title            *PartnerTitle
-	Parent   *ResPartner
-	Children []*ResPartner `yep:"type(one2many)"`
+	Parent   *pool.ResPartner
+	Children []*pool.ResPartner `yep:"type(one2many)"`
 	Ref      string
 	Lang     string
 	TZ       string
 	TzOffset string
-	User     *ResUsers
+	User     *pool.ResUsers
 	VAT      string
 	//Banks            []*PartnerBank
 	Website string

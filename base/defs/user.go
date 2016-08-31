@@ -15,8 +15,7 @@
 package defs
 
 import (
-	"fmt"
-
+	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 )
@@ -24,7 +23,7 @@ import (
 type ResUsers struct {
 	ID          int64
 	LoginDate   models.DateTime
-	Partner     *ResPartner `yep:"inherits"`
+	Partner     *pool.ResPartner `yep:"inherits"`
 	Name        string
 	Login       string
 	Password    string
@@ -32,24 +31,13 @@ type ResUsers struct {
 	Signature   string
 	Active      bool
 	ActionId    ir.ActionRef `yep:"type(char)"`
-	//GroupsID *ir.Group
-	Company    *ResCompany
-	CompanyIds []*ResCompany `yep:"json(company_ids);type(many2many)"`
+	//GroupIds []*ir.Group `yep:"json(groups_id)"`
+	Company    *pool.ResCompany
+	CompanyIds []*pool.ResCompany `yep:"json(company_ids);type(many2many)"`
 	ImageSmall string
-}
-
-func NameGet(rs models.RecordSet) string {
-	res := rs.Super()
-	user := struct {
-		ID    int64
-		Login string
-	}{}
-	rs.ReadOne(&user)
-	return fmt.Sprintf("%s (%s)", res, user.Login)
 }
 
 func initUsers() {
 	models.CreateModel("ResUsers")
 	models.ExtendModel("ResUsers", new(ResUsers))
-	models.DeclareMethod("ResUsers", "NameGet", NameGet)
 }

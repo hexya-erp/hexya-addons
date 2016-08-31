@@ -14,7 +14,10 @@
 
 package defs
 
-import "github.com/npiganeau/yep/yep/models"
+import (
+	"github.com/npiganeau/yep/pool"
+	"github.com/npiganeau/yep/yep/models"
+)
 
 type IrAttachment struct {
 	ID          int64
@@ -22,11 +25,11 @@ type IrAttachment struct {
 	DatasFname  string `yep:"string(File Name)"`
 	Description string
 	//ResName     string      `yep:"string(Resource Name);compute(NameGetResName);store(true)"`
-	ResModel string      `yep:"string(Resource Model);help(The database object this attachment will be attached to)"`
-	ResId    int64       `yep:"string(Resource ID);help(The record id this is attached to)"`
-	Company  *ResCompany `orm:"rel(fk)"`
-	Type     string      `yep:"help(Binary File or URL)"`
-	Url      string      `orm:"size(1024)"`
+	ResModel string           `yep:"string(Resource Model);help(The database object this attachment will be attached to)"`
+	ResId    int64            `yep:"string(Resource ID);help(The record id this is attached to)"`
+	Company  *pool.ResCompany `orm:"rel(fk)"`
+	Type     string           `yep:"help(Binary File or URL)"`
+	Url      string           `orm:"size(1024)"`
 	//Datas       string      `yep:"compute(DataGet);string(File Content)"`
 	StoreFname string `yep:"string(Stored Filename)"`
 	DbDatas    string `yep:"string(Database Data)"`

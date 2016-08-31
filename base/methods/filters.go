@@ -12,12 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package defs
+package methods
 
-func init() {
-	initPartner()
-	initCompany()
-	initUsers()
-	initFilters()
-	initAttachment()
+import (
+	"github.com/npiganeau/yep/pool"
+	"github.com/npiganeau/yep/yep/ir"
+	"github.com/npiganeau/yep/yep/models"
+)
+
+func GetFilters(rs models.RecordCollection, modelName, actionID string) []*pool.IrFilters {
+	var res []*pool.IrFilters
+	actRef := ir.MakeActionRef(actionID)
+	rs.Filter("Model", "=", modelName).Filter("ActionId", "=", actRef.String()).Filter("User.ID", "=", rs.Env().Uid()).ReadAll(&res)
+	return res
+}
+
+func initFilters() {
+	models.DeclareMethod("IrFilters", "GetFilters", GetFilters)
 }

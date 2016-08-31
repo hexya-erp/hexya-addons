@@ -15,9 +15,17 @@
 package base
 
 import (
+	"encoding/base64"
+	"fmt"
+	"github.com/inconshreveable/log15"
 	_ "github.com/npiganeau/yep-addons/base/controllers"
-	"github.com/npiganeau/yep-addons/base/defs"
+	_ "github.com/npiganeau/yep-addons/base/defs"
+	"github.com/npiganeau/yep/pool"
+	"github.com/npiganeau/yep/yep/ir"
+	"github.com/npiganeau/yep/yep/models"
 	"github.com/npiganeau/yep/yep/server"
+	"github.com/npiganeau/yep/yep/tools"
+	"io/ioutil"
 )
 
 const (
@@ -35,10 +43,51 @@ The kernel of YEP, needed for all installation
 	WEBSITE    string = "http://www.ndp-systemes.fr"
 )
 
+var log log15.Logger
+
 func init() {
+	log = tools.GetLogger("base")
 	server.RegisterModule(&server.Module{Name: MODULE_NAME, PostInit: PostInit})
 }
 
 func PostInit() {
-	defs.PostInit()
+	env := models.NewEnvironment(tools.SUPERUSER_ID)
+	defer func() {
+		if r := recover(); r != nil {
+			env.Cr().Rollback()
+			tools.LogAndPanic(log, fmt.Sprintf("%v", r))
+		}
+		env.Cr().Commit()
+	}()
+	companyBase := pool.ResCompany{
+		ID:   1,
+		Name: "Your Company",
+	}
+	partnerAdmin := pool.ResPartner{
+		ID:       1,
+		Name:     "Administrator",
+		Function: "IT Manager",
+	}
+	avatarImg, _ := ioutil.ReadFile("yep/server/static/base/src/img/avatar.png")
+	userAdmin := pool.ResUsers{
+		ID:         1,
+		Name:       "Administrator",
+		Active:     true,
+		Company:    &companyBase,
+		Login:      "admin",
+		LoginDate:  models.DateTime{},
+		Password:   "admin",
+		Partner:    &partnerAdmin,
+		ActionId:   ir.MakeActionRef("base_action_res_users"),
+		ImageSmall: base64.StdEncoding.EncodeToString(avatarImg),
+	}
+	if env.Pool("ResPartner").Filter("ID", "=", 1).SearchCount() == 0 {
+		env.Pool("ResPartner").Create(&partnerAdmin)
+	}
+	if env.Pool("ResCompany").Filter("ID", "=", 1).SearchCount() == 0 {
+		env.Pool("ResCompany").Call("Create", &companyBase)
+	}
+	if env.Pool("ResUsers").Filter("ID", "=", 1).SearchCount() == 0 {
+		env.Pool("ResUsers").Call("Create", &userAdmin)
+	}
 }

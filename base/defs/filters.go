@@ -15,6 +15,7 @@
 package defs
 
 import (
+	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 )
@@ -26,19 +27,11 @@ type IrFilters struct {
 	Context   string
 	Name      string
 	IsDefault bool
-	User      *ResUsers
+	User      *pool.ResUsers
 	ActionId  ir.ActionRef `yep:"type(char)"`
-}
-
-func GetFilters(rs models.RecordSet, modelName, actionID string) []*IrFilters {
-	var res []*IrFilters
-	actRef := ir.MakeActionRef(actionID)
-	rs.Filter("Model", "=", modelName).Filter("ActionId", "=", actRef.String()).Filter("User.ID", "=", rs.Env().Uid()).ReadAll(&res)
-	return res
 }
 
 func initFilters() {
 	models.CreateModel("IrFilters")
 	models.ExtendModel("IrFilters", new(IrFilters))
-	models.DeclareMethod("IrFilters", "GetFilters", GetFilters)
 }

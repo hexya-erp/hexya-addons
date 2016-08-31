@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package defs
+package methods
+
+import "github.com/npiganeau/yep/yep/tools"
 
 func init() {
-	initPartner()
-	initCompany()
-	initUsers()
+	log = tools.GetLogger("base")
 	initFilters()
-	initAttachment()
+	initUsers()
 }

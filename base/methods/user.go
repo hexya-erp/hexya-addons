@@ -12,12 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package defs
+package methods
 
-func init() {
-	initPartner()
-	initCompany()
-	initUsers()
-	initFilters()
-	initAttachment()
+import (
+	"fmt"
+	"github.com/npiganeau/yep/yep/models"
+)
+
+func NameGet(rs models.RecordCollection) string {
+	res := rs.Super()
+	user := struct {
+		ID    int64
+		Login string
+	}{}
+	rs.ReadOne(&user)
+	return fmt.Sprintf("%s (%s)", res, user.Login)
+}
+
+func initUsers() {
+	models.DeclareMethod("ResUsers", "NameGet", NameGet)
 }

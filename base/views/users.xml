@@ -27,7 +27,7 @@
                         <group>
                             <field name="Name"/>
                             <field name="Login"/>
-                            <!--    <field name="Lang"/> -->
+                            <field name="Lang"/>
                             <field name="LoginDate"/>
                             <field name="Active"/>
                         </group>
