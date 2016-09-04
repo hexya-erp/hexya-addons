@@ -14,7 +14,12 @@
 
 package methods
 
-import "github.com/npiganeau/yep/yep/tools"
+import (
+	"github.com/inconshreveable/log15"
+	"github.com/npiganeau/yep/yep/tools"
+)
+
+var log log15.Logger
 
 func init() {
 	log = tools.GetLogger("base")
