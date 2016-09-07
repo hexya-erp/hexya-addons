@@ -20,6 +20,7 @@ import (
 	"github.com/npiganeau/yep/yep/models"
 )
 
+// GetFilters returns the filters for the given model and actionID for the current user
 func GetFilters(rs models.RecordCollection, modelName, actionID string) []*pool.IrFilters {
 	var res []*pool.IrFilters
 	actRef := ir.MakeActionRef(actionID)
