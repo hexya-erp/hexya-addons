@@ -28,5 +28,5 @@ func GetFilters(rs models.RecordCollection, modelName, actionID string) []*pool.
 }
 
 func initFilters() {
-	models.DeclareMethod("IrFilters", "GetFilters", GetFilters)
+	models.CreateMethod("IrFilters", "GetFilters", GetFilters)
 }

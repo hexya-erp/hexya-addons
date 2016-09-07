@@ -30,5 +30,5 @@ func NameGet(rs models.RecordCollection) string {
 }
 
 func initUsers() {
-	models.DeclareMethod("ResUsers", "NameGet", NameGet)
+	models.ExtendMethod("ResUsers", "NameGet", NameGet)
 }
