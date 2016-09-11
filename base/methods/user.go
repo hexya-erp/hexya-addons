@@ -19,7 +19,7 @@ import (
 	"github.com/npiganeau/yep/yep/models"
 )
 
-func NameGet(rs models.RecordCollection) string {
+func NameGet(rs *models.RecordCollection) string {
 	res := rs.Super()
 	user := struct {
 		ID    int64
