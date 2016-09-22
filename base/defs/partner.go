@@ -27,7 +27,7 @@ type ResPartner struct {
 	Date time.Time `yep:"type(date)"`
 	//Title            *PartnerTitle
 	Parent   *pool.ResPartner
-	Children []*pool.ResPartner `yep:"type(one2many)"`
+	Children []*pool.ResPartner `yep:"type(one2many);fk(Parent)"`
 	Ref      string
 	Lang     string
 	TZ       string
