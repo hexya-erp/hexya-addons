@@ -16,19 +16,19 @@ package methods
 
 import (
 	"fmt"
+	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/models"
 )
 
-func NameGet(rs models.RecordCollection) string {
+func PartnerNameGet(rs pool.ResPartnerSet) string {
 	res := rs.Super()
-	user := struct {
-		ID    int64
-		Login string
+	partner := struct {
+		ID int64
 	}{}
-	rs.ReadOne(&user)
-	return fmt.Sprintf("%s (%s)", res, user.Login)
+	rs.ReadOne(&partner)
+	return fmt.Sprintf("%s (%d)", res, partner.ID)
 }
 
-func initUsers() {
-	models.ExtendMethod("ResUsers", "NameGet", NameGet)
+func initPartner() {
+	models.ExtendMethod("ResPartner", "NameGet", PartnerNameGet)
 }

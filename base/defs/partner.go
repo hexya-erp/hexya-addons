@@ -26,13 +26,13 @@ type ResPartner struct {
 	Name string
 	Date time.Time `yep:"type(date)"`
 	//Title            *PartnerTitle
-	Parent   *pool.ResPartner
-	Children []*pool.ResPartner `yep:"type(one2many);fk(Parent)"`
+	Parent   pool.ResPartnerSet `yep:"type(many2one)"`
+	Children pool.ResPartnerSet `yep:"type(one2many);fk(Parent)"`
 	Ref      string
 	Lang     string
 	TZ       string
 	TzOffset string
-	User     *pool.ResUsers
+	User     pool.ResUsersSet `yep:"type(many2one)"`
 	VAT      string
 	//Banks            []*PartnerBank
 	Website string

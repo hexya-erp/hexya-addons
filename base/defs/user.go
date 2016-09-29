@@ -23,7 +23,7 @@ import (
 type ResUsers struct {
 	ID          int64
 	LoginDate   models.DateTime
-	Partner     *pool.ResPartner `yep:"inherits"`
+	Partner     pool.ResPartnerSet `yep:"type(one2one);inherits"`
 	Name        string
 	Login       string
 	Password    string
@@ -32,8 +32,8 @@ type ResUsers struct {
 	Active      bool
 	ActionId    ir.ActionRef `yep:"type(char)"`
 	//GroupIds []*ir.Group `yep:"json(groups_id)"`
-	Company    *pool.ResCompany
-	CompanyIds []*pool.ResCompany `yep:"json(company_ids);type(many2many)"`
+	Company    pool.ResCompanySet `yep:"type(many2one)"`
+	CompanyIds pool.ResCompanySet `yep:"json(company_ids);type(many2many)"`
 	ImageSmall string
 }
 

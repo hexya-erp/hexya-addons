@@ -25,4 +25,5 @@ func init() {
 	log = tools.GetLogger("base")
 	initFilters()
 	initUsers()
+	initPartner()
 }

@@ -74,11 +74,11 @@ func PostInit() {
 		ID:         1,
 		Name:       "Administrator",
 		Active:     true,
-		Company:    &companyBase,
+		Company:    pool.NewResCompanySet(env),
 		Login:      "admin",
 		LoginDate:  models.DateTime{},
 		Password:   "admin",
-		Partner:    &partnerAdmin,
+		Partner:    pool.NewResPartnerSet(env),
 		ActionId:   ir.MakeActionRef("base_action_res_users"),
 		ImageSmall: base64.StdEncoding.EncodeToString(avatarImg),
 	}
