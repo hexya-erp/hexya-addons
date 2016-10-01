@@ -16,17 +16,13 @@ package methods
 
 import (
 	"fmt"
+	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/models"
 )
 
-func NameGet(rs models.RecordCollection) string {
+func NameGet(rs pool.ResUsersSet) string {
 	res := rs.Super()
-	user := struct {
-		ID    int64
-		Login string
-	}{}
-	rs.ReadOne(&user)
-	return fmt.Sprintf("%s (%s)", res, user.Login)
+	return fmt.Sprintf("%s (%s)", res, rs.Login())
 }
 
 func initUsers() {

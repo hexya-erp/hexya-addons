@@ -21,10 +21,10 @@ import (
 )
 
 // GetFilters returns the filters for the given model and actionID for the current user
-func GetFilters(rs pool.IrFiltersSet, modelName, actionID string) []*pool.IrFilters {
-	var res []*pool.IrFilters
+func GetFilters(rs pool.IrFiltersSet, modelName, actionID string) []pool.IrFilters {
 	actRef := ir.MakeActionRef(actionID)
-	rs.Filter("Model", "=", modelName).Filter("ActionId", "=", actRef.String()).Filter("User.ID", "=", rs.Env().Uid()).ReadAll(&res)
+	res := rs.Filter("Model", "=", modelName).Filter("ActionId", "=", actRef.String()).
+		Filter("User.ID", "=", rs.Env().Uid()).All()
 	return res
 }
 

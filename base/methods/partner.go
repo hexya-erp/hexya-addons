@@ -22,11 +22,7 @@ import (
 
 func PartnerNameGet(rs pool.ResPartnerSet) string {
 	res := rs.Super()
-	partner := struct {
-		ID int64
-	}{}
-	rs.ReadOne(&partner)
-	return fmt.Sprintf("%s (%d)", res, partner.ID)
+	return fmt.Sprintf("%s (%d)", res, rs.ID())
 }
 
 func initPartner() {
