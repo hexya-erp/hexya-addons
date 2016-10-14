@@ -16,13 +16,13 @@ package methods
 
 import (
 	"github.com/inconshreveable/log15"
-	"github.com/npiganeau/yep/yep/tools"
+	"github.com/npiganeau/yep/yep/tools/logging"
 )
 
 var log log15.Logger
 
 func init() {
-	log = tools.GetLogger("base")
+	log = logging.GetLogger("base")
 	initFilters()
 	initUsers()
 	initPartner()
