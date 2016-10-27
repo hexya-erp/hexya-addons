@@ -33,7 +33,7 @@ func BootstrapTranslations(c *gin.Context) {
 	res := gin.H{
 		"lang_parameters": tools.LangParameters{
 			DateFormat:   "%m/%d/%Y",
-			Direction:    tools.LANG_DIRECTION_LTR,
+			Direction:    tools.LangDirectionLTR,
 			ThousandsSep: ",",
 			TimeFormat:   "%H:%M:%S",
 			DecimalPoint: ".",

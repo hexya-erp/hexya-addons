@@ -53,13 +53,13 @@ func init() {
 }
 
 func PostInit() {
-	env := models.NewEnvironment(tools.SUPERUSER_ID)
+	env := models.NewEnvironment(tools.SuperUserID)
 	defer func() {
 		if r := recover(); r != nil {
-			env.Cr().Rollback()
+			env.Rollback()
 			logging.LogAndPanic(log, fmt.Sprintf("%v", r))
 		}
-		env.Cr().Commit()
+		env.Commit()
 	}()
 
 	mainCompany := pool.NewResCompanySet(env).Filter("ID", "=", 1)
