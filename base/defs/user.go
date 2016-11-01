@@ -23,7 +23,7 @@ import (
 type ResUsers struct {
 	ID          int64
 	LoginDate   models.DateTime
-	Partner     pool.ResPartnerSet `yep:"type(many2one);inherits"`
+	Partner     pool.ResPartnerSet `yep:"type(many2one);embed"`
 	Name        string
 	Login       string
 	Password    string
