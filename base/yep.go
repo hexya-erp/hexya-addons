@@ -17,6 +17,8 @@ package base
 import (
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+
 	"github.com/inconshreveable/log15"
 	_ "github.com/npiganeau/yep-addons/base/controllers"
 	_ "github.com/npiganeau/yep-addons/base/defs"
@@ -24,10 +26,9 @@ import (
 	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
+	"github.com/npiganeau/yep/yep/models/security"
 	"github.com/npiganeau/yep/yep/server"
-	"github.com/npiganeau/yep/yep/tools"
 	"github.com/npiganeau/yep/yep/tools/logging"
-	"io/ioutil"
 )
 
 const (
@@ -53,7 +54,7 @@ func init() {
 }
 
 func PostInit() {
-	env := models.NewEnvironment(tools.SuperUserID)
+	env := models.NewEnvironment(security.SuperUserID)
 	defer func() {
 		if r := recover(); r != nil {
 			env.Rollback()
