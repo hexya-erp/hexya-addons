@@ -15,26 +15,26 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"github.com/npiganeau/yep/yep/models"
+	"github.com/npiganeau/yep/yep/models/security"
+	"github.com/npiganeau/yep/yep/models/types"
 	"github.com/npiganeau/yep/yep/server"
-	"github.com/npiganeau/yep/yep/tools"
 )
 
 func SessionInfo(sess sessions.Session) gin.H {
-	var userContext tools.Context
-	if sess.Get("uid") != nil && sess.Get("user_context") != nil {
-		if json.Unmarshal(sess.Get("user_context").([]byte), &userContext) != nil {
-			userContext = tools.Context{}
-		}
+	var userContext *types.Context
+	if sess.Get("uid") != nil {
+		user := models.NewEnvironment(security.SuperUserID).Pool("ResUsers").Filter("ID", "=", sess.Get("uid"))
+		userContext = user.Call("ContextGet").(*types.Context)
 	}
 	return gin.H{
 		"session_id":   sess.Get("ID"),
 		"uid":          sess.Get("uid"),
-		"user_context": userContext,
+		"user_context": userContext.ToMap(),
 		"db":           "default",
 		"username":     sess.Get("login"),
 		"company_id":   1,

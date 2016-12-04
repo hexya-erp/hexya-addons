@@ -19,14 +19,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/npiganeau/yep/yep/ir"
+	"github.com/npiganeau/yep/yep/models/types"
 	"github.com/npiganeau/yep/yep/server"
-	"github.com/npiganeau/yep/yep/tools"
 )
 
 func ActionLoad(c *gin.Context) {
 	params := struct {
-		ActionID          string        `json:"action_id"`
-		AdditionalContext tools.Context `json:"additional_context"`
+		ActionID          string         `json:"action_id"`
+		AdditionalContext *types.Context `json:"additional_context"`
 	}{}
 	server.BindRPCParams(c, &params)
 	action := ir.ActionsRegistry.GetActionById(params.ActionID)

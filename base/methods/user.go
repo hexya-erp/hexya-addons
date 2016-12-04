@@ -18,13 +18,27 @@ import (
 	"fmt"
 	"github.com/npiganeau/yep/pool"
 	"github.com/npiganeau/yep/yep/models"
+	"github.com/npiganeau/yep/yep/models/types"
 )
 
-func NameGet(rs pool.ResUsersSet) string {
+// UsersNameGet is the NameGet implementation for users
+func UsersNameGet(rs pool.ResUsersSet) string {
 	res := rs.Super()
 	return fmt.Sprintf("%s (%s)", res, rs.Login())
 }
 
+// UsersContextGet returns a context with the user's lang, tz and uid
+// This method must be called on a singleton.
+func UsersContextGet(rs pool.ResUsersSet) *types.Context {
+	rs.EnsureOne()
+	res := types.NewContext()
+	res = res.WithKey("lang", rs.Lang())
+	res = res.WithKey("tz", rs.TZ())
+	res = res.WithKey("uid", rs.ID())
+	return res
+}
+
 func initUsers() {
-	models.ExtendMethod("ResUsers", "NameGet", NameGet)
+	models.ExtendMethod("ResUsers", "NameGet", UsersNameGet)
+	models.CreateMethod("ResUsers", "ContextGet", UsersContextGet)
 }

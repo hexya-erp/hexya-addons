@@ -15,16 +15,17 @@
 package controllers
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/npiganeau/yep/yep/server"
 	"github.com/npiganeau/yep/yep/tools"
-	"net/http"
-	"strings"
 )
 
 func QWeb(c *gin.Context) {
 	mods := strings.Split(c.Query("mods"), ",")
-	fileNames := tools.ListStaticFiles("src/xml", mods)
+	fileNames := tools.ListStaticFiles("src/xml", mods, true)
 	res, _ := tools.ConcatXML(fileNames)
 	c.String(http.StatusOK, string(res))
 }
@@ -51,7 +52,7 @@ func CSSList(c *gin.Context) {
 	}{}
 	server.BindRPCParams(c, &Params)
 	mods := strings.Split(Params.Mods, ",")
-	fileNames := tools.ListStaticFiles("src/css", mods)
+	fileNames := tools.ListStaticFiles("src/css", mods, false)
 	server.RPC(c, http.StatusOK, fileNames)
 }
 
@@ -61,16 +62,22 @@ func JSList(c *gin.Context) {
 	}{}
 	server.BindRPCParams(c, &Params)
 	mods := strings.Split(Params.Mods, ",")
-	fileNames := tools.ListStaticFiles("src/js", mods)
+	fileNames := tools.ListStaticFiles("src/js", mods, false)
 	server.RPC(c, http.StatusOK, fileNames)
 }
 
 func VersionInfo(c *gin.Context) {
 	data := gin.H{
-		"server_serie":        "8.0",
-		"server_version_info": []int8{8, 0, 0, 0, 0},
-		"server_version":      "8.0",
+		"server_serie":        "9.0",
+		"server_version_info": []int8{9, 0, 0, 0, 0},
+		"server_version":      "9.0c",
 		"protocol":            1,
 	}
 	server.RPC(c, http.StatusOK, data)
+}
+
+func LoadLocale(c *gin.Context) {
+	// TODO Implement Loadlocale
+	//langFull := strings.ToLower(strings.Replace(lang, "_", "-", -1))
+	//langShort := strings.Split(lang, "_")[0]
 }

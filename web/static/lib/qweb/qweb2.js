@@ -295,15 +295,13 @@ QWeb2.Engine = (function() {
                 }
                 req.open('GET', s, async);
                 if (async) {
-                    req.onreadystatechange = function() {
-                        if (req.readyState == 4) {
-                            if (req.status == 200) {
-                                callback(null, self._parse_from_request(req));
-                            } else {
-                                callback(new Error("Can't load template, http status " + req.status));
-                            }
+                    req.addEventListener("load", function() {
+                        if (req.status == 200) {
+                            callback(null, self._parse_from_request(req));
+                        } else {
+                            callback(new Error("Can't load template " + s + ", http status " + req.status));
                         }
-                    };
+                    });
                 }
                 req.send(null);
                 if (!async) {
@@ -432,6 +430,9 @@ QWeb2.Engine = (function() {
                         error_msg = "Error while extending template '" + template;
                     if (jquery) {
                         target = jQuery(jquery, template_dest);
+                        if (!target.length && window.console) {
+                            console.debug('Can\'t find "'+jquery+'" when extending template '+template);
+                        }
                     } else {
                         this.tools.exception(error_msg + "No expression given");
                     }

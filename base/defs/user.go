@@ -30,7 +30,7 @@ type ResUsers struct {
 	NewPassword string
 	Signature   string
 	Active      bool
-	ActionId    ir.ActionRef `yep:"type(char)"`
+	ActionID    ir.ActionRef
 	//GroupIds []*ir.Group `yep:"json(groups_id)"`
 	Company    pool.ResCompanySet `yep:"type(many2one)"`
 	CompanyIds pool.ResCompanySet `yep:"json(company_ids);type(many2many)"`

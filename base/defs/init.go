@@ -20,4 +20,5 @@ func init() {
 	initUsers()
 	initFilters()
 	initAttachment()
+	initCurrency()
 }

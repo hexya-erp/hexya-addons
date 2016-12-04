@@ -28,7 +28,7 @@ type IrFilters struct {
 	Name      string
 	IsDefault bool
 	User      pool.ResUsersSet `yep:"type(many2one)"`
-	ActionId  ir.ActionRef     `yep:"type(char)"`
+	ActionID  ir.ActionRef
 }
 
 func initFilters() {

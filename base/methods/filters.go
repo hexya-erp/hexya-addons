@@ -16,14 +16,12 @@ package methods
 
 import (
 	"github.com/npiganeau/yep/pool"
-	"github.com/npiganeau/yep/yep/ir"
 	"github.com/npiganeau/yep/yep/models"
 )
 
 // GetFilters returns the filters for the given model and actionID for the current user
 func GetFilters(rs pool.IrFiltersSet, modelName, actionID string) []pool.IrFilters {
-	actRef := ir.MakeActionRef(actionID)
-	res := rs.Filter("Model", "=", modelName).Filter("ActionId", "=", actRef.String()).
+	res := rs.Filter("Model", "=", modelName).Filter("ActionID", "=", actionID).
 		Filter("User.ID", "=", rs.Env().Uid()).All()
 	return res
 }

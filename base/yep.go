@@ -20,7 +20,6 @@ import (
 	"io/ioutil"
 
 	"github.com/inconshreveable/log15"
-	_ "github.com/npiganeau/yep-addons/base/controllers"
 	_ "github.com/npiganeau/yep-addons/base/defs"
 	_ "github.com/npiganeau/yep-addons/base/methods"
 	"github.com/npiganeau/yep/pool"
@@ -83,6 +82,7 @@ func PostInit() {
 	avatarImg, _ := ioutil.ReadFile("yep/server/static/base/src/img/avatar.png")
 
 	adminUser := pool.NewResUsersSet(env).Filter("ID", "=", 1)
+	ActionID := ir.MakeActionRef("base_action_res_users")
 	if adminUser.IsEmpty() {
 		pool.NewResUsersSet(env).Create(&pool.ResUsers{
 			ID:         1,
@@ -93,7 +93,7 @@ func PostInit() {
 			LoginDate:  models.DateTime{},
 			Password:   "admin",
 			Partner:    adminPartner,
-			ActionId:   ir.MakeActionRef("base_action_res_users"),
+			ActionID:   ActionID,
 			ImageSmall: base64.StdEncoding.EncodeToString(avatarImg),
 		})
 	}
