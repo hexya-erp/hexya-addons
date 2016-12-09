@@ -80,4 +80,5 @@ func LoadLocale(c *gin.Context) {
 	// TODO Implement Loadlocale
 	//langFull := strings.ToLower(strings.Replace(lang, "_", "-", -1))
 	//langShort := strings.Split(lang, "_")[0]
+	c.String(http.StatusOK, "OK")
 }

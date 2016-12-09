@@ -3,22 +3,22 @@
     <data>
 
         <view id="base_view_partner_tree">
-            <field name="name">res.partner.tree</field>
-            <field name="model">ResPartner</field>
-            <field name="arch" type="xml">
+            <name>res.partner.tree</name>
+            <model>ResPartner</model>
+            <arch>
                 <tree string="Partners">
                     <field name="Name"/>
                     <field name="Function"/>
                     <field name="Lang"/>
                     <field name="Ref"/>
                 </tree>
-            </field>
+            </arch>
         </view>
 
         <view id="base_view_partner_form">
-            <field name="name">res.partner.form</field>
-            <field name="model">ResPartner</field>
-            <field name="arch" type="xml">
+            <name>res.partner.form</name>
+            <model>ResPartner</model>
+            <arch>
                 <form>
                     <h1><label for="Name"/> : <field name="Name"/></h1>
                     <group>
@@ -27,27 +27,27 @@
                         <field name="Ref"/>
                     </group>
                 </form>
-            </field>
+            </arch>
         </view>
 
         <view id="base_view_partner_search">
-            <field name="name">res.partner.search</field>
-            <field name="model">ResPartner</field>
-            <field name="arch" type="xml">
+            <name>res.partner.search</name>
+            <model>ResPartner</model>
+            <arch>
                 <search string="Partners">
                     <field name="Name" filter_domain="['|', '|', ('Name','ilike',self), ('Email','ilike',self)]"
                            string="Partner"/>
                 </search>
-            </field>
+            </arch>
         </view>
 
         <action id="base_action_res_partner">
-            <field name="type">ir.actions.act_window</field>
-            <field name="name">Partners</field>
-            <field name="res_model">ResPartner</field>
-            <field name="view_id" ref="base_view_partner_tree"/>
-            <field name="search_view_id" ref="base_view_partner_search"/>
-            <field name="view_mode">tree,form</field>
+            <type>ir.actions.act_window</type>
+            <name>Partners</name>
+            <model>ResPartner</model>
+            <view_id>base_view_partner_tree</view_id>
+            <search_view_id>base_view_partner_search</search_view_id>
+            <view_mode>tree,form</view_mode>
         </action>
 
         <menuitem id="base_menu_action_partner" name="Partners" parent="base_menu_partners" sequence="1"

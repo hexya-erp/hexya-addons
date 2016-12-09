@@ -4,9 +4,9 @@
 
         <!-- Users -->
         <view id="base_view_users_tree">
-            <field name="name">res.users.tree</field>
-            <field name="model">ResUsers</field>
-            <field name="arch" type="xml">
+            <name>res.users.tree</name>
+            <model>ResUsers</model>
+            <arch>
                 <tree string="Users">
                     <field name="Name"/>
                     <field name="Login"/>
@@ -14,13 +14,13 @@
                     <!--	<field name="LoginDate"/> -->
                     <field name="Active"/>
                 </tree>
-            </field>
+            </arch>
         </view>
 
         <view id="base_view_users_form">
-            <field name="name">res.users.form</field>
-            <field name="model">ResUsers</field>
-            <field name="arch" type="xml">
+            <name>res.users.form</name>
+            <model>ResUsers</model>
+            <arch>
                 <form string="Users">
                     <header></header>
                     <sheet>
@@ -36,29 +36,29 @@
                         </group>
                     </sheet>
                 </form>
-            </field>
+            </arch>
         </view>
 
         <view id="base_view_users_search">
-            <field name="name">res.users.search</field>
-            <field name="model">ResUsers</field>
-            <field name="arch" type="xml">
+            <name>res.users.search</name>
+            <model>ResUsers</model>
+            <arch>
                 <search string="Users">
                     <field name="Name"
                            filter_domain="['|', ('Name','ilike',self), ('Login','ilike',self)]"
                            string="User"/><!--, ('Email','ilike',self)]"-->
                     <field name="CompanyIds" string="Company"/><!-- groups="base_group_multi_company"/>-->
                 </search>
-            </field>
+            </arch>
         </view>
 
         <action id="base_action_res_users">
-            <field name="type">ir.actions.act_window</field>
-            <field name="name">Users</field>
-            <field name="res_model">ResUsers</field>
-            <field name="view_id" ref="base_view_users_tree"/>
-            <field name="search_view_id" ref="base_view_users_search"/>
-            <field name="view_mode">tree,form</field>
+            <type>ir.actions.act_window</type>
+            <name>Users</name>
+            <model>ResUsers</model>
+            <view_id>base_view_users_tree</view_id>
+            <search_view_id>base_view_users_search</search_view_id>
+            <view_mode>tree,form</view_mode>
         </action>
 
         <menuitem id="base_menu_action_users" name="Users" sequence="1" action="base_action_res_users"

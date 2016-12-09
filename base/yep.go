@@ -74,6 +74,7 @@ func PostInit() {
 	if adminPartner.IsEmpty() {
 		adminPartner = pool.NewResPartnerSet(env).Create(&pool.ResPartner{
 			ID:       1,
+			Lang:     "en_US",
 			Name:     "Administrator",
 			Function: "IT Manager",
 		})
