@@ -16,7 +16,6 @@ package base
 
 import (
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 
 	"github.com/inconshreveable/log15"
@@ -53,49 +52,43 @@ func init() {
 }
 
 func PostInit() {
-	env := models.NewEnvironment(security.SuperUserID)
-	defer func() {
-		if r := recover(); r != nil {
-			env.Rollback()
-			logging.LogAndPanic(log, fmt.Sprintf("%v", r))
+	models.ExecuteInNewEnvironment(security.SuperUserID, func(env models.Environment) {
+
+		mainCompany := pool.NewResCompanySet(env).Filter("ID", "=", 1)
+		if mainCompany.IsEmpty() {
+			mainCompany = pool.NewResCompanySet(env).Create(&pool.ResCompany{
+				ID:   1,
+				Name: "Your Company",
+			})
 		}
-		env.Commit()
-	}()
 
-	mainCompany := pool.NewResCompanySet(env).Filter("ID", "=", 1)
-	if mainCompany.IsEmpty() {
-		mainCompany = pool.NewResCompanySet(env).Create(&pool.ResCompany{
-			ID:   1,
-			Name: "Your Company",
-		})
-	}
+		adminPartner := pool.NewResPartnerSet(env).Filter("ID", "=", 1)
+		if adminPartner.IsEmpty() {
+			adminPartner = pool.NewResPartnerSet(env).Create(&pool.ResPartner{
+				ID:       1,
+				Lang:     "en_US",
+				Name:     "Administrator",
+				Function: "IT Manager",
+			})
+		}
 
-	adminPartner := pool.NewResPartnerSet(env).Filter("ID", "=", 1)
-	if adminPartner.IsEmpty() {
-		adminPartner = pool.NewResPartnerSet(env).Create(&pool.ResPartner{
-			ID:       1,
-			Lang:     "en_US",
-			Name:     "Administrator",
-			Function: "IT Manager",
-		})
-	}
+		avatarImg, _ := ioutil.ReadFile("yep/server/static/base/src/img/avatar.png")
 
-	avatarImg, _ := ioutil.ReadFile("yep/server/static/base/src/img/avatar.png")
-
-	adminUser := pool.NewResUsersSet(env).Filter("ID", "=", 1)
-	ActionID := ir.MakeActionRef("base_action_res_users")
-	if adminUser.IsEmpty() {
-		pool.NewResUsersSet(env).Create(&pool.ResUsers{
-			ID:         1,
-			Name:       "Administrator",
-			Active:     true,
-			Company:    mainCompany,
-			Login:      "admin",
-			LoginDate:  models.DateTime{},
-			Password:   "admin",
-			Partner:    adminPartner,
-			ActionID:   ActionID,
-			ImageSmall: base64.StdEncoding.EncodeToString(avatarImg),
-		})
-	}
+		adminUser := pool.NewResUsersSet(env).Filter("ID", "=", 1)
+		ActionID := ir.MakeActionRef("base_action_res_users")
+		if adminUser.IsEmpty() {
+			pool.NewResUsersSet(env).Create(&pool.ResUsers{
+				ID:         1,
+				Name:       "Administrator",
+				Active:     true,
+				Company:    mainCompany,
+				Login:      "admin",
+				LoginDate:  models.DateTime{},
+				Password:   "admin",
+				Partner:    adminPartner,
+				ActionID:   ActionID,
+				ImageSmall: base64.StdEncoding.EncodeToString(avatarImg),
+			})
+		}
+	})
 }

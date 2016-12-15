@@ -28,8 +28,10 @@ import (
 func SessionInfo(sess sessions.Session) gin.H {
 	var userContext *types.Context
 	if sess.Get("uid") != nil {
-		user := models.NewEnvironment(security.SuperUserID).Pool("ResUsers").Filter("ID", "=", sess.Get("uid"))
-		userContext = user.Call("ContextGet").(*types.Context)
+		models.ExecuteInNewEnvironment(security.SuperUserID, func(env models.Environment) {
+			user := env.Pool("ResUsers").Filter("ID", "=", sess.Get("uid"))
+			userContext = user.Call("ContextGet").(*types.Context)
+		})
 	}
 	return gin.H{
 		"session_id":   sess.Get("ID"),
