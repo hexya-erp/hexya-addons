@@ -1,5 +1,6 @@
 Hexya ADDONS
 ==========
-Hexya is a proof of concept for a modular ERP written in go.
+Hexya is an open source ERP and a business application development framework
+written in Go.
 
 This repository contains the business modules for Hexya.
