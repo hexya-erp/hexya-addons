@@ -1,0 +1,9 @@
+<hexya>
+    <data>
+        <view id="product_inherit_view_general_configuration" model="BaseConfigSettings">
+            <xpath expr="//group[@name=&apos;company_share_resources&apos;]" position="inside">
+                <field name="company_share_product" class="oe_inline"/>
+            </xpath>
+        </view>
+    </data>
+</hexya>

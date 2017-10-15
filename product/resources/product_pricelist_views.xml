@@ -1,0 +1,148 @@
+<hexya>
+    <data>
+        <view id="product_product_pricelist_item_tree_view" model="ProductPricelistItem">
+            <tree string="Pricelist Items">
+                <field name="sequence" widget="handle"/>
+                <field colspan="4" name="name"/>
+                <field name="product_id" groups="product.group_product_variant"/>
+                <field name="product_tmpl_id"/>
+                <field name="categ_id"/>
+                <field name="min_quantity"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+            </tree>
+        </view>
+        <view id="product_product_pricelist_item_form_view" model="ProductPricelistItem">
+            <form string="Pricelist Items">
+                <h1>
+                    <field name="name"/>
+                </h1>
+                <group>
+                    <group>
+                        <field name="applied_on" widget="radio"/>
+                        <field name="categ_id" attrs="{&apos;invisible&apos;:[(&apos;applied_on&apos;, &apos;!=&apos;, &apos;2_product_category&apos;)], &apos;required&apos;:[(&apos;applied_on&apos;, &apos;=&apos;, &apos;2_product_category&apos;)]}"/>
+                        <field name="product_tmpl_id" attrs="{&apos;invisible&apos;:[(&apos;applied_on&apos;, &apos;!=&apos;, &apos;1_product&apos;)],&apos;required&apos;:[(&apos;applied_on&apos;, &apos;=&apos;, &apos;1_product&apos;)]}" string="Product"/>
+                        <field name="product_id" attrs="{&apos;invisible&apos;:[(&apos;applied_on&apos;, &apos;!=&apos;, &apos;0_product_variant&apos;)],&apos;required&apos;:[(&apos;applied_on&apos;, &apos;=&apos;, &apos;0_product_variant&apos;)]}" string="Product Variant"/>
+                    </group>
+                    <group>
+                        <field name="min_quantity"/>
+                        <field name="date_start"/>
+                        <field name="date_end"/>
+                    </group>
+                </group>
+                <separator string="Price Computation"/>
+                <group>
+                    <group>
+                        <label for="compute_price" string="Compute Price"/>
+                        <div>
+                            <field name="compute_price" widget="radio"/>
+                            <field name="currency_id" invisible="1"/>
+                            <div attrs="{&apos;invisible&apos;:[(&apos;compute_price&apos;, &apos;!=&apos;, &apos;fixed&apos;)]}">
+                                <field name="fixed_price" nolabel="1" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                            </div>
+                            <div attrs="{&apos;invisible&apos;:[(&apos;compute_price&apos;, &apos;!=&apos;, &apos;percentage&apos;)]}">
+                                <field name="percent_price" nolabel="1" class="oe_inline"/>%%
+                                </div>
+                        </div>
+                    </group>
+                </group>
+                <div class="oe_grey" groups="product.group_uom">
+                    <p>The computed price is expressed in the default Unit of Measure of the product.</p>
+                </div>
+                <group col="6" attrs="{&apos;invisible&apos;:[(&apos;compute_price&apos;, &apos;!=&apos;, &apos;formula&apos;)]}">
+                    <field name="base" colspan="6"/>
+                    <label string="New Price ="/>
+                    <div>
+                        <span attrs="{&apos;invisible&apos;:[(&apos;base&apos;, &apos;!=&apos;, &apos;list_price&apos;)]}">Public Price  -  </span>
+                        <span attrs="{&apos;invisible&apos;:[(&apos;base&apos;, &apos;!=&apos;, &apos;standard_price&apos;)]}">Cost  -  </span>
+                        <span attrs="{&apos;invisible&apos;:[(&apos;base&apos;, &apos;!=&apos;, &apos;pricelist&apos;)]}">Other Pricelist  -  </span>
+                    </div>
+                    <label for="price_discount"/>
+                    <div class="o_row">
+                        <field name="price_discount"/>
+                        <span>%%</span>
+                    </div>
+                    <label string=" + " for="price_surcharge"/>
+                    <field name="price_surcharge" nolabel="1"/>
+                    <field name="price_round" string="Rounding Method"/>
+                    <field name="price_min_margin" string="Min. Margin"/>
+                    <field name="price_max_margin" string="Max. Margin"/>
+                    <field name="base_pricelist_id" attrs="{&apos;invisible&apos;:[(&apos;base&apos;, &apos;!=&apos;, &apos;pricelist&apos;)],&apos;required&apos;: [(&apos;base&apos;,&apos;=&apos;, &apos;pricelist&apos;)], &apos;readonly&apos;: [(&apos;base&apos;,&apos;!=&apos;, &apos;pricelist&apos;)]}"/>
+                </group>
+            </form>
+        </view>
+        <view id="product_product_pricelist_view_search" model="ProductPricelist">
+            <search string="Products Price Search">
+                <field name="name" string="Products Price"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <filter string="Archived" name="inactive" domain="[(&apos;active&apos;,&apos;=&apos;,False)]"/>
+            </search>
+        </view>
+        <view id="product_product_pricelist_view_tree" model="ProductPricelist">
+            <tree string="Products Price List">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+            </tree>
+        </view>
+        <view id="product_product_pricelist_view" model="ProductPricelist">
+            <form string="Products Price List">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="e.g. USD Retailers"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="currency_id" groups="base.group_multi_currency"/>
+                        <field name="company_id" groups="base.group_multi_company" options="{&apos;no_create&apos;: True}"/>
+                        <field name="country_group_ids"/>
+                    </group>
+                    <div groups="product.group_pricelist_item">
+                        <separator string="Pricelist Items"/>
+                        <field name="item_ids" nolabel="1" context="{&apos;default_base&apos;:&apos;list_price&apos;}">
+                            <tree string="Pricelist Items">
+                                <field name="name" string="Applicable On"/>
+                                <field name="min_quantity"/>
+                                <field name="date_start"/>
+                                <field name="date_end"/>
+                                <field name="price" string="Price"/>
+                                <field name="base" invisible="1"/>
+                                <field name="sequence" invisible="1"/>
+                                <field name="price_discount" invisible="1"/>
+                                <field name="applied_on" invisible="1"/>
+                                <field name="compute_price" invisible="1"/>
+                            </tree>
+                        </field>
+                    </div>
+                </sheet>
+            </form>
+        </view>
+        <view id="product_inherits_website_sale_country_group_form" model="ResCountryGroup">
+            <group name="country_group" position="after">
+                <field name="pricelist_ids"/>
+            </group>
+        </view>
+        <action id="product_product_pricelist_action2" type="ir.actions.act_window" name="Pricelists" model="ProductPricelist" view_mode="tree,form" search_view_id="product_product_pricelist_view_search">
+            <help>
+                <p class="oe_view_nocontent_create">
+                Click to create a pricelist.
+              </p>
+                <p>
+                A price list contains rules to be evaluated in order to compute
+                the sales price of the products.
+              </p>
+                <p>
+                Each rule include a set of applicability criteria (date range,
+                product category...) and a computation that easily helps to achieve
+                any kind of pricing.
+              </p>
+            </help>
+        </action>
+    </data>
+</hexya>
