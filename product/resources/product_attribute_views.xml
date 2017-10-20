@@ -8,7 +8,10 @@
                 <field name="price_extra"/>
             </tree>
         </view>
-        <action id="product_product_attribute_value_action" type="ir.actions.act_window" name="Variant Values" model="ProductAttributeValue" view_mode="tree" view_id="product_product_attribute_value_view_tree"/>
+
+        <action id="product_product_attribute_value_action" type="ir.actions.act_window" name="Variant Values"
+                model="ProductAttributeValue" view_mode="tree" view_id="product_product_attribute_value_view_tree"/>
+
         <view id="product_attribute_tree_view" model="ProductAttribute">
             <tree string="Variant Values" editable="top">
                 <field name="sequence" widget="handle"/>
@@ -16,6 +19,7 @@
                 <field name="create_variant" groups="base.group_no_one"/>
             </tree>
         </view>
+
         <view id="product_product_attribute_view_form" model="ProductAttribute">
             <form string="Product Attribute">
                 <group>
@@ -38,7 +42,10 @@
                 </group>
             </form>
         </view>
-        <action id="product_attribute_action" type="ir.actions.act_window" name="Attributes" model="ProductAttribute" view_mode="tree"/>
+
+        <action id="product_attribute_action" type="ir.actions.act_window" name="Attributes" model="ProductAttribute"
+                view_mode="tree"/>
+
         <view id="product_variants_tree_view" model="ProductAttributeValue">
             <tree string="Variant Values" editable="top">
                 <field name="sequence" widget="handle"/>
@@ -46,7 +53,9 @@
                 <field name="name"/>
             </tree>
         </view>
-        <action id="product_variants_action" type="ir.actions.act_window" name="Attribute Values" model="ProductAttributeValue" view_mode="tree"/>
+
+        <action id="product_variants_action" type="ir.actions.act_window" name="Attribute Values"
+                model="ProductAttributeValue" view_mode="tree"/>
         <view id="product_product_attribute_line_form" model="ProductAttributeLine">
             <form string="Product Attribute and Values">
                 <group name="main_field">
@@ -63,5 +72,6 @@
                 </group>
             </form>
         </view>
+
     </data>
 </hexya>

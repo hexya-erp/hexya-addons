@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="product_product_uom_tree_view" model="ProductUom">
             <tree string="Units of Measure">
                 <field name="name"/>
@@ -7,6 +8,7 @@
                 <field name="uom_type"/>
             </tree>
         </view>
+
         <view id="product_product_uom_form_view" model="ProductUom">
             <form string="Units of Measure">
                 <group>
@@ -14,14 +16,18 @@
                         <field name="name"/>
                         <field name="category_id"/>
                         <field name="uom_type"/>
-                        <field name="factor" digits="[42,5]" attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;smaller&apos;)],
+                        <field name="factor" digits="[42,5]"
+                               attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;smaller&apos;)],
                                     &apos;readonly&apos;:[(&apos;uom_type&apos;,&apos;=&apos;,&apos;bigger&apos;)]}"/>
-                        <field name="factor_inv" digits="[42,5]" attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;bigger&apos;)],
+                        <field name="factor_inv" digits="[42,5]"
+                               attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;bigger&apos;)],
                                     &apos;readonly&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;bigger&apos;)]}"/>
-                        <p attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;smaller&apos;)]}" class="oe_grey" colspan="2">
+                        <p attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;smaller&apos;)]}"
+                           class="oe_grey" colspan="2">
                             e.g: 1 * (reference unit) = ratio * (this unit)
                         </p>
-                        <p attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;bigger&apos;)]}" class="oe_grey" colspan="2">
+                        <p attrs="{&apos;invisible&apos;:[(&apos;uom_type&apos;,&apos;!=&apos;,&apos;bigger&apos;)]}"
+                           class="oe_grey" colspan="2">
                             e.g: 1 * (this unit) = ratio * (reference unit)
                         </p>
                     </group>
@@ -32,17 +38,20 @@
                 </group>
             </form>
         </view>
-        <action id="product_product_uom_form_action" type="ir.actions.act_window" name="Units of Measure" model="ProductUom" view_id="product_product_uom_tree_view" view_mode="tree,form">
+
+        <action id="product_product_uom_form_action" type="ir.actions.act_window" name="Units of Measure"
+                model="ProductUom" view_id="product_product_uom_tree_view" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-            Click to add a new unit of measure.
-          </p>
+                    Click to add a new unit of measure.
+                </p>
                 <p>
-            You must define a conversion rate between several Units of
-            Measure within the same category.
-          </p>
+                    You must define a conversion rate between several Units of
+                    Measure within the same category.
+                </p>
             </help>
         </action>
+
         <view id="product_product_uom_categ_form_view" model="ProductUomCateg">
             <form string="Units of Measure categories">
                 <group>
@@ -50,19 +59,22 @@
                 </group>
             </form>
         </view>
-        <action id="product_product_uom_categ_form_action" type="ir.actions.act_window" name="Unit of Measure Categories" model="ProductUomCateg" view_mode="tree,form">
+
+        <action id="product_product_uom_categ_form_action" type="ir.actions.act_window"
+                name="Unit of Measure Categories" model="ProductUomCateg" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-            Click to add a new unit of measure category.
-          </p>
+                    Click to add a new unit of measure category.
+                </p>
                 <p>
-            Units of measure belonging to the same category can be
-            converted between each others. For example, in the category
-            
+                    Units of measure belonging to the same category can be
+                    converted between each others. For example, in the category
+
                     <i>&apos;Time&apos;</i>, you will have the following units of measure:
-            Hours, Days.
-          </p>
+                    Hours, Days.
+                </p>
             </help>
         </action>
+
     </data>
 </hexya>

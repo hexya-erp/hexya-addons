@@ -1,3 +1,6 @@
+// Copyright 2017 NDP Systèmes. All Rights Reserved.
+// See LICENSE file for full licensing details.
+
 package product
 
 import (
@@ -10,45 +13,46 @@ func init() {
 	pool.Partner().AddFields(map[string]models.FieldDefinition{
 		"PropertyProductPricelist": models.Many2OneField{String: "Sale Pricelist", RelationModel: pool.ProductPricelist(),
 			Compute: pool.Partner().Methods().ComputeProductPricelist(),
-			Inverse: pool.Partner().Methods().InverseProductPricelist(), /* NOT A REAL PROPERTY */
+			Depends: []string{"Country"},
+			Inverse: pool.Partner().Methods().InverseProductPricelist(),
 			Help:    "This pricelist will be used instead of the default one for sales to the current partner"},
+		"ProductPricelist": models.Many2OneField{String: "Stored Pricelist", RelationModel: pool.ProductPricelist()},
 	})
 
 	pool.Partner().Methods().ComputeProductPricelist().DeclareMethod(
-		`ComputeProductPricelist`,
-		func(rs pool.PartnerSet) (*pool.PartnerSet, []models.FieldNamer) {
-			//@api.depends('country_id')
-			/*def _compute_product_pricelist(self):
-			  for p in self:
-			      if not isinstance(p.id, models.NewId):  # if not onchange
-			          p.property_product_pricelist = self.env['product.pricelist']._get_partner_pricelist(p.id)
-
-			*/
+		`ComputeProductPricelist returns the price list applicable for this partner`,
+		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+			if rs.ID() == 0 {
+				// We are processing an Onchange
+				return new(pool.PartnerData), []models.FieldNamer{}
+			}
+			company := pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			return &pool.PartnerData{
+				PropertyProductPricelist: pool.ProductPricelist().NewSet(rs.Env()).GetPartnerPricelist(rs, company),
+			}, []models.FieldNamer{pool.Partner().PropertyProductPricelist()}
 		})
 
 	pool.Partner().Methods().InverseProductPricelist().DeclareMethod(
-		`InverseProductPricelist`,
+		`InverseProductPricelist sets the price list for this partner to the given list`,
 		func(rs pool.PartnerSet, priceList pool.ProductPricelistSet) {
-			//@api.one
-			/*def _inverse_product_pricelist(self):
-			  pls = self.env['product.pricelist'].search(
-			      [('country_group_ids.country_ids.code', '=', self.country_id and self.country_id.code or False)],
-			      limit=1
-			  )
-			  default_for_country = pls and pls[0]
-			  actual = self.env['ir.property'].get('property_product_pricelist', 'res.partner', 'res.partner,%s' % self.id)
-
-			  # update at each change country, and so erase old pricelist
-			  if self.property_product_pricelist or (actual and default_for_country and default_for_country.id != actual.id):
-			      # keep the company of the current user before sudo
-			      self.env['ir.property'].with_context(force_company=self.env.user.company_id.id).sudo().set_multi(
-			          'property_product_pricelist',
-			          self._name,
-			          {self.id: self.property_product_pricelist or default_for_country.id},
-			          default_value=default_for_country.id
-			      )
-
-			*/
+			var defaultForCountry pool.ProductPricelistSet
+			if !rs.Country().IsEmpty() {
+				defaultForCountry = pool.ProductPricelist().Search(rs.Env(),
+					pool.ProductPricelist().CountryGroupsFilteredOn(
+						pool.CountryGroup().CountriesFilteredOn(
+							pool.Country().Code().Equals(rs.Country().Code())))).Limit(1)
+			} else {
+				defaultForCountry = pool.ProductPricelist().Search(rs.Env(),
+					pool.ProductPricelist().CountryGroups().IsNull()).Limit(1)
+			}
+			actual := rs.PropertyProductPricelist()
+			if !priceList.IsEmpty() || (!actual.IsEmpty() && !defaultForCountry.Equals(actual)) {
+				if priceList.IsEmpty() {
+					rs.SetProductPricelist(defaultForCountry)
+					return
+				}
+				rs.SetProductPricelist(priceList)
+			}
 		})
 
 	pool.Partner().Methods().CommercialFields().Extend(

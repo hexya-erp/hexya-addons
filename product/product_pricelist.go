@@ -1,6 +1,16 @@
+// Copyright 2017 NDP Systèmes. All Rights Reserved.
+// See LICENSE file for full licensing details.
+
 package product
 
 import (
+	"fmt"
+
+	"log"
+
+	"math"
+	"strings"
+
 	"github.com/hexya-erp/hexya-addons/decimalPrecision"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/operator"
@@ -21,19 +31,15 @@ func init() {
 			Help: "If unchecked, it will allow you to hide the pricelist without removing it."},
 		"Items": models.One2ManyField{String: "Pricelist Items", RelationModel: pool.ProductPricelistItem(),
 			ReverseFK: "Pricelist", JSON: "item_ids", NoCopy: false,
-			Default: func(models.Environment, models.FieldMap) interface{} {
-				/*_get_default_item_ids(self):
-				  ProductPricelistItem = self.env['product.pricelist.item']
-				  vals = ProductPricelistItem.default_get(ProductPricelistItem._*/
-				return 0
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				listItems := pool.ProductPricelistItem().NewSet(env)
+				values, _ := listItems.DataStruct(listItems.DefaultGet())
+				values.ComputePrice = "formula"
+				return listItems.Create(values)
 			}},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
-			Default: func(models.Environment, models.FieldMap) interface{} {
-				/*_get_default_currency_id(self):
-				  return self.env.user.company_id.currency_id.id
-
-				*/
-				return 0
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.User().NewSet(env).CurrentUser().Company().Currency()
 			}, Required: true},
 		"Company":       models.Many2OneField{RelationModel: pool.Company()},
 		"Sequence":      models.IntegerField{Default: models.DefaultValue(16)},
@@ -42,215 +48,151 @@ func init() {
 
 	pool.ProductPricelist().Methods().NameGet().Extend("",
 		func(rs pool.ProductPricelistSet) string {
-			//@api.multi
-			/*def name_get(self):
-			  return [(pricelist.id, '%s (%s)' % (pricelist.name, pricelist.currency_id.name)) for pricelist in self]
-
-			*/
+			return fmt.Sprintf("%s (%s)", rs.Name(), rs.Currency().Name())
 		})
 
 	pool.ProductPricelist().Methods().SearchByName().Extend("",
 		func(rs pool.ProductPricelistSet, name string, op operator.Operator, additionalCondition pool.ProductPricelistCondition, limit int) pool.ProductPricelistSet {
-			//@api.model
-			/*def name_search(self, name, args=None, operator='ilike', limit=100):
-			  if name and operator == '=' and not args:
-			      # search on the name of the pricelist and its currency, opposite of name_get(),
-			      # Used by the magic context filter in the product search view.
-			      query_args = {'name': name, 'limit': limit, 'lang': self._context.get('lang') or 'en_US'}
-			      query = """SELECT p.id
-			                 FROM ((
-			                          SELECT pr.id, pr.name
-			                          FROM product_pricelist pr JOIN
-			                               res_currency cur ON
-			                                   (pr.currency_id = cur.id)
-			                          WHERE pr.name || ' (' || cur.name || ')' = %(name)s
-			                      )
-			                      UNION (
-			                          SELECT tr.res_id as id, tr.value as name
-			                          FROM ir_translation tr JOIN
-			                               product_pricelist pr ON (
-			                                  pr.id = tr.res_id AND
-			                                  tr.type = 'model' AND
-			                                  tr.name = 'product.pricelist,name' AND
-			                                  tr.lang = %(lang)s
-			                               ) JOIN
-			                               res_currency cur ON
-			                                   (pr.currency_id = cur.id)
-			                          WHERE tr.value || ' (' || cur.name || ')' = %(name)s
-			                      )
-			                  ) p
-			                 ORDER BY p.name"""
-			      if limit:
-			          query += " LIMIT %(limit)s"
-			      self._cr.execute(query, query_args)
-			      ids = [r[0] for r in self._cr.fetchall()]
-			      # regular search() to apply ACLs - may limit results below limit in some cases
-			      pricelists = self.search([('id', 'in', ids)], limit=limit)
-			      if pricelists:
-			          return pricelists.name_get()
-			  return super(Pricelist, self).name_search(name, args, operator=operator, limit=limit)
-
-			*/
+			return rs.Super().SearchByName(name, op, additionalCondition, limit)
 		})
 
 	pool.ProductPricelist().Methods().ComputePriceRule().DeclareMethod(
 		`ComputePriceRule is the low-level method computing the price of the given product according to this
-		price list. Price depends on quantity, partner and date, and is given for the uom.`,
+		price list. Price depends on quantity, partner and date, and is given for the uom.
+
+		If date or uom are not given, this function will try to read them from the context 'date' and 'uom' keys`,
 		func(rs pool.ProductPricelistSet, product pool.ProductProductSet, quantity float64, partner pool.PartnerSet,
-			Date dates.Date, uom pool.ProductUomSet) (float64, pool.ProductPricelistItemSet) {
+			date dates.Date, uom pool.ProductUomSet) (float64, pool.ProductPricelistItemSet) {
 
 			rs.EnsureOne()
-			//@api.multi
-			/*def _compute_price_rule(self, products_qty_partner, date=False, uom_id=False):
-						  """ Low-level method - Mono pricelist, multi products
-						  Returns: dict{product_id: (price, suitable_rule) for the given pricelist}
+			if date.IsZero() {
+				date = dates.Today()
+				if rs.Env().Context().HasKey("date") {
+					date = rs.Env().Context().GetDate("date")
+				}
+			}
+			if uom.IsEmpty() && rs.Env().Context().HasKey("uom") {
+				uom = pool.ProductUom().NewSet(rs.Env()).Browse([]int64{rs.Env().Context().GetInteger("uom")})
+			}
+			if !uom.IsEmpty() {
+				product = product.WithContext("uom", uom.ID())
+			}
+			if product.IsEmpty() {
+				return 0, pool.ProductPricelistItem().NewSet(rs.Env())
+			}
 
-						  If date in context: Date of the pricelist (%Y-%m-%d)
+			categs := pool.ProductCategory().NewSet(rs.Env())
+			for categ := product.Categ(); !categ.IsEmpty(); categ = categ.Parent() {
+				categs = categs.Union(categ)
+			}
 
-						      :param products_qty_partner: list of typles products, quantity, partner
-						      :param datetime date: validity date
-						      :param ID uom_id: intermediate unit of measure
-						  """
-						  self.ensure_one()
-						  if not date:
-						      date = self._context.get('date') or fields.Date.today()
-			        if not uom_id and self._context.get('uom'):
-			            uom_id = self._context['uom']
-			        if uom_id:
-			            # rebrowse with uom if given
-			            products = [item[0].with_context(uom=uom_id) for item in products_qty_partner]
-			            products_qty_partner = [(products[index], data_struct[1], data_struct[2]) for index, data_struct in enumerate(products_qty_partner)]
-			        else:
-			            products = [item[0] for item in products_qty_partner]
+			prodTmpl := product.ProductTmpl()
 
-			        if not products:
-			            return {}
+			// Load all rules
+			tmplCond := pool.ProductPricelistItem().ProductTmpl().IsNull().Or().ProductTmpl().Equals(prodTmpl)
+			prodCond := pool.ProductPricelistItem().Product().IsNull().Or().Product().Equals(product)
+			categCond := pool.ProductPricelistItem().Categ().IsNull().Or().Categ().In(categs)
+			dateStartCond := pool.ProductPricelistItem().DateStart().IsNull().Or().DateStart().LowerOrEqual(date)
+			dateEndCond := pool.ProductPricelistItem().DateEnd().IsNull().Or().DateEnd().LowerOrEqual(date)
 
-			        categ_ids = {}
-			        for p in products:
-			            categ = p.categ_id
-			            while categ:
-			                categ_ids[categ.id] = True
-			                categ = categ.parent_id
-			        categ_ids = categ_ids.keys()
+			items := pool.ProductPricelistItem().Search(rs.Env(),
+				pool.ProductPricelistItem().Pricelist().Equals(rs).
+					AndCond(tmplCond).
+					AndCond(prodCond).
+					AndCond(categCond).
+					AndCond(dateStartCond).
+					AndCond(dateEndCond)).OrderBy("AppliedOn", "MinQuantity DESC", "Categ.Name")
 
-			        is_product_template = products[0]._name == "product.template"
-			        if is_product_template:
-			            prod_tmpl_ids = [tmpl.id for tmpl in products]
-			            # all variants of all products
-			            prod_ids = [p.id for p in
-			                        list(chain.from_iterable([t.product_variant_ids for t in products]))]
-			        else:
-			            prod_ids = [product.id for product in products]
-			            prod_tmpl_ids = [product.product_tmpl_id.id for product in products]
+			var price float64
+			suitableRule := pool.ProductPricelistItem().NewSet(rs.Env())
+			// Final unit price is computed according to `qty` in the `qty_uom_id` UoM.
+			// An intermediary unit price may be computed according to a different UoM, in
+			// which case the price_uom_id contains that UoM.
+			// The final price will be converted to match `qty_uom_id`.
+			qtyUom := product.Uom()
+			if rs.Env().Context().HasKey("uom") {
+				qtyUom = pool.ProductUom().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("uom")})
+			}
+			priceUom := product.Uom()
+			qtyInProductUom := quantity
+			if !qtyUom.Equals(product.Uom()) {
+				if qtyUom.Category().Equals(product.Uom().Category()) {
+					qtyInProductUom = qtyUom.ComputeQuantity(quantity, product.Uom(), true)
+				}
+			}
+			price = product.PriceCompute(pool.ProductProduct().ListPrice(),
+				pool.ProductUom().NewSet(rs.Env()), pool.Currency().NewSet(rs.Env()), pool.Company().NewSet(rs.Env()))
 
-			        # Load all rules
-			        self._cr.execute(
-			            'SELECT item.id '
-			            'FROM product_pricelist_item AS item '
-			            'LEFT JOIN product_category AS categ '
-			            'ON item.categ_id = categ.id '
-			            'WHERE (item.product_tmpl_id IS NULL OR item.product_tmpl_id = any(%s))'
-			            'AND (item.product_id IS NULL OR item.product_id = any(%s))'
-			            'AND (item.categ_id IS NULL OR item.categ_id = any(%s)) '
-			            'AND (item.pricelist_id = %s) '
-			            'AND (item.date_start IS NULL OR item.date_start<=%s) '
-			            'AND (item.date_end IS NULL OR item.date_end>=%s)'
-			            'ORDER BY item.applied_on, item.min_quantity desc, categ.parent_left desc',
-			            (prod_tmpl_ids, prod_ids, categ_ids, self.id, date, date))
+			for _, rule := range items.Records() {
+				if rule.MinQuantity() != 0 && qtyInProductUom < rule.MinQuantity() {
+					continue
+				}
+				if !rule.ProductTmpl().IsEmpty() && !product.ProductTmpl().Equals(rule.ProductTmpl()) {
+					continue
+				}
+				if !rule.Product().IsEmpty() && !product.Equals(rule.Product()) {
+					continue
+				}
+				if !rule.Categ().IsEmpty() {
+					cat := product.Categ()
+					for ; !cat.IsEmpty(); cat = cat.Parent() {
+						if cat.Equals(rule.Categ()) {
+							break
+						}
+					}
+					if cat.IsEmpty() {
+						continue
+					}
+				}
+				if rule.Base() == "pricelist" && !rule.BasePricelist().IsEmpty() {
+					priceTmp, _ := rule.BasePricelist().ComputePriceRule(product, quantity, partner, dates.Date{},
+						pool.ProductUom().NewSet(rs.Env()))
+					price = rule.BasePricelist().Currency().Compute(priceTmp, rs.Currency(), false)
+				} else {
+					// if base option is public price take sale price else cost price of product
+					// price_compute returns the price in the context UoM, i.e. qty_uom_id
+					price = product.PriceCompute(models.FieldName(rule.Base()), pool.ProductUom().NewSet(rs.Env()),
+						pool.Currency().NewSet(rs.Env()), pool.Company().NewSet(rs.Env()))
+				}
+				convertToPriceUom := func(p float64) float64 {
+					return product.Uom().ComputePrice(p, priceUom)
+				}
 
-			        item_ids = [x[0] for x in self._cr.fetchall()]
-			        items = self.env['product.pricelist.item'].browse(item_ids)
-			        results = {}
-			        for product, qty, partner in products_qty_partner:
-			            results[product.id] = 0.0
-			            suitable_rule = False
-
-			            # Final unit price is computed according to `qty` in the `qty_uom_id` UoM.
-			            # An intermediary unit price may be computed according to a different UoM, in
-			            # which case the price_uom_id contains that UoM.
-			            # The final price will be converted to match `qty_uom_id`.
-			            qty_uom_id = self._context.get('uom') or product.uom_id.id
-			            price_uom_id = product.uom_id.id
-			            qty_in_product_uom = qty
-			            if qty_uom_id != product.uom_id.id:
-			                try:
-			                    qty_in_product_uom = self.env['product.uom'].browse([self._context['uom']])._compute_quantity(qty, product.uom_id)
-			                except UserError:
-			                    # Ignored - incompatible UoM in context, use default product UoM
-			                    pass
-
-			            # if Public user try to access standard price from website sale, need to call price_compute.
-			            # TDE SURPRISE: product can actually be a template
-			            price = product.price_compute('list_price')[product.id]
-
-			            price_uom = self.env['product.uom'].browse([qty_uom_id])
-			            for rule in items:
-			                if rule.min_quantity and qty_in_product_uom < rule.min_quantity:
-			                    continue
-			                if is_product_template:
-			                    if rule.product_tmpl_id and product.id != rule.product_tmpl_id.id:
-			                        continue
-			                    if rule.product_id and not (product.product_variant_count == 1 and product.product_variant_id.id == rule.product_id.id):
-			                        # product rule acceptable on template if has only one variant
-			                        continue
-			                else:
-			                    if rule.product_tmpl_id and product.product_tmpl_id.id != rule.product_tmpl_id.id:
-			                        continue
-			                    if rule.product_id and product.id != rule.product_id.id:
-			                        continue
-
-			                if rule.categ_id:
-			                    cat = product.categ_id
-			                    while cat:
-			                        if cat.id == rule.categ_id.id:
-			                            break
-			                        cat = cat.parent_id
-			                    if not cat:
-			                        continue
-
-			                if rule.base == 'pricelist' and rule.base_pricelist_id:
-			                    price_tmp = rule.base_pricelist_id._compute_price_rule([(product, qty, partner)])[product.id][0]  # TDE: 0 = price, 1 = rule
-			                    price = rule.base_pricelist_id.currency_id.compute(price_tmp, self.currency_id, round=False)
-			                else:
-			                    # if base option is public price take sale price else cost price of product
-			                    # price_compute returns the price in the context UoM, i.e. qty_uom_id
-			                    price = product.price_compute(rule.base)[product.id]
-
-			                convert_to_price_uom = (lambda price: product.uom_id._compute_price(price, price_uom))
-
-			                if price is not False:
-			                    if rule.compute_price == 'fixed':
-			                        price = convert_to_price_uom(rule.fixed_price)
-			                    elif rule.compute_price == 'percentage':
-			                        price = (price - (price * (rule.percent_price / 100))) or 0.0
-			                    else:
-			                        # complete formula
-			                        price_limit = price
-			                        price = (price - (price * (rule.price_discount / 100))) or 0.0
-			                        if rule.price_round:
-			                            price = tools.float_round(price, precision_rounding=rule.price_round)
-
-			                        if rule.price_surcharge:
-			                            price_surcharge = convert_to_price_uom(rule.price_surcharge)
-			                            price += price_surcharge
-
-			                        if rule.price_min_margin:
-			                            price_min_margin = convert_to_price_uom(rule.price_min_margin)
-			                            price = max(price, price_limit + price_min_margin)
-
-			                        if rule.price_max_margin:
-			                            price_max_margin = convert_to_price_uom(rule.price_max_margin)
-			                            price = min(price, price_limit + price_max_margin)
-			                    suitable_rule = rule
-			                break
-			            # Final price conversion into pricelist currency
-			            if suitable_rule and suitable_rule.compute_price != 'fixed' and suitable_rule.base != 'pricelist':
-			                price = product.currency_id.compute(price, self.currency_id, round=False)
-
-			            results[product.id] = (price, suitable_rule and suitable_rule.id or False)
-
-			        return results*/
+				if price == 0 {
+					break
+				}
+				switch rule.ComputePrice() {
+				case "fixed":
+					price = convertToPriceUom(rule.FixedPrice())
+				case "percentage":
+					price = price - (price * (rule.PercentPrice() / 100))
+				case "formula":
+					priceLimit := price
+					price = price - (price * (rule.PriceDiscount() / 100))
+					if rule.PriceRound() != 0 {
+						price = nbutils.Round(price, rule.PriceRound())
+					}
+					if rule.PriceSurcharge() != 0 {
+						priceSurcharge := convertToPriceUom(rule.PriceSurcharge())
+						price += priceSurcharge
+					}
+					if rule.PriceMinMargin() != 0 {
+						priceMinMargin := convertToPriceUom(rule.PriceMinMargin())
+						price = math.Max(price, priceLimit+priceMinMargin)
+					}
+					if rule.PriceMaxMargin() != 0 {
+						priceMaxMargin := convertToPriceUom(rule.PriceMaxMargin())
+						price = math.Min(price, priceLimit+priceMaxMargin)
+					}
+				}
+				suitableRule = rule
+				break
+			}
+			// Final price conversion into pricelist currency
+			if !suitableRule.IsEmpty() && suitableRule.ComputePrice() != "fixed" && suitableRule.Base() != "pricelist" {
+				price = product.Currency().Compute(price, rs.Currency(), false)
+			}
+			return price, suitableRule
 		})
 
 	pool.ProductPricelist().Methods().GetProductPrice().DeclareMethod(
@@ -276,44 +218,31 @@ func init() {
 		})
 
 	pool.ProductPricelist().Methods().GetPartnerPricelist().DeclareMethod(
-		`GetPartnerPricelist rtrieve the applicable pricelist for the given partner in the given company.`,
+		`GetPartnerPricelist retrieve the applicable pricelist for the given partner in the given company.`,
 		func(rs pool.ProductPricelistSet, partner pool.PartnerSet, company pool.CompanySet) pool.ProductPricelistSet {
-			/*def _get_partner_pricelist(self, partner_id, company_id=None):
-			  """ Retrieve the applicable pricelist for a given partner in a given company.
-
-			      :param company_id: if passed, used for looking up properties,
-			       instead of current user's company
-			  """
-			  Partner = self.env['res.partner']
-			  Property = self.env['ir.property'].with_context(force_company=company_id or self.env.user.company_id.id)
-
-			  p = Partner.browse(partner_id)
-			  pl = Property.get('property_product_pricelist', Partner._name, '%s,%s' % (Partner._name, p.id))
-			  if pl:
-			      pl = pl[0].id
-
-			  if not pl:
-			      if p.country_id.code:
-			          pls = self.env['product.pricelist'].search([('country_group_ids.country_ids.code', '=', p.country_id.code)], limit=1)
-			          pl = pls and pls[0].id
-
-			  if not pl:
-			      # search pl where no country
-			      pls = self.env['product.pricelist'].search([('country_group_ids', '=', False)], limit=1)
-			      pl = pls and pls[0].id
-
-			  if not pl:
-			      prop = Property.get('property_product_pricelist', 'res.partner')
-			      pl = prop and prop[0].id
-
-			  if not pl:
-			      pls = self.env['product.pricelist'].search([], limit=1)
-			      pl = pls and pls[0].id
-
-			  return pl
-
-
-			*/
+			if company.IsEmpty() {
+				company = pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			}
+			pl := partner.ProductPricelist()
+			if pl.IsEmpty() {
+				if !partner.Country().IsEmpty() {
+					pl = pool.ProductPricelist().Search(rs.Env(),
+						pool.ProductPricelist().CountryGroupsFilteredOn(
+							pool.CountryGroup().CountriesFilteredOn(
+								pool.Country().Code().Equals(partner.Country().Code())))).Limit(1)
+				}
+			}
+			if pl.IsEmpty() {
+				pl = pool.ProductPricelist().Search(rs.Env(),
+					pool.ProductPricelist().CountryGroups().IsNull()).Limit(1)
+			}
+			if pl.IsEmpty() {
+				pl = company.DefaultPriceList()
+			}
+			if pl.IsEmpty() {
+				pl = pool.ProductPricelist().NewSet(rs.Env()).SearchAll().Limit(1)
+			}
+			return pl
 		})
 
 	pool.CountryGroup().AddFields(map[string]models.FieldDefinition{
@@ -334,7 +263,7 @@ func init() {
 			OnDelete: models.Cascade,
 			Help: `Specify a product category if this rule only applies to products belonging to this category or 
 its children categories. Keep empty otherwise.`},
-		"MinQuantity": models.IntegerField{Default: models.DefaultValue(1),
+		"MinQuantity": models.FloatField{Default: models.DefaultValue(1),
 			Help: `For the rule to apply, bought/sold quantity must be greater
 than or equal to the minimum quantity specified in this field.
 Expressed in the default unit of measure of the product.`},
@@ -344,22 +273,25 @@ Expressed in the default unit of measure of the product.`},
 			"1_product":          "Product",
 			"0_product_variant":  "Product Variant",
 		}, Default: models.DefaultValue("3_global"), Required: true,
-			Help: "Pricelist Item applicable on selected option"},
+			Help:     "Pricelist Item applicable on selected option",
+			OnChange: pool.ProductPricelistItem().Methods().OnchangeAppliedOn()},
 		"Sequence": models.IntegerField{Default: models.DefaultValue(5), Required: true,
 			Help: `Gives the order in which the pricelist items will be checked. The evaluation gives highest priority
 to lowest sequence and stops as soon as a matching item is found.`},
 		"Base": models.SelectionField{String: "Based on", Selection: types.Selection{
-			"list_price":     "Public Price",
-			"standard_price": "Cost",
-			"pricelist":      "Other Pricelist",
+			"ListPrice":     "Public Price",
+			"StandardPrice": "Cost",
+			"pricelist":     "Other Pricelist",
 		}, Default: models.DefaultValue("list_price"), Required: true,
 			Help: `Base price for computation.
 - Public Price: The base price will be the Sale/public Price.
 - Cost Price : The base price will be the cost price.
-- Other Pricelist : Computation of the base price based on another Pricelist.`},
-		"BasePricelist": models.Many2OneField{String: "Other Pricelist", RelationModel: pool.ProductPricelist()},
+- Other Pricelist : Computation of the base price based on another Pricelist.`,
+			Constraint: pool.ProductPricelistItem().Methods().CheckOtherList()},
+		"BasePricelist": models.Many2OneField{String: "Other Pricelist", RelationModel: pool.ProductPricelist(),
+			Constraint: pool.ProductPricelistItem().Methods().CheckOtherList()},
 		"Pricelist": models.Many2OneField{RelationModel: pool.ProductPricelist(), Index: true,
-			OnDelete: models.Cascade},
+			OnDelete: models.Cascade, Constraint: pool.ProductPricelistItem().Methods().CheckOtherList()},
 		"PriceSurcharge": models.FloatField{Digits: decimalPrecision.GetPrecision("Product Price"),
 			Help: "Specify the fixed amount to add or substract(if negative) to the amount calculated with the discount."},
 		"PriceDiscount": models.FloatField{Default: models.DefaultValue(0),
@@ -369,22 +301,26 @@ to lowest sequence and stops as soon as a matching item is found.`},
 Rounding is applied after the discount and before the surcharge.
 To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 		"PriceMinMargin": models.FloatField{String: "Min. Price Margin",
-			Digits: decimalPrecision.GetPrecision("Product Price"),
-			Help:   "Specify the minimum amount of margin over the base price."},
+			Digits:     decimalPrecision.GetPrecision("Product Price"),
+			Help:       "Specify the minimum amount of margin over the base price.",
+			Constraint: pool.ProductPricelistItem().Methods().CheckMargin()},
 		"PriceMaxMargin": models.FloatField{String: "Max. Price Margin",
-			Digits: decimalPrecision.GetPrecision("Product Price"),
-			Help:   "Specify the maximum amount of margin over the base price."},
+			Digits:     decimalPrecision.GetPrecision("Product Price"),
+			Help:       "Specify the maximum amount of margin over the base price.",
+			Constraint: pool.ProductPricelistItem().Methods().CheckMargin()},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), /* readonly=true */
-			Related: "Pricelist.Company", Stored: true},
+			Related: "Pricelist.Company"},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(), /* readonly=true */
-			Related: "Pricelist.Currency", Stored: true},
+			Related: "Pricelist.Currency"},
 		"DateStart": models.DateField{String: "Start Date", Help: "Starting date for the pricelist item validation"},
 		"DateEnd":   models.DateField{String: "End Date", Help: "Ending valid for the pricelist item validation"},
 		"ComputePrice": models.SelectionField{Selection: types.Selection{
 			"fixed":      "Fix Price",
 			"percentage": "Percentage (discount)",
 			"formula":    "Formula",
-		}, Index: true, Default: models.DefaultValue("fixed")},
+		},
+			Index: true, Default: models.DefaultValue("fixed"),
+			OnChange: pool.ProductPricelistItem().Methods().OnchangeComputePrice()},
 		"FixedPrice":   models.FloatField{String: "Fixed Price", Digits: decimalPrecision.GetPrecision("Product Price")},
 		"PercentPrice": models.FloatField{String: "Percentage Price"},
 		"Name": models.CharField{Compute: pool.ProductPricelistItem().Methods().GetPricelistItemNamePrice(),
@@ -393,87 +329,91 @@ To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 			Help: "Explicit rule name for this pricelist line."},
 	})
 
-	pool.ProductPricelistItem().Methods().CheckRecursion().DeclareMethod(
-		`CheckRecursion`,
+	pool.ProductPricelistItem().Methods().CheckOtherList().DeclareMethod(
+		`CheckOtherList panics if the other list used in a rule is the same as the base list`,
 		func(rs pool.ProductPricelistItemSet) {
-			//@api.constrains('base_pricelist_id','pricelist_id','base')
-			/*def _check_recursion(self):
-			  if any(item.base == 'pricelist' and item.pricelist_id and item.pricelist_id == item.base_pricelist_id for item in self):
-			      raise ValidationError(_('Error! You cannot assign the Main Pricelist as Other Pricelist in PriceList Item!'))
-			  return True
-
-			*/
+			for _, item := range rs.Records() {
+				if item.Base() == "pricelist" && !item.Pricelist().IsEmpty() && item.Pricelist().Equals(item.BasePricelist()) {
+					log.Panic(rs.T("Error! You cannot assign the Main Pricelist as Other Pricelist in PriceList Item!"))
+				}
+			}
 		})
 
 	pool.ProductPricelistItem().Methods().CheckMargin().DeclareMethod(
-		`CheckMargin`,
+		`CheckMargin checks that the max margin is greater or equal to the min margin`,
 		func(rs pool.ProductPricelistItemSet) {
-			//@api.constrains('price_min_margin','price_max_margin')
-			/*def _check_margin(self):
-			  if any(item.price_min_margin > item.price_max_margin for item in self):
-			      raise ValidationError(_('Error! The minimum margin should be lower than the maximum margin.'))
-			  return True
-
-			*/
+			for _, item := range rs.Records() {
+				if item.PriceMinMargin() > item.PriceMaxMargin() {
+					log.Panic(rs.T("Error! The minimum margin should be lower than the maximum margin."))
+				}
+			}
 		})
 
 	pool.ProductPricelistItem().Methods().GetPricelistItemNamePrice().DeclareMethod(
-		`GetPricelistItemNamePrice`,
-		func(rs pool.ProductPricelistItemSet) (*pool.ProductPricelistItemSet, models.FieldNamer) {
-			/*def _get_pricelist_item_name_price(self):
-			  if self.categ_id:
-			      self.name = _("Category: %s") % (self.categ_id.name)
-			  elif self.product_tmpl_id:
-			      self.name = self.product_tmpl_id.name
-			  elif self.product_id:
-			      self.name = self.product_id.display_name.replace('[%s]' % self.product_id.code, '')
-			  else:
-			      self.name = _("All Products")
-
-			  if self.compute_price == 'fixed':
-			      self.price = ("%s %s") % (self.fixed_price, self.pricelist_id.currency_id.name)
-			  elif self.compute_price == 'percentage':
-			      self.price = _("%s %% discount") % (self.percent_price)
-			  else:
-			      self.price = _("%s %% discount and %s surcharge") % (abs(self.price_discount), self.price_surcharge)
-
-			*/
+		`GetPricelistItemNamePrice computes the name and the price fields of this line`,
+		func(rs pool.ProductPricelistItemSet) (*pool.ProductPricelistItemData, []models.FieldNamer) {
+			var name, price string
+			switch {
+			case !rs.Categ().IsEmpty():
+				name = rs.T("Category: %s", rs.Categ().Name())
+			case !rs.ProductTmpl().IsEmpty():
+				name = rs.ProductTmpl().Name()
+			case !rs.Product().IsEmpty():
+				name = strings.Replace(rs.Product().DisplayName(),
+					fmt.Sprintf("[%s]", rs.Product().DefaultCode()), "", 1)
+			default:
+				name = rs.T("All Products")
+			}
+			switch {
+			case rs.ComputePrice() == "fixed":
+				price = fmt.Sprintf("%v %v", rs.FixedPrice(), rs.Pricelist().Currency().Name())
+			case rs.ComputePrice() == "percentage":
+				price = rs.T("%v %% discount", rs.PercentPrice())
+			default:
+				price = rs.T("%v %% discount and %v surcharge", math.Abs(rs.PriceDiscount()), rs.PriceSurcharge())
+			}
+			return &pool.ProductPricelistItemData{
+				Price: price,
+				Name:  name,
+			}, []models.FieldNamer{pool.ProductPricelistItem().Name(), pool.ProductPricelistItem().Price()}
 		})
 
 	pool.ProductPricelistItem().Methods().OnchangeAppliedOn().DeclareMethod(
-		`OnchangeAppliedOn`,
-		func(rs pool.ProductPricelistItemSet) (*pool.ProductPricelistItemSet, models.FieldNamer) {
-			//@api.onchange('applied_on')
-			/*def _onchange_applied_on(self):
-			  if self.applied_on != '0_product_variant':
-			      self.product_id = False
-			  if self.applied_on != '1_product':
-			      self.product_tmpl_id = False
-			  if self.applied_on != '2_product_category':
-			      self.categ_id = False
-
-			*/
+		`OnchangeAppliedOn updates values when the AppliedOn is changed`,
+		func(rs pool.ProductPricelistItemSet) (*pool.ProductPricelistItemData, []models.FieldNamer) {
+			var fieldsToReset []models.FieldNamer
+			if rs.AppliedOn() != "0_product_variant" {
+				fieldsToReset = append(fieldsToReset, pool.ProductPricelistItem().Product())
+			}
+			if rs.AppliedOn() != "1_product" {
+				fieldsToReset = append(fieldsToReset, pool.ProductPricelistItem().ProductTmpl())
+			}
+			if rs.AppliedOn() != "2_product_category" {
+				fieldsToReset = append(fieldsToReset, pool.ProductPricelistItem().Categ())
+			}
+			return new(pool.ProductPricelistItemData), fieldsToReset
 		})
 
 	pool.ProductPricelistItem().Methods().OnchangeComputePrice().DeclareMethod(
-		`OnchangeComputePrice`,
-		func(rs pool.ProductPricelistItemSet) (*pool.ProductPricelistItemSet, models.FieldNamer) {
-			//@api.onchange('compute_price')
-			/*def _onchange_compute_price(self):
-			  if self.compute_price != 'fixed':
-			      self.fixed_price = 0.0
-			  if self.compute_price != 'percentage':
-			      self.percent_price = 0.0
-			  if self.compute_price != 'formula':
-			      self.update({
-			          'price_discount': 0.0,
-			          'price_surcharge': 0.0,
-			          'price_round': 0.0,
-			          'price_min_margin': 0.0,
-			          'price_max_margin': 0.0,
-			      })
-
-			*/
+		`OnchangeComputePrice updates values when the ComputePrice field is changed`,
+		func(rs pool.ProductPricelistItemSet) (*pool.ProductPricelistItemData, []models.FieldNamer) {
+			var fieldsToReset []models.FieldNamer
+			if rs.ComputePrice() != "fixed" {
+				fieldsToReset = append(fieldsToReset, pool.ProductPricelistItem().FixedPrice())
+			}
+			if rs.ComputePrice() != "percentage" {
+				fieldsToReset = append(fieldsToReset, pool.ProductPricelistItem().PercentPrice())
+			}
+			if rs.ComputePrice() != "formula" {
+				fieldsToReset = append(fieldsToReset,
+					pool.ProductPricelistItem().PriceDiscount(),
+					pool.ProductPricelistItem().PriceSurcharge(),
+					pool.ProductPricelistItem().PriceRound(),
+					pool.ProductPricelistItem().PriceMinMargin(),
+					pool.ProductPricelistItem().PriceMaxMargin(),
+				)
+			}
+			return new(pool.ProductPricelistItemData), fieldsToReset
 		})
 
 }

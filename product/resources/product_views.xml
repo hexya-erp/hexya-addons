@@ -1,16 +1,20 @@
 <hexya>
     <data>
+
         <view id="product_product_template_form_view" model="ProductTemplate">
             <form string="Product">
                 <header>
-                    <button string="Variant Prices" type="action" name="%(product_attribute_value_action)d" attrs="{&apos;invisible&apos;: [(&apos;product_variant_count&apos;, &apos;&lt;=&apos;, 1)]}" groups="product.group_product_variant"/>
+                    <button string="Variant Prices" type="action" name="%(product_attribute_value_action)d"
+                            attrs="{&apos;invisible&apos;: [(&apos;product_variant_count&apos;, &apos;&lt;=&apos;, 1)]}"
+                            groups="product.group_product_variant"/>
                 </header>
                 <sheet>
                     <field name="product_variant_count" invisible="1"/>
                     <field name="id" invisible="True"/>
                     <div class="oe_button_box" name="button_box">
                         <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
-                            <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+                            <field name="active" widget="boolean_button"
+                                   options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                         </button>
                     </div>
                     <field name="image_medium" widget="image" class="oe_avatar"/>
@@ -38,22 +42,30 @@
                                     <field name="categ_id" string="Internal Category"/>
                                 </group>
                                 <group name="group_standard_price">
-                                    <field name="list_price" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                                    <field name="list_price" widget="monetary"
+                                           options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
                                     <label for="standard_price" groups="base.group_user"/>
                                     <div name="standard_price_uom" groups="base.group_user">
-                                        <field name="standard_price" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}" class="oe_inline"/>
+                                        <field name="standard_price" widget="monetary"
+                                               options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"
+                                               class="oe_inline"/>
                                     </div>
-                                    <field name="company_id" groups="base.group_multi_company" options="{&apos;no_create&apos;: True}"/>
-                                    <field name="uom_id" groups="product.group_uom" options="{&apos;no_create&apos;: True}"/>
-                                    <field name="uom_po_id" groups="product.group_uom" options="{&apos;no_create&apos;: True}"/>
+                                    <field name="company_id" groups="base.group_multi_company"
+                                           options="{&apos;no_create&apos;: True}"/>
+                                    <field name="uom_id" groups="product.group_uom"
+                                           options="{&apos;no_create&apos;: True}"/>
+                                    <field name="uom_po_id" groups="product.group_uom"
+                                           options="{&apos;no_create&apos;: True}"/>
                                     <field name="currency_id" invisible="1"/>
                                 </group>
                             </group>
                         </page>
-                        <page string="Sales" attrs="{&apos;invisible&apos;:[(&apos;sale_ok&apos;,&apos;=&apos;,False)]}" name="sales">
+                        <page string="Sales" attrs="{&apos;invisible&apos;:[(&apos;sale_ok&apos;,&apos;=&apos;,False)]}"
+                              name="sales">
                             <div name="pricelist_item" groups="product.group_product_pricelist">
                                 <separator string="Pricing"/>
-                                <field name="item_ids" nolabel="1" context="{&apos;default_base&apos;:&apos;list_price&apos;, &apos;default_applied_on&apos; :&apos;1_product&apos;}">
+                                <field name="item_ids" nolabel="1"
+                                       context="{&apos;default_base&apos;:&apos;list_price&apos;, &apos;default_applied_on&apos; :&apos;1_product&apos;}">
                                     <tree string="Pricelist Items" editable="bottom">
                                         <field name="pricelist_id" string="Pricelist" required="1"/>
                                         <field name="fixed_price" string="Price" required="1"/>
@@ -65,13 +77,15 @@
                                 </field>
                             </div>
                             <group name="sale">
-                                <group name="email_template_and_project" attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;!=&apos;, &apos;service&apos;)]}"/>
+                                <group name="email_template_and_project"
+                                       attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;!=&apos;, &apos;service&apos;)]}"/>
                             </group>
                         </page>
                         <page string="Notes" name="notes">
                             <group name="description">
                                 <separator string="Description for Quotations" colspan="4"/>
-                                <field name="description_sale" colspan="4" nolabel="1" placeholder="This note will be displayed on the quotations."/>
+                                <field name="description_sale" colspan="4" nolabel="1"
+                                       placeholder="This note will be displayed on the quotations."/>
                             </group>
                         </page>
                     </notebook>
@@ -82,53 +96,66 @@
                 </div>
             </form>
         </view>
+
         <view id="product_product_template_search_view" model="ProductTemplate">
             <search string="Product">
-                <field name="name" string="Product" filter_domain="[&apos;|&apos;,&apos;|&apos;,(&apos;default_code&apos;,&apos;ilike&apos;,self),(&apos;name&apos;,&apos;ilike&apos;,self),(&apos;barcode&apos;,&apos;ilike&apos;,self)]"/>
+                <field name="name" string="Product"
+                       filter_domain="[&apos;|&apos;,&apos;|&apos;,(&apos;default_code&apos;,&apos;ilike&apos;,self),(&apos;name&apos;,&apos;ilike&apos;,self),(&apos;barcode&apos;,&apos;ilike&apos;,self)]"/>
                 <field name="categ_id" filter_domain="[(&apos;categ_id&apos;, &apos;child_of&apos;, self)]"/>
                 <separator/>
-                <filter string="Services" name="services" domain="[(&apos;type&apos;,&apos;=&apos;,&apos;service&apos;)]"/>
-                <filter string="Products" name="consumable" domain="[(&apos;type&apos;, &apos;in&apos;, [&apos;consu&apos;, &apos;product&apos;])]" help="Products your store in the inventory"/>
+                <filter string="Services" name="services"
+                        domain="[(&apos;type&apos;,&apos;=&apos;,&apos;service&apos;)]"/>
+                <filter string="Products" name="consumable"
+                        domain="[(&apos;type&apos;, &apos;in&apos;, [&apos;consu&apos;, &apos;product&apos;])]"
+                        help="Products your store in the inventory"/>
                 <separator/>
                 <filter string="Can be Sold" name="filter_to_sell" domain="[(&apos;sale_ok&apos;,&apos;=&apos;,1)]"/>
-                <filter string="Can be Purchased" name="filter_to_purchase" domain="[(&apos;purchase_ok&apos;, &apos;=&apos;, 1)]"/>
+                <filter string="Can be Purchased" name="filter_to_purchase"
+                        domain="[(&apos;purchase_ok&apos;, &apos;=&apos;, 1)]"/>
                 <separator/>
                 <filter string="Archived" name="inactive" domain="[(&apos;active&apos;,&apos;=&apos;,False)]"/>
                 <field string="Attributes" name="attribute_line_ids" groups="product.group_product_variant"/>
-                <field name="pricelist_id" widget="selection" context="{&apos;pricelist&apos;: self}" filter_domain="[]" groups="product.group_sale_pricelist"/>
+                <field name="pricelist_id" widget="selection" context="{&apos;pricelist&apos;: self}" filter_domain="[]"
+                       groups="product.group_sale_pricelist"/>
                 <!-- Keep widget=selection on this field to pass numeric `self` value, which is not the case for regular m2o widgets! -->
             </search>
         </view>
-        <action id="product_product_template_action_all" type="ir.actions.act_window" name="Products" model="ProductTemplate" view_mode="kanban,tree,form">
+
+        <action id="product_product_template_action_all" type="ir.actions.act_window" name="Products"
+                model="ProductTemplate" view_mode="kanban,tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to define a new product.
-            </p>
+                    Click to define a new product.
+                </p>
             </help>
         </action>
+
         <view id="product_product_search_form_view" model="ProductProduct">
             <field name="attribute_line_ids" position="replace">
                 <field name="attribute_value_ids" groups="product.group_product_variant"/>
                 <field name="product_tmpl_id" string="Product Template"/>
             </field>
         </view>
-        <action id="product_product_normal_action" type="ir.actions.act_window" name="Product Variants" model="ProductProduct" view_mode="tree,form,kanban" search_view_id="product_product_search_form_view">
+
+        <action id="product_product_normal_action" type="ir.actions.act_window" name="Product Variants"
+                model="ProductProduct" view_mode="tree,form,kanban" search_view_id="product_product_search_form_view">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to define a new product.
-              </p>
+                    Click to define a new product.
+                </p>
                 <p>
-                You must define a product for everything you sell, whether it&apos;s
-                a physical product, a consumable or a service you offer to
-                customers.
-              </p>
+                    You must define a product for everything you sell, whether it&apos;s
+                    a physical product, a consumable or a service you offer to
+                    customers.
+                </p>
                 <p>
-                The product form contains information to simplify the sale
-                process: price, notes in the quotation, accounting data,
-                procurement methods, etc.
-              </p>
+                    The product form contains information to simplify the sale
+                    process: price, notes in the quotation, accounting data,
+                    procurement methods, etc.
+                </p>
             </help>
         </action>
+
         <view id="product_product_variant_easy_edit_view" model="ProductProduct">
             <form string="Variant Information">
                 <sheet>
@@ -136,12 +163,13 @@
                     <div class="oe_title">
                         <label class="oe_edit_only" for="name" string="Product Name"/>
                         <h1>
-                            <field name="name" placeholder="e.g. Odoo Enterprise Susbcription"/>
+                            <field name="name" placeholder="e.g. Hexya Service Susbcription"/>
                         </h1>
                     </div>
                     <group>
-                        <p>All general settings about this product are managed on 
-                            <button name="open_product_template" type="object" string="the product template" class="oe_link"/>
+                        <p>All general settings about this product are managed on
+                            <button name="open_product_template" type="object" string="the product template"
+                                    class="oe_link"/>
                         </p>
                     </group>
                     <group string="Attributes">
@@ -160,12 +188,16 @@
                     <group>
                         <group name="pricing" string="Pricing">
                             <field name="product_variant_count" invisible="1"/>
-                            <field name="lst_price" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}" attrs="{&apos;readonly&apos;: [(&apos;product_variant_count&apos;, &apos;&gt;&apos;, 1)]}"/>
-                            <field name="standard_price" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                            <field name="lst_price" widget="monetary"
+                                   options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"
+                                   attrs="{&apos;readonly&apos;: [(&apos;product_variant_count&apos;, &apos;&gt;&apos;, 1)]}"/>
+                            <field name="standard_price" widget="monetary"
+                                   options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group name="weight">
-                            <group name="weight" string="Weights" attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;not in&apos;, [&apos;product&apos;, &apos;consu&apos;])]}">
+                            <group name="weight" string="Weights"
+                                   attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;not in&apos;, [&apos;product&apos;, &apos;consu&apos;])]}">
                                 <label for="volume"/>
                                 <div class="o_row">
                                     <field name="volume"/>
@@ -182,23 +214,26 @@
                 </sheet>
             </form>
         </view>
-        <action id="product_product_variant_action" type="ir.actions.act_window" name="Product Variants" model="ProductProduct" search_view_id="product_product_search_form_view" view_mode="tree,form">
+
+        <action id="product_product_variant_action" type="ir.actions.act_window" name="Product Variants"
+                model="ProductProduct" search_view_id="product_product_search_form_view" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to define a new product.
-              </p>
+                    Click to define a new product.
+                </p>
                 <p>
-                You must define a product for everything you sell, whether it&apos;s
-                a physical product, a consumable or a service you offer to
-                customers.
-              </p>
+                    You must define a product for everything you sell, whether it&apos;s
+                    a physical product, a consumable or a service you offer to
+                    customers.
+                </p>
                 <p>
-                The product form contains information to simplify the sale
-                process: price, notes in the quotation, accounting data,
-                procurement methods, etc.
-              </p>
+                    The product form contains information to simplify the sale
+                    process: price, notes in the quotation, accounting data,
+                    procurement methods, etc.
+                </p>
             </help>
         </action>
+
         <view id="product_product_product_tree_view" model="ProductProduct">
             <tree string="Product Variants">
                 <field name="default_code"/>
@@ -206,12 +241,14 @@
                 <field name="attribute_value_ids" widget="many2many_tags" groups="product.group_product_variant"/>
                 <field name="lst_price"/>
                 <field name="price" invisible="not context.get(&apos;pricelist&apos;,False)"/>
-                <field name="uom_id" options="{&apos;no_open&apos;: True, &apos;no_create&apos;: True}" groups="product.group_uom"/>
+                <field name="uom_id" options="{&apos;no_open&apos;: True, &apos;no_create&apos;: True}"
+                       groups="product.group_uom"/>
                 <field name="barcode"/>
                 <field name="product_tmpl_id" invisible="1"/>
                 <field name="active" invisible="1"/>
             </tree>
         </view>
+
         <view id="product_product_normal_form_view" model="ProductProduct">
             <form position="attributes">
                 <attribute name="string">Product Variant</attribute>
@@ -222,10 +259,13 @@
             </field>
             <field name="list_price" position="attributes">
                 <attribute name="name">lst_price</attribute>
-                <attribute name="attrs">{&apos;readonly&apos;: [(&apos;product_variant_count&apos;, &apos;&gt;&apos;, 1)]}</attribute>
+                <attribute name="attrs">{&apos;readonly&apos;: [(&apos;product_variant_count&apos;, &apos;&gt;&apos;,
+                    1)]}
+                </attribute>
             </field>
             <field name="name" position="after">
-                <field name="product_tmpl_id" class="oe_inline" readonly="1" invisible="1" attrs="{&apos;required&apos;: [(&apos;id&apos;, &apos;!=&apos;, False)]}"/>
+                <field name="product_tmpl_id" class="oe_inline" readonly="1" invisible="1"
+                       attrs="{&apos;required&apos;: [(&apos;id&apos;, &apos;!=&apos;, False)]}"/>
             </field>
             <field name="item_ids" position="replace">
                 <field name="pricelist_item_ids" widget="many2many">
@@ -248,6 +288,7 @@
                 <field name="attribute_value_ids" widget="many2many_tags" groups="product.group_product_variant"/>
             </xpath>
         </view>
+
         <view id="product_product_kanban_view" model="ProductProduct">
             <kanban>
                 <field name="image_small"/>
@@ -266,7 +307,7 @@
                                     <field name="name"/>
                                 </strong>
                                 <ul>
-                                    <li>Price: 
+                                    <li>Price:
                                         <field name="lst_price"/>
                                     </li>
                                 </ul>
@@ -277,39 +318,45 @@
                 </templates>
             </kanban>
         </view>
-        <action id="product_product_normal_action_sell" type="ir.actions.act_window" name="Product Variants" model="ProductProduct" view_mode="kanban,tree,form" view_id="product_product_product_tree_view" search_view_id="product_product_search_form_view">
+
+        <action id="product_product_normal_action_sell" type="ir.actions.act_window" name="Product Variants"
+                model="ProductProduct" view_mode="kanban,tree,form" view_id="product_product_product_tree_view"
+                search_view_id="product_product_search_form_view">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to define a new product.
-              </p>
+                    Click to define a new product.
+                </p>
                 <p>
-                You must define a product for everything you sell, whether it&apos;s
-                a physical product, a consumable or a service you offer to
-                customers.
-              </p>
+                    You must define a product for everything you sell, whether it&apos;s
+                    a physical product, a consumable or a service you offer to
+                    customers.
+                </p>
                 <p>
-                The product form contains information to simplify the sale
-                process: price, notes in the quotation, accounting data,
-                procurement methods, etc.
-              </p>
+                    The product form contains information to simplify the sale
+                    process: price, notes in the quotation, accounting data,
+                    procurement methods, etc.
+                </p>
             </help>
         </action>
+
         <view id="product_product_category_search_view" model="ProductCategory">
             <search string="Product Categories">
                 <field name="name" string="Product Categories"/>
                 <field name="parent_id"/>
             </search>
         </view>
+
         <view id="product_product_category_form_view" model="ProductCategory">
             <form class="oe_form_configuration">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" name="%(product_template_action_all)d" icon="fa-th-list" type="action" context="{&apos;search_default_categ_id&apos;: active_id}">
+                        <button class="oe_stat_button" name="%(product_template_action_all)d" icon="fa-th-list"
+                                type="action" context="{&apos;search_default_categ_id&apos;: active_id}">
                             <div class="o_form_field o_stat_info">
                                 <span class="o_stat_value">
                                     <field name="product_count"/>
                                 </span>
-                                <span class="o_stat_text"> Products</span>
+                                <span class="o_stat_text">Products</span>
                             </div>
                         </button>
                     </div>
@@ -326,13 +373,20 @@
                 </sheet>
             </form>
         </view>
+
         <view id="product_product_category_list_view" model="ProductCategory">
             <tree string="Product Categories">
                 <field name="display_name"/>
             </tree>
         </view>
-        <action id="product_product_category_action_form" type="ir.actions.act_window" name="Product Categories" model="ProductCategory" search_view_id="product_product_category_search_view" view_id="product_product_category_list_view" view_mode="tree,form"/>
-        <action id="product_action_packaging_view" type="ir.actions.act_window" name="Packagings" model="ProductPackaging" view_mode="tree,form"/>
+
+        <action id="product_product_category_action_form" type="ir.actions.act_window" name="Product Categories"
+                model="ProductCategory" search_view_id="product_product_category_search_view"
+                view_id="product_product_category_list_view" view_mode="tree,form"/>
+
+        <action id="product_action_packaging_view" type="ir.actions.act_window" name="Packagings"
+                model="ProductPackaging" view_mode="tree,form"/>
+
         <view id="product_product_packaging_tree_view" model="ProductPackaging">
             <tree string="Packaging">
                 <field name="sequence" widget="handle"/>
@@ -340,6 +394,7 @@
                 <field name="qty"/>
             </tree>
         </view>
+
         <view id="product_product_packaging_form_view" model="ProductPackaging">
             <form string="Packaging">
                 <sheet>
@@ -355,21 +410,26 @@
                 </sheet>
             </form>
         </view>
+
         <view id="product_product_supplierinfo_form_view" model="ProductSupplierinfo">
             <form string="Vendor Information">
                 <group>
                     <group string="Vendor">
-                        <field name="name" context="{&apos;default_customer&apos;: 0, &apos;search_default_supplier&apos;: 1, &apos;default_supplier&apos;: 1}"/>
+                        <field name="name"
+                               context="{&apos;default_customer&apos;: 0, &apos;search_default_supplier&apos;: 1, &apos;default_supplier&apos;: 1}"/>
                         <field name="product_name"/>
                         <field name="product_code"/>
-                        <field name="product_id" domain="[(&apos;product_tmpl_id&apos;, &apos;=&apos;, product_tmpl_id)]" invisible="1"/>
+                        <field name="product_id"
+                               domain="[(&apos;product_tmpl_id&apos;, &apos;=&apos;, product_tmpl_id)]" invisible="1"/>
                         <label for="delay"/>
                         <div>
-                            <field name="delay" class="oe_inline"/> days
-                            </div>
+                            <field name="delay" class="oe_inline"/>
+                            days
+                        </div>
                     </group>
                     <group string="Price List">
-                        <field name="product_tmpl_id" string="Product" invisible="context.get(&apos;visible_product_tmpl_id&apos;, True)"/>
+                        <field name="product_tmpl_id" string="Product"
+                               invisible="context.get(&apos;visible_product_tmpl_id&apos;, True)"/>
                         <label for="min_qty"/>
                         <div>
                             <field name="min_qty" class="oe_inline"/>
@@ -382,7 +442,8 @@
                         </div>
                         <label for="date_start" string="Validity"/>
                         <div>
-                            <field name="date_start" class="oe_inline"/> to 
+                            <field name="date_start" class="oe_inline"/>
+                            to
                             <field name="date_end" class="oe_inline"/>
                         </div>
                     </group>
@@ -392,29 +453,39 @@
                 </group>
             </form>
         </view>
+
         <view id="product_product_supplierinfo_search_view" model="ProductSupplierinfo">
             <search string="Vendor">
                 <field name="name"/>
                 <field name="product_tmpl_id"/>
-                <filter string="Active" name="active" domain="[(&apos;date_end&apos;, &apos;&gt;=&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%%Y-%%m-%%d&apos;))]"/>
-                <filter string="Archived" name="archived" domain="[(&apos;date_end&apos;, &apos;&lt;&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%%Y-%%m-%%d&apos;))]"/>
+                <filter string="Active" name="active"
+                        domain="[(&apos;date_end&apos;, &apos;&gt;=&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%%Y-%%m-%%d&apos;))]"/>
+                <filter string="Archived" name="archived"
+                        domain="[(&apos;date_end&apos;, &apos;&lt;&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%%Y-%%m-%%d&apos;))]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Product" name="groupby_product" domain="[]" context="{&apos;group_by&apos;: &apos;product_tmpl_id&apos;}"/>
-                    <filter string="Vendor" name="groupby_vendor" domain="[]" context="{&apos;group_by&apos;: &apos;name&apos;}"/>
+                    <filter string="Product" name="groupby_product" domain="[]"
+                            context="{&apos;group_by&apos;: &apos;product_tmpl_id&apos;}"/>
+                    <filter string="Vendor" name="groupby_vendor" domain="[]"
+                            context="{&apos;group_by&apos;: &apos;name&apos;}"/>
                 </group>
             </search>
         </view>
+
         <view id="product_product_supplierinfo_tree_view" model="ProductSupplierinfo">
             <tree string="Vendor Information">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="product_tmpl_id" string="Product" invisible="context.get(&apos;visible_product_tmpl_id&apos;, True)"/>
+                <field name="product_tmpl_id" string="Product"
+                       invisible="context.get(&apos;visible_product_tmpl_id&apos;, True)"/>
                 <field name="min_qty"/>
                 <field name="price" string="Price"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
             </tree>
         </view>
-        <action id="product_product_supplierinfo_type_action" type="ir.actions.act_window" name="Vendor Pricelists" model="ProductSupplierinfo" view_mode="tree,form"/>
+
+        <action id="product_product_supplierinfo_type_action" type="ir.actions.act_window" name="Vendor Pricelists"
+                model="ProductSupplierinfo" view_mode="tree,form"/>
+
     </data>
 </hexya>

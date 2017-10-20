@@ -1,6 +1,10 @@
+// Copyright 2017 NDP Systèmes. All Rights Reserved.
+// See LICENSE file for full licensing details.
+
 package product
 
 import (
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/pool"
 )
@@ -19,21 +23,12 @@ func init() {
 	})
 
 	pool.ProductPriceListWizard().Methods().PrintReport().DeclareMethod(
-		`PrintReport`,
-		func(rs pool.ProductPriceListWizardSet) {
-			//@api.multi
-			/*def print_report(self):
-			  """
-			  To get the date and print the report
-			  @return : return report
-			  """
-			  datas = {'ids': self.env.context.get('active_ids', [])}
-			  res = self.read(['price_list', 'qty1', 'qty2', 'qty3', 'qty4', 'qty5'])
-			  res = res and res[0] or {}
-			  res['price_list'] = res['price_list'][0]
-			  datas['form'] = res
-			  return self.env['report'].get_action([], 'product.report_pricelist', data=datas)
-			*/
+		`PrintReport returns the report action from the data in this popup (not implemented)`,
+		func(rs pool.ProductPriceListWizardSet) *actions.Action {
+			// TODO implement with reports
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
 		})
 
 }

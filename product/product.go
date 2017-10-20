@@ -1,12 +1,17 @@
+// Copyright 2017 NDP Systèmes. All Rights Reserved.
+// See LICENSE file for full licensing details.
+
 package product
 
 import (
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/hexya-erp/hexya-addons/decimalPrecision"
 	"github.com/hexya-erp/hexya-base/base"
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/operator"
 	"github.com/hexya-erp/hexya/hexya/models/security"
@@ -118,7 +123,7 @@ func init() {
 			Inverse: pool.ProductProduct().Methods().InverseProductPrice()},
 		"PriceExtra": models.FloatField{String: "Variant Price Extra",
 			Compute: pool.ProductProduct().Methods().ComputeProductPriceExtra(),
-			Depends: []string{"AttributeValues", "AttributeValues.Prices", "AttributeValues.Prices.PriceExtra", "AttributeValues.Prices.PriceExtra.ProductTmpl"},
+			Depends: []string{"AttributeValues", "AttributeValues.Prices", "AttributeValues.Prices.PriceExtra", "AttributeValues.Prices.ProductTmpl"},
 			Digits:  decimalPrecision.GetPrecision("Product Price"),
 			Help:    "This is the sum of the extra price of all attributes"},
 		"LstPrice": models.FloatField{String: "Sale Price",
@@ -140,7 +145,8 @@ func init() {
 		"Barcode": models.CharField{String: "Barcode", NoCopy: true, Unique: true,
 			Help: "International Article Number used for product identification."},
 		"AttributeValues": models.Many2ManyField{String: "Attributes", RelationModel: pool.ProductAttributeValue(),
-			JSON: "attribute_value_ids" /*, OnDelete: models.Restrict*/},
+			JSON:       "attribute_value_ids", /*, OnDelete: models.Restrict*/
+			Constraint: pool.ProductProduct().Methods().CheckAttributeValueIds()},
 		"ImageVariant": models.BinaryField{String: "Variant Image",
 			Help: "This field holds the image used as image for the product variant, limited to 1024x1024px."},
 		"Image": models.BinaryField{String: "Big-sized image",
@@ -171,9 +177,12 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	})
 
 	pool.ProductProduct().Fields().StandardPrice().RevokeAccess(security.GroupEveryone, security.All).GrantAccess(base.GroupUser, security.All)
+	//pool.ProductProduct().Fields().Uom().SetOnchange(pool.ProductProduct().Methods().OnchangeUom())
+	//pool.ProductProduct().Fields().UomPo().SetOnchange(pool.ProductProduct().Methods().OnchangeUom())
 
 	pool.ProductProduct().Methods().ComputeProductPrice().DeclareMethod(
 		`ComputeProductPrice computes the price of this product based on the given context keys:
+
 		- 'partner' => int64 (id of the partner)
 		- 'pricelist' => int64 (id of the price list)
 		- 'quantity' => float64`,
@@ -183,15 +192,15 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			}
 			priceListID := rs.Env().Context().GetInteger("pricelist")
 			priceList := pool.ProductPricelist().Browse(rs.Env(), []int64{priceListID})
-			quantity := rs.Env().Context().GetFloat("quantity")
-			partnerID := rs.Env().Context().GetInteger("partner")
-			partner := pool.Partner().Browse(rs.Env(), []int64{partnerID})
-			if quantity == 0 {
-				quantity = 1
-			}
 			if priceList.IsEmpty() {
 				return new(pool.ProductProductData), []models.FieldNamer{pool.ProductProduct().Price()}
 			}
+			quantity := rs.Env().Context().GetFloat("quantity")
+			if quantity == 0 {
+				quantity = 1
+			}
+			partnerID := rs.Env().Context().GetInteger("partner")
+			partner := pool.Partner().Browse(rs.Env(), []int64{partnerID})
 			return &pool.ProductProductData{
 				Price: priceList.GetProductPrice(rs, quantity, partner, dates.Today(), pool.ProductUom().NewSet(rs.Env())),
 			}, []models.FieldNamer{pool.ProductProduct().Price()}
@@ -290,12 +299,8 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			if productName != "" {
 				productName = rs.Name()
 			}
-			partnerRef := fmt.Sprintf("[%s]%s", code, productName)
-			if code == "" {
-				partnerRef = productName
-			}
 			return &pool.ProductProductData{
-				PartnerRef: partnerRef,
+				PartnerRef: rs.NameFormat(productName, code),
 			}, []models.FieldNamer{pool.ProductProduct().PartnerRef()}
 		})
 
@@ -326,358 +331,305 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		})
 
 	pool.ProductProduct().Methods().InverseImageValue().DeclareMethod(
-		`InverseImageValue`,
-		func(rs pool.ProductProductSet, args struct {
-			Value interface{}
-		}) {
-			//@api.one
-			/*def _set_image_value(self, value):
-			  image = tools.image_resize_image_big(value)
-			  if self.product_tmpl_id.image:
-			      self.image_variant = image
-			  else:
-			      self.product_tmpl_id.image = image
-
-			*/
+		`InverseImageValue sets all images from the given image`,
+		func(rs pool.ProductProductSet, image string) {
+			// TODO Resize image
+			//image = tools.image_resize_image_big(value)
+			if rs.ProductTmpl().Image() == "" {
+				rs.ProductTmpl().SetImage(image)
+				return
+			}
+			rs.SetImageVariant(image)
 		})
+
 	pool.ProductProduct().Methods().GetPricelistItems().DeclareMethod(
-		`GetPricelistItems`,
-		func(rs pool.ProductProductSet) {
-			//@api.one
-			/*def _get_pricelist_items(self):
-			  self.pricelist_item_ids = self.env['product.pricelist.item'].search([
-			      '|',
-			      ('product_id', '=', self.id),
-			      ('product_tmpl_id', '=', self.product_tmpl_id.id)]).ids
-
-			*/
+		`GetPricelistItems returns all price list items for this product`,
+		func(rs pool.ProductProductSet) (*pool.ProductProductData, []models.FieldNamer) {
+			rs.EnsureOne()
+			priceListItems := pool.ProductPricelistItem().Search(rs.Env(),
+				pool.ProductPricelistItem().Product().Equals(rs).Or().ProductTmpl().Equals(rs.ProductTmpl()))
+			return &pool.ProductProductData{
+				PricelistItems: priceListItems,
+			}, []models.FieldNamer{pool.ProductProduct().PricelistItems()}
 		})
+
 	pool.ProductProduct().Methods().CheckAttributeValueIds().DeclareMethod(
-		`CheckAttributeValueIds`,
+		`CheckAttributeValueIds checks that we do not have more than one value per attribute.`,
 		func(rs pool.ProductProductSet) {
-			//@api.constrains('attribute_value_ids')
-			/*def _check_attribute_value_ids(self):
-			  for product in self:
-			      attributes = self.env['product.attribute']
-			      for value in product.attribute_value_ids:
-			          if value.attribute_id in attributes:
-			              raise ValidationError(_('Error! It is not allowed to choose more than one value for a given attribute.'))
-			          attributes |= value.attribute_id
-			  return True
-
-			*/
+			attributes := pool.ProductAttribute().NewSet(rs.Env())
+			for _, value := range rs.AttributeValues().Records() {
+				if !value.Attribute().Intersect(attributes).IsEmpty() {
+					log.Panic(rs.T("Error! It is not allowed to choose more than one value for a given attribute."))
+				}
+				attributes = attributes.Union(value.Attribute())
+			}
 		})
+
 	pool.ProductProduct().Methods().OnchangeUom().DeclareMethod(
-		`OnchangeUom`,
-		func(rs pool.ProductProductSet) {
-			//@api.onchange('uom_id','uom_po_id')
-			/*def _onchange_uom(self):
-			  if self.uom_id and self.uom_po_id and self.uom_id.category_id != self.uom_po_id.category_id:
-			      self.uom_po_id = self.uom_id
-
-			*/
+		`OnchangeUom process UI triggers when changing th UoM`,
+		func(rs pool.ProductProductSet) (*pool.ProductProductData, []models.FieldNamer) {
+			if !rs.Uom().IsEmpty() && !rs.UomPo().IsEmpty() && !rs.Uom().Category().Equals(rs.UomPo().Category()) {
+				return &pool.ProductProductData{
+					UomPo: rs.Uom(),
+				}, []models.FieldNamer{pool.ProductProduct().UomPo()}
+			}
+			return new(pool.ProductProductData), []models.FieldNamer{}
 		})
+
 	pool.ProductProduct().Methods().Create().Extend("",
 		func(rs pool.ProductProductSet, data *pool.ProductProductData) pool.ProductProductSet {
-			//@api.model
-			/*def create(self, vals):
-			  product = super(ProductProduct, self.with_context(create_product_product=True)).create(vals)
-			  # When a unique variant is created from tmpl then the standard price is set by _set_standard_price
-			  if not (self.env.context.get('create_from_tmpl') and len(product.product_tmpl_id.product_variant_ids) == 1):
-			      product._set_standard_price(vals.get('standard_price') or 0.0)
-			  return product
-
-			*/
+			product := rs.WithContext("create_product_product", true).Super().Create(data)
+			// When a unique variant is created from tmpl then the standard price is set by DefineStandardPrice
+			if !rs.Env().Context().HasKey("create_from_tmpl") && product.ProductTmpl().ProductVariants().Len() == 1 {
+				product.DefineStandardPrice(data.StandardPrice)
+			}
+			return product
 		})
 
 	pool.ProductProduct().Methods().Write().Extend("",
-		func(rs pool.ProductProductSet, data *pool.ProductProductData, fieldsToUnset ...models.FieldNamer) bool {
-			//@api.multi
-			/*def write(self, values):
-			  ''' Store the standard price change in order to be able to retrieve the cost of a product for a given date'''
-			  res = super(ProductProduct, self).write(values)
-			  if 'standard_price' in values:
-			      self._set_standard_price(values['standard_price'])
-			  return res
-
-			*/
+		func(rs pool.ProductProductSet, data *pool.ProductProductData, fieldsToReset ...models.FieldNamer) bool {
+			// Store the standard price change in order to be able to retrieve the cost of a product for a given date
+			res := rs.Super().Write(data, fieldsToReset...)
+			if _, ok := data.Get(pool.ProductProduct().StandardPrice(), fieldsToReset...); ok {
+				rs.DefineStandardPrice(data.StandardPrice)
+			}
+			return res
 		})
 
 	pool.ProductProduct().Methods().Unlink().Extend("",
 		func(rs pool.ProductProductSet) int64 {
-			//@api.multi
-			/*def unlink(self):
-			  unlink_products = self.env['product.product']
-			  unlink_templates = self.env['product.template']
-			  for product in self:
-			      # Check if product still exists, in case it has been unlinked by unlinking its template
-			      if not product.exists():
-			          continue
-			      # Check if the product is last product of this template
-			      other_products = self.search([('product_tmpl_id', '=', product.product_tmpl_id.id), ('id', '!=', product.id)])
-			      if not other_products:
-			          unlink_templates |= product.product_tmpl_id
-			      unlink_products |= product
-			  res = super(ProductProduct, unlink_products).unlink()
-			  # delete templates after calling super, as deleting template could lead to deleting
-			  # products due to ondelete='cascade'
-			  unlink_templates.unlink()
-			  return res
-
-			*/
+			unlinkProducts := pool.ProductProduct().NewSet(rs.Env())
+			unlinkTemplates := pool.ProductTemplate().NewSet(rs.Env())
+			for _, product := range rs.Records() {
+				// Check if the product is last product of this template
+				otherProducts := pool.ProductProduct().Search(rs.Env(),
+					pool.ProductProduct().ProductTmpl().Equals(product.ProductTmpl()).And().ID().NotEquals(product.ID()))
+				if otherProducts.IsEmpty() {
+					unlinkTemplates = unlinkTemplates.Union(product.ProductTmpl())
+				}
+				unlinkProducts = unlinkProducts.Union(product)
+			}
+			res := unlinkProducts.Super().Unlink()
+			// delete templates after calling super, as deleting template could lead to deleting
+			// products due to ondelete='cascade'
+			unlinkTemplates.Unlink()
+			return res
 		})
 
 	pool.ProductProduct().Methods().Copy().Extend("",
-		func(rs pool.ProductProductSet, overrides *pool.ProductProductData, fieldsToUnset ...models.FieldNamer) pool.ProductProductSet {
-			//@api.multi
-			/*def copy(self, default=None):
-			  # TDE FIXME: clean context / variant brol
-			  if default is None:
-			      default = {}
-			  if self._context.get('variant'):
-			      # if we copy a variant or create one, we keep the same template
-			      default['product_tmpl_id'] = self.product_tmpl_id.id
-			  elif 'name' not in default:
-			      default['name'] = self.name
-
-			  return super(ProductProduct, self).copy(default=default)
-
-			*/
+		func(rs pool.ProductProductSet, overrides *pool.ProductProductData, fieldsToReset ...models.FieldNamer) pool.ProductProductSet {
+			if rs.Env().Context().HasKey("variant") {
+				// if we copy a variant or create one, we keep the same template
+				overrides.ProductTmpl = rs.ProductTmpl()
+				fieldsToReset = append(fieldsToReset, pool.ProductProduct().ProductTmpl())
+			} else if _, ok := overrides.Get(pool.ProductProduct().Name(), fieldsToReset...); !ok {
+				overrides.Name = rs.Name()
+				fieldsToReset = append(fieldsToReset, pool.ProductProduct().Name())
+			}
+			return rs.Super().Copy(overrides, fieldsToReset...)
 		})
 
 	pool.ProductProduct().Methods().Search().Extend("",
 		func(rs pool.ProductProductSet, cond pool.ProductProductCondition) pool.ProductProductSet {
-			//@api.model
-			/*def search(self, args, offset=0, limit=None, order=None, count=False):
-			  # TDE FIXME: strange
-			  if self._context.get('search_default_categ_id'):
-			      args.append((('categ_id', 'child_of', self._context['search_default_categ_id'])))
-			  return super(ProductProduct, self).search(args, offset=offset, limit=limit, order=order, count=count)
+			// FIXME: strange...
+			if categID := rs.Env().Context().GetInteger("search_default_categ_id"); categID != 0 {
+				categ := pool.ProductCategory().Browse(rs.Env(), []int64{categID})
+				cond = cond.AndCond(pool.ProductProduct().Categ().ChildOf(categ))
+			}
+			return rs.Super().Search(cond)
+		})
 
-			*/
+	pool.ProductProduct().Methods().NameFormat().DeclareMethod(
+		`NameFormat formats a product name string from the given arguments`,
+		func(rs pool.ProductProductSet, name, code string) string {
+			if code == "" ||
+				(rs.Env().Context().HasKey("display_default_code") && !rs.Env().Context().GetBool("display_default_code")) {
+				return name
+			}
+			return fmt.Sprintf("[%s] %s", code, name)
 		})
 
 	pool.ProductProduct().Methods().NameGet().Extend("",
 		func(rs pool.ProductProductSet) string {
-			//@api.multi
-			/*def _name_get(d):
-			      name = d.get('name', '')
-			      code = self._context.get('display_default_code', True) and d.get('default_code', False) or False
-			      if code:
-			          name = '[%s] %s' % (code,name)
-			      return (d['id'], name)
-
-			  partner_id = self._context.get('partner_id')
-			  if partner_id:
-			      partner_ids = [partner_id, self.env['res.partner'].browse(partner_id).commercial_partner_id.id]
-			  else:
-			      partner_ids = []
-
-			  # all user don't have access to seller and partner
-			  # check access and use superuser
-			  self.check_access_rights("read")
-			  self.check_access_rule("read")
-
-			  result = []
-			  for product in self.sudo():
-			      # display only the attributes with multiple possible values on the template
-			      variable_attributes = product.attribute_line_ids.filtered(lambda l: len(l.value_ids) > 1).mapped('attribute_id')
-			      variant = product.attribute_value_ids._variant_name(variable_attributes)
-
-			      name = variant and "%s (%s)" % (product.name, variant) or product.name
-			      sellers = []
-			      if partner_ids:
-			          sellers = [x for x in product.seller_ids if (x.name.id in partner_ids) and (x.product_id == product)]
-			          if not sellers:
-			              sellers = [x for x in product.seller_ids if (x.name.id in partner_ids) and not x.product_id]
-			      if sellers:
-			          for s in sellers:
-			              seller_variant = s.product_name and (
-			                  variant and "%s (%s)" % (s.product_name, variant) or s.product_name
-			                  ) or False
-			              mydict = {
-			                        'id': product.id,
-			                        'name': seller_variant or name,
-			                        'default_code': s.product_code or product.default_code,
-			                        }
-			              temp = _name_get(mydict)
-			              if temp not in result:
-			                  result.append(temp)
-			      else:
-			          mydict = {
-			                    'id': product.id,
-			                    'name': name,
-			                    'default_code': product.default_code,
-			                    }
-			          result.append(_name_get(mydict))
-			  return result
-
-			*/
+			// display only the attributes with multiple possible values on the template
+			variableAttributes := pool.ProductAttribute().NewSet(rs.Env())
+			for _, attrLine := range rs.AttributeLines().Records() {
+				if attrLine.Values().Len() > 1 {
+					variableAttributes = variableAttributes.Union(attrLine.Attribute())
+				}
+			}
+			variant := rs.AttributeValues().VariantName(variableAttributes)
+			if variant != "" {
+				return fmt.Sprintf("%s (%s)", rs.PartnerRef(), variant)
+			}
+			return rs.PartnerRef()
 		})
 
 	pool.ProductProduct().Methods().SearchByName().Extend("",
 		func(rs pool.ProductProductSet, name string, op operator.Operator, additionalCond pool.ProductProductCondition, limit int) pool.ProductProductSet {
-			//@api.model
-			/*def name_search(self, name, args=None, operator='ilike', limit=100):
-			  if not args:
-			      args = []
-			  if name:
-			      # Be sure name_search is symetric to name_get
-			      category_names = name.split(' / ')
-			      parents = list(category_names)
-			      child = parents.pop()
-			      domain = [('name', operator, child)]
-			      if parents:
-			          names_ids = self.name_search(' / '.join(parents), args=args, operator='ilike', limit=limit)
-			          category_ids = [name_id[0] for name_id in names_ids]
-			          if operator in expression.NEGATIVE_TERM_OPERATORS:
-			              categories = self.search([('id', 'not in', category_ids)])
-			              domain = expression.OR([[('parent_id', 'in', categories.ids)], domain])
-			          else:
-			              domain = expression.AND([[('parent_id', 'in', category_ids)], domain])
-			          for i in range(1, len(category_names)):
-			              domain = [[('name', operator, ' / '.join(category_names[-1 - i:]))], domain]
-			              if operator in expression.NEGATIVE_TERM_OPERATORS:
-			                  domain = expression.AND(domain)
-			              else:
-			                  domain = expression.OR(domain)
-			      categories = self.search(expression.AND([domain, args]), limit=limit)
-			  else:
-			      categories = self.search(args, limit=limit)
-			  return categories.name_get()
-
-
-			*/
+			if name == "" {
+				return rs.Super().SearchByName(name, op, additionalCond, limit)
+			}
+			products := pool.ProductProduct().NewSet(rs.Env())
+			if op.IsPositive() {
+				products = rs.Search(pool.ProductProduct().DefaultCode().Equals(name).AndCond(additionalCond)).Limit(limit)
+				if products.IsEmpty() {
+					products = rs.Search(pool.ProductProduct().Barcode().Equals(name).AndCond(additionalCond)).Limit(limit)
+				}
+			}
+			switch {
+			case products.IsEmpty() && !op.IsNegative():
+				// Do not merge the 2 next lines into one single search, SQL search performance would be abysmal
+				// on a database with thousands of matching products, due to the huge merge+unique needed for the
+				// OR operator (and given the fact that the 'name' lookup results come from the ir.translation table
+				// Performing a quick memory merge of ids in Python will give much better performance
+				products = pool.ProductProduct().Search(rs.Env(), pool.ProductProduct().DefaultCode().AddOperator(op, name)).Limit(limit)
+				if limit == 0 || products.Len() < limit {
+					// we may underrun the limit because of dupes in the results, that's fine
+					limit2 := limit - products.Len()
+					if limit2 < 0 {
+						limit2 = 0
+					}
+					products = products.Union(pool.ProductProduct().Search(rs.Env(),
+						pool.ProductProduct().Name().AddOperator(op, name).And().ID().NotIn(products.Ids())))
+				}
+			case products.IsEmpty() && op.IsNegative():
+				products = pool.ProductProduct().Search(rs.Env(),
+					pool.ProductProduct().DefaultCode().AddOperator(op, name).And().Name().AddOperator(op, name).AndCond(additionalCond))
+			}
+			if products.IsEmpty() && op.IsPositive() {
+				ptrn, _ := regexp.Compile(`(\[(.*?)\])`)
+				res := ptrn.FindAllString(name, -1)
+				if len(res) > 1 {
+					products = pool.ProductProduct().Search(rs.Env(),
+						pool.ProductProduct().DefaultCode().Equals(res[1]).AndCond(additionalCond))
+				}
+			}
+			// still no results, partner in context: search on supplier info as last hope to find something
+			if products.IsEmpty() && rs.Env().Context().HasKey("partner_id") {
+				partner := pool.Partner().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("partner_id")})
+				suppliers := pool.ProductSupplierinfo().Search(rs.Env(),
+					pool.ProductSupplierinfo().Name().Equals(partner).
+						AndCond(pool.ProductSupplierinfo().ProductCode().AddOperator(op, name).Or().ProductName().AddOperator(op, name)))
+				if !suppliers.IsEmpty() {
+					products = pool.ProductProduct().Search(rs.Env(),
+						pool.ProductProduct().ProductTmplFilteredOn(pool.ProductTemplate().Sellers().In(suppliers)))
+				}
+			}
+			return products
 		})
 
 	pool.ProductProduct().Methods().OpenProductTemplate().DeclareMethod(
-		`OpenProductTemplate`,
-		func(rs pool.ProductProductSet) {
-			//@api.multi
-			/*def open_product_template(self):
-			  """ Utility method used to add an "Open Template" button in product views """
-			  self.ensure_one()
-			  return {'type': 'ir.actions.act_window',
-			          'res_model': 'product.template',
-			          'view_mode': 'form',
-			          'res_id': self.product_tmpl_id.id,
-			          'target': 'new'}
-
-			*/
+		`OpenProductTemplate is a utility method used to add an "Open Template" button in product views`,
+		func(rs pool.ProductProductSet) *actions.Action {
+			rs.EnsureOne()
+			return &actions.Action{
+				Type:     actions.ActionActWindow,
+				Model:    "ProductTemplate",
+				ViewMode: "form",
+				ResID:    rs.ProductTmpl().ID(),
+				Target:   "new",
+			}
 		})
 
 	pool.ProductProduct().Methods().SelectSeller().DeclareMethod(
-		`SelectSeller`,
-		func(rs pool.ProductProductSet, args struct {
-			PartnerId interface{}
-			Quantity  interface{}
-			Date      interface{}
-			UomId     interface{}
-		}) {
-			//@api.multi
-			/*
-				def _select_seller(self, partner_id=False, quantity=0.0, date=None, uom_id=False):
-					self.ensure_one()
-					if date is None:
-					  	date = fields.Date.today()
-					res = self.env['product.supplierinfo']
-					for seller in self.seller_ids:
-						# Set quantity in UoM of seller
-						quantity_uom_seller = quantity
-						if quantity_uom_seller and uom_id and uom_id != seller.product_uom:
-							quantity_uom_seller = uom_id._compute_quantity(quantity_uom_seller, seller.product_uom)
-
-						if seller.date_start and seller.date_start > date:
-							continue
-						if seller.date_end and seller.date_end < date:
-							continue
-						if partner_id and seller.name not in [partner_id, partner_id.parent_id]:
-							continue
-						if quantity_uom_seller < seller.min_qty:
-							continue
-						if seller.product_id and seller.product_id != self:
-							continue
-
-						res |= seller
-						break
-					return res*/
+		`SelectSeller returns the ProductSupplierInfo to use for the given partner, quantity, date and UoM.
+		If any of the parameters are their Go zero value, then they are not used for filtering.`,
+		func(rs pool.ProductProductSet, partner pool.PartnerSet, quantity float64, date dates.Date, uom pool.ProductUomSet) pool.ProductSupplierinfoSet {
+			rs.EnsureOne()
+			if date.IsZero() {
+				date = dates.Today()
+			}
+			res := pool.ProductSupplierinfo().NewSet(rs.Env())
+			for _, seller := range rs.Sellers().Records() {
+				quantityUomSeller := quantity
+				if quantityUomSeller != 0 && !uom.IsEmpty() && !uom.Equals(seller.ProductUom()) {
+					quantityUomSeller = uom.ComputeQuantity(quantityUomSeller, seller.ProductUom(), true)
+				}
+				if !seller.DateStart().IsZero() && seller.DateStart().Greater(date) {
+					continue
+				}
+				if !seller.DateEnd().IsZero() && seller.DateEnd().Lower(date) {
+					continue
+				}
+				if !partner.IsEmpty() && seller.Name().Intersect(partner.Union(partner.Parent())).IsEmpty() {
+					continue
+				}
+				if quantityUomSeller < seller.MinQty() {
+					continue
+				}
+				if !seller.Product().IsEmpty() && !seller.Product().Equals(rs) {
+					continue
+				}
+				res = res.Union(seller)
+				break
+			}
+			return res
 		})
 
 	pool.ProductProduct().Methods().PriceCompute().DeclareMethod(
-		`PriceCompute`,
-		func(rs pool.ProductProductSet, args struct {
-			PriceType interface{}
-			Uom       interface{}
-			Currency  interface{}
-			Company   interface{}
-		}) {
-			//@api.multi
-			/*def price_compute(self, price_type, uom=False, currency=False, company=False):
-			  # TDE FIXME: delegate to template or not ? fields are reencoded here ...
-			  # compatibility about context keys used a bit everywhere in the code
-			  if not uom and self._context.get('uom'):
-			      uom = self.env['product.uom'].browse(self._context['uom'])
-			  if not currency and self._context.get('currency'):
-			      currency = self.env['res.currency'].browse(self._context['currency'])
+		`PriceCompute returns the price field defined by priceType in the given uom and currency
+		for the given company.`,
+		func(rs pool.ProductProductSet, priceType models.FieldNamer, uom pool.ProductUomSet, currency pool.CurrencySet, company pool.CompanySet) float64 {
+			rs.EnsureOne()
+			product := rs
+			if priceType == pool.ProductProduct().StandardPrice() {
+				// StandardPrice field can only be seen by users in base.group_user
+				// Thus, in order to compute the sale price from the cost for users not in this group
+				// We fetch the standard price as the superuser
+				if company.IsEmpty() {
+					company = pool.User().NewSet(rs.Env()).CurrentUser().Company()
+					if rs.Env().Context().HasKey("force_company") {
+						company = pool.Company().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("force_company")})
+					}
+				}
+				product = rs.WithContext("force_company", company.ID()).Sudo()
+			}
 
-			  products = self
-			  if price_type == 'standard_price':
-			      # standard_price field can only be seen by users in base.group_user
-			      # Thus, in order to compute the sale price from the cost for users not in this group
-			      # We fetch the standard price as the superuser
-			      products = self.with_context(force_company=company and company.id or self._context.get('force_company', self.env.user.company_id.id)).sudo()
+			price := product.Get(priceType.String()).(float64)
+			if priceType == pool.ProductProduct().ListPrice() {
+				price += product.PriceExtra()
+			}
 
-			  prices = dict.fromkeys(self.ids, 0.0)
-			  for product in products:
-			      prices[product.id] = product[price_type] or 0.0
-			      if price_type == 'list_price':
-			          prices[product.id] += product.price_extra
-
-			      if uom:
-			          prices[product.id] = product.uom_id._compute_price(prices[product.id], uom)
-
-			      # Convert from current user company currency to asked one
-			      # This is right cause a field cannot be in more than one currency
-			      if currency:
-			          prices[product.id] = product.currency_id.compute(prices[product.id], currency)
-
-			  return prices
-
-			*/
+			if !uom.IsEmpty() {
+				price = product.Uom().ComputePrice(price, uom)
+			}
+			// Convert from current user company currency to asked one
+			// This is right cause a field cannot be in more than one currency
+			if !currency.IsEmpty() {
+				price = product.Currency().Compute(price, currency, true)
+			}
+			return price
 		})
 
 	pool.ProductProduct().Methods().DefineStandardPrice().DeclareMethod(
 		`DefineStandardPrice stores the standard price change in order to be able to retrieve the cost of a product for
 		a given date`,
-		func(rs pool.ProductProductSet, args struct {
-			Value interface{}
-		}) {
-			//@api.multi
-			/*def _set_standard_price(self, value):
-			  ''' Store the standard price change in order to be able to retrieve the cost of a product for a given date'''
-			  PriceHistory = self.env['product.price.history']
-			  for product in self:
-			      PriceHistory.create({
-			          'product_id': product.id,
-			          'cost': value,
-			          'company_id': self._context.get('force_company', self.env.user.company_id.id),
-			      })
-
-			*/
+		func(rs pool.ProductProductSet, value float64) {
+			company := pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			if rs.Env().Context().HasKey("force_company") {
+				company = pool.Company().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("force_company")})
+			}
+			for _, product := range rs.Records() {
+				pool.ProductPriceHistory().Create(rs.Env(), &pool.ProductPriceHistoryData{
+					Product: product,
+					Cost:    value,
+					Company: company,
+				})
+			}
 		})
 
 	pool.ProductProduct().Methods().GetHistoryPrice().DeclareMethod(
-		`GetHistoryPrice`,
-		func(rs pool.ProductProductSet, args struct {
-			CompanyId interface{}
-			Date      interface{}
-		}) {
-			//@api.multi
-			/*def get_history_price(self, company_id, date=None):
-			  history = self.env['product.price.history'].search([
-			      ('company_id', '=', company_id),
-			      ('product_id', 'in', self.ids),
-			      ('datetime', '<=', date or */
+		`GetHistoryPrice returns the standard price of this product for the given company at the given date`,
+		func(rs pool.ProductProductSet, company pool.CompanySet, date dates.DateTime) float64 {
+			if date.IsZero() {
+				date = dates.Now()
+			}
+			history := pool.ProductPriceHistory().Search(rs.Env(),
+				pool.ProductPriceHistory().Company().Equals(company).
+					And().Product().In(rs).
+					And().Datetime().LowerOrEqual(date)).Limit(1)
+			return history.Cost()
 		})
 
 	pool.ProductProduct().Methods().NeedProcurement().DeclareMethod(
