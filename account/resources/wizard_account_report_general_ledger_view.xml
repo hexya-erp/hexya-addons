@@ -1,0 +1,16 @@
+<hexya>
+    <data>
+        <view id="account_account_report_general_ledger_view" model="AccountReportGeneralLedger">
+            <data>
+                <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
+                    <field name="sortby" widget="radio"/>
+                    <field name="display_account" widget="radio"/>
+                    <field name="initial_balance"/>
+                    <newline/>
+                </xpath>
+            </data>
+        </view>
+        <action id="account_action_account_general_ledger_menu" type="ir.actions.act_window" name="General Ledger" model="AccountReportGeneralLedger" view_mode="form" view_id="account_account_report_general_ledger_view"/>
+        <menuitem id="account_menu_general_ledger" name="General Ledger" parent="account_menu_finance_legal_statement" action="account_action_account_general_ledger_menu" groups="group_account_manager,group_account_user"/>
+    </data>
+</hexya>

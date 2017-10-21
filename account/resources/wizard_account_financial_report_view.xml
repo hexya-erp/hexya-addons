@@ -1,0 +1,34 @@
+<hexya>
+    <data>
+        <view id="account_accounting_report_view" model="AccountingReport">
+            <field name="target_move" position="before">
+                <field name="account_report_id" domain="[(&apos;parent_id&apos;,&apos;=&apos;,False)]"/>
+            </field>
+            <field name="target_move" position="after">
+                <field name="enable_filter"/>
+                <field name="debit_credit" attrs="{&apos;invisible&apos;: [(&apos;enable_filter&apos;,&apos;=&apos;,True)]}"/>
+            </field>
+            <field name="journal_ids" position="after">
+                <notebook tabpos="up" colspan="4">
+                    <page string="Comparison" name="comparison" attrs="{&apos;invisible&apos;: [(&apos;enable_filter&apos;,&apos;=&apos;,False)]}">
+                        <group>
+                            <field name="label_filter" attrs="{&apos;required&apos;: [(&apos;enable_filter&apos;, &apos;=&apos;, True)]}"/>
+                            <field name="filter_cmp"/>
+                        </group>
+                        <group string="Dates" attrs="{&apos;invisible&apos;:[(&apos;filter_cmp&apos;, &apos;!=&apos;, &apos;filter_date&apos;)]}">
+                            <field name="date_from_cmp" attrs="{&apos;required&apos;:[(&apos;filter_cmp&apos;, &apos;=&apos;, &apos;filter_date&apos;)]}"/>
+                            <field name="date_to_cmp" attrs="{&apos;required&apos;:[(&apos;filter_cmp&apos;, &apos;=&apos;, &apos;filter_date&apos;)]}"/>
+                        </group>
+                    </page>
+                </notebook>
+            </field>
+            <field name="journal_ids" position="replace"/>
+        </view>
+        <action id="account_action_account_report_bs" type="ir.actions.act_window" name="Balance Sheet" model="AccountingReport" view_mode="form" view_id="account_accounting_report_view"/>
+        <action id="account_action_account_report_pl" type="ir.actions.act_window" name="Profit and Loss" model="AccountingReport" view_mode="form" view_id="account_accounting_report_view"/>
+        <action id="account_action_account_report" type="ir.actions.act_window" name="Financial Reports" model="AccountingReport" view_mode="form" view_id="account_accounting_report_view"/>
+        <menuitem id="account_menu_account_report_bs" name="Balance Sheet" parent="account_menu_finance_legal_statement" action="account_action_account_report_bs"/>
+        <menuitem id="account_menu_account_report_pl" name="Profit and Loss" parent="account_menu_finance_legal_statement" action="account_action_account_report_pl"/>
+        <menuitem id="account_menu_account_report" name="Financial Report" sequence="100" parent="account_menu_finance_legal_statement" action="account_action_account_report"/>
+    </data>
+</hexya>

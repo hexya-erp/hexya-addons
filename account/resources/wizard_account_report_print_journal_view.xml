@@ -1,0 +1,18 @@
+<hexya>
+    <data>
+        <view id="account_account_report_print_journal_view" model="AccountPrintJournal">
+            <data>
+                <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
+                    <field name="amount_currency" groups="base.group_multi_currency"/>
+                    <field name="sort_selection" widget="radio"/>
+                    <newline/>
+                </xpath>
+                <xpath expr="//field[@name=&apos;journal_ids&apos;]" position="attributes">
+                    <attribute name="domain">[(&apos;type&apos;, &apos;in&apos;, (&apos;sale&apos;, &apos;purchase&apos;))]</attribute>
+                </xpath>
+            </data>
+        </view>
+        <action id="account_action_account_print_journal_menu" type="ir.actions.act_window" name="Sale/Purchase Journal" model="AccountPrintJournal" view_mode="form" view_id="account_account_report_print_journal_view"/>
+        <menuitem id="account_menu_print_journal" name="Sale/Purchase Journal" parent="account_menu_finance_legal_statement" action="account_action_account_print_journal_menu" groups="account.group_account_manager,account.group_account_user"/>
+    </data>
+</hexya>

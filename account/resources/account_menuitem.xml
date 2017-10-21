@@ -1,0 +1,19 @@
+<hexya>
+    <data>
+        <menuitem id="account_menu_finance" name="Invoicing" sequence="40" groups="group_account_user,group_account_manager,group_account_invoice"/>
+        <menuitem id="account_menu_finance_receivables" name="Sales" sequence="2" parent="account_menu_finance"/>
+        <menuitem id="account_menu_finance_payables" name="Purchases" sequence="3" parent="account_menu_finance"/>
+        <menuitem id="account_menu_finance_entries" name="Adviser" sequence="4" parent="account_menu_finance" groups="group_account_manager"/>
+        <menuitem id="account_menu_finance_reports" name="Reports" sequence="5" parent="account_menu_finance" groups="group_account_invoice"/>
+        <menuitem id="account_account_reports_management_menu" name="Management" sequence="4" parent="account_menu_finance_reports" groups="group_account_user"/>
+        <menuitem id="account_account_reports_business_intelligence_menu" name="Business Intelligence" sequence="5" parent="account_menu_finance_reports" groups="group_account_invoice"/>
+        <menuitem id="account_menu_finance_legal_statement" name="PDF Reports" parent="account_menu_finance_reports" groups="group_account_user"/>
+        <menuitem id="account_menu_finance_configuration" name="Configuration" sequence="15" parent="account_menu_finance" groups="group_account_invoice"/>
+        <menuitem id="account_account_account_menu" name="Accounting" sequence="2" parent="account_menu_finance_configuration" groups="group_account_invoice"/>
+        <menuitem id="account_account_management_menu" name="Management" sequence="3" parent="account_menu_finance_configuration" groups="group_account_manager"/>
+        <menuitem id="account_menu_analytic_accounting" name="Analytic Accounting" sequence="5" parent="account_menu_finance_configuration" groups="analytic.group_analytic_accounting"/>
+        <menuitem id="account_menu_config_multi_currency" name="Multi-Currencies" sequence="9" parent="account_menu_finance_configuration" groups="base.group_multi_currency"/>
+        <menuitem id="account_menu_action_currency_form" name="Currencies" sequence="20" parent="account_menu_config_multi_currency" action="base_action_currency_form" groups="base.group_multi_currency"/>
+        <menuitem id="account_menu_account_reports" name="Financial Reports" parent="account_menu_finance_configuration" groups="group_account_user"/>
+    </data>
+</hexya>

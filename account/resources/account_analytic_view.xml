@@ -1,0 +1,52 @@
+<hexya>
+    <data>
+        <view id="account_view_account_analytic_line_form_inherit_account" model="AccountAnalyticLine">
+            <data>
+                <xpath expr="//field[@name=&apos;account_id&apos;]" position="after">
+                    <field name="general_account_id"/>
+                    <field name="ref"/>
+                    <field name="partner_id"/>
+                    <field name="move_id" readonly="1"/>
+                </xpath>
+                <xpath expr="//field[@name=&apos;amount&apos;]" position="after">
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="amount_currency" invisible="1"/>
+                    <field name="analytic_amount_currency"/>
+                    <field name="product_id"/>
+                    <field name="product_uom_id" class="oe_inline"/>
+                </xpath>
+            </data>
+        </view>
+        <view id="account_view_account_analytic_line_tree_inherit_account" model="AccountAnalyticLine">
+            <data>
+                <xpath expr="//field[@name=&apos;date&apos;]" position="after">
+                    <field name="ref" invisible="context.get(&apos;to_invoice&apos;, False)"/>
+                </xpath>
+            </data>
+        </view>
+        <view id="account_view_account_analytic_line_filter_inherit_account" model="AccountAnalyticLine">
+            <data>
+                <xpath expr="//field[@name=&apos;date&apos;]" position="after">
+                    <field name="product_id"/>
+                    <field name="partner_id" filter_domain="[(&apos;partner_id&apos;,&apos;child_of&apos;,self)]"/>
+                </xpath>
+                <xpath expr="//group[@name=&apos;groupby&apos;]" position="after">
+                    <filter string="Financial Account" context="{&apos;group_by&apos;:&apos;general_account_id&apos;}"/>
+                    <filter string="Product" context="{&apos;group_by&apos;:&apos;product_id&apos;}"/>
+                    <filter string="Partner" context="{&apos;group_by&apos;:&apos;partner_id&apos;}"/>
+                </xpath>
+            </data>
+        </view>
+        <view id="account_view_account_analytic_line_pivot" model="AccountAnalyticLine">
+            <field name="account_id" position="after">
+                <field name="partner_id" type="row"/>
+            </field>
+        </view>
+        <action id="account_analytic_line_reporting_pivot" type="ir.actions.act_window" name="Analytic Entries" model="AccountAnalyticLine" view_mode="pivot" view_id="analytic_view_account_analytic_line_pivot" search_view_id="analytic_view_account_analytic_line_filter"/>
+        <menuitem id="account_menu_action_analytic_account_tree2" name="Analytic Accounts" sequence="30" parent="account_menu_finance_entries" action="analytic_action_analytic_account_form" groups="analytic.group_analytic_accounting"/>
+        <menuitem id="account_menu_action_analytic_lines_tree" name="Analytic Entries" sequence="35" parent="account_menu_finance_entries" action="analytic_account_analytic_line_action_entries" groups="analytic.group_analytic_accounting"/>
+        <menuitem id="account_account_analytic_def_account" sequence="0" parent="account_menu_analytic_accounting" action="analytic_action_account_analytic_account_form" groups="analytic.group_analytic_accounting"/>
+        <menuitem id="account_menu_action_analytic_lines_reporting" name="Analytic Entries" sequence="35" parent="account_account_reports_business_intelligence_menu" action="account_analytic_line_reporting_pivot" groups="analytic.group_analytic_accounting"/>
+        <menuitem id="account_account_analytic_tag_menu" name="Analytic Accounts Tags" parent="account_menu_analytic_accounting" action="analytic_account_analytic_tag_action" groups="base.group_no_one"/>
+    </data>
+</hexya>

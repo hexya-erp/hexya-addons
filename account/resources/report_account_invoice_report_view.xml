@@ -1,0 +1,54 @@
+<hexya>
+    <data>
+        <view id="account_view_account_invoice_report_pivot" model="AccountInvoiceReport">
+            <pivot string="Invoices Analysis" disable_linking="True">
+                <field name="categ_id" type="row"/>
+                <field name="date" type="col"/>
+                <field name="price_total" type="measure"/>
+            </pivot>
+        </view>
+        <view id="account_view_account_invoice_report_graph" model="AccountInvoiceReport">
+            <graph string="Invoices Analysis">
+                <field name="categ_id"/>
+                <field name="price_total" type="measure"/>
+            </graph>
+        </view>
+        <view id="account_view_account_invoice_report_search" model="AccountInvoiceReport">
+            <search string="Invoices Analysis">
+                <field name="date"/>
+                <filter string="This Year" name="thisyear" domain="[&apos;|&apos;, (&apos;date&apos;, &apos;=&apos;, False), &apos;&amp;&apos;,(&apos;date&apos;,&apos;&lt;=&apos;, time.strftime(&apos;%%Y-12-31&apos;)),(&apos;date&apos;,&apos;&gt;=&apos;,time.strftime(&apos;%%Y-01-01&apos;))]" help="Journal invoices with period in current year"/>
+                <separator/>
+                <filter string="To Invoice" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]" help="Draft Invoices"/>
+                <filter string="Pro-forma" domain="[&apos;|&apos;, (&apos;state&apos;,&apos;=&apos;,&apos;proforma&apos;),(&apos;state&apos;,&apos;=&apos;,&apos;proforma2&apos;)]"/>
+                <filter string="Invoiced" name="current" domain="[(&apos;state&apos;,&apos;not in&apos;, (&apos;draft&apos;,&apos;cancel&apos;,&apos;proforma&apos;,&apos;proforma2&apos;))]"/>
+                <separator/>
+                <filter string="Customer" name="customer" domain="[&apos;|&apos;, (&apos;type&apos;,&apos;=&apos;,&apos;out_invoice&apos;),(&apos;type&apos;,&apos;=&apos;,&apos;out_refund&apos;)]"/>
+                <filter string="Vendor" name="supplier" domain="[&apos;|&apos;, (&apos;type&apos;,&apos;=&apos;,&apos;in_invoice&apos;),(&apos;type&apos;,&apos;=&apos;,&apos;in_refund&apos;)]"/>
+                <separator/>
+                <filter string="Invoice" domain="[&apos;|&apos;, (&apos;type&apos;,&apos;=&apos;,&apos;out_invoice&apos;),(&apos;type&apos;,&apos;=&apos;,&apos;in_invoice&apos;)]"/>
+                <filter string="Refund" domain="[&apos;|&apos;, (&apos;type&apos;,&apos;=&apos;,&apos;out_refund&apos;),(&apos;type&apos;,&apos;=&apos;,&apos;in_refund&apos;)]"/>
+                <field name="partner_id" operator="child_of"/>
+                <field name="user_id"/>
+                <field name="categ_id" filter_domain="[(&apos;categ_id&apos;, &apos;child_of&apos;, self)]"/>
+                <group expand="1" string="Group By">
+                    <filter string="Partner" name="partner_id" context="{&apos;group_by&apos;:&apos;partner_id&apos;,&apos;residual_visible&apos;:True}"/>
+                    <filter string="Salesperson" name="user" context="{&apos;group_by&apos;:&apos;user_id&apos;}"/>
+                    <filter string="Product Category" name="category_product" context="{&apos;group_by&apos;:&apos;categ_id&apos;,&apos;residual_invisible&apos;:True}"/>
+                    <filter string="Status" context="{&apos;group_by&apos;:&apos;state&apos;}"/>
+                    <filter string="Company" context="{&apos;group_by&apos;:&apos;company_id&apos;}" groups="base.group_multi_company"/>
+                    <separator orientation="vertical"/>
+                    <filter string="Date" context="{&apos;group_by&apos;:&apos;date&apos;}"/>
+                    <filter string="Due Month" context="{&apos;group_by&apos;:&apos;date_due:month&apos;}"/>
+                </group>
+            </search>
+        </view>
+        <action id="account_action_account_invoice_report_all_supp" type="ir.actions.act_window" name="Invoices Analysis" model="AccountInvoiceReport" view_mode="pivot,graph" search_view_id="account_view_account_invoice_report_search">
+            <help/>
+        </action>
+        <action id="account_action_account_invoice_report_all" type="ir.actions.act_window" name="Invoices Analysis" model="AccountInvoiceReport" view_mode="pivot,graph" search_view_id="account_view_account_invoice_report_search">
+            <help/>
+        </action>
+        <act_window id="account_act_account_invoice_partner_relation" name="Monthly Turnover" model="AccountInvoiceReport" src_model="res.partner" view_mode="graph" target=""/>
+        <menuitem id="account_menu_action_account_invoice_report_all" name="Invoices" sequence="20" parent="account_account_reports_business_intelligence_menu" action="account_action_account_invoice_report_all"/>
+    </data>
+</hexya>

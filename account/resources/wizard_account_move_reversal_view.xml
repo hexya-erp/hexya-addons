@@ -1,0 +1,17 @@
+<hexya>
+    <data>
+        <view id="account_view_account_move_reversal" model="AccountMoveReversal">
+            <form string="Account Move Reversal">
+                <group col="4">
+                    <field name="date"/>
+                    <field name="journal_id"/>
+                </group>
+                <footer>
+                    <button string="Reverse Moves" name="reverse_moves" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </view>
+        <action id="account_action_view_account_move_reversal" type="ir.actions.act_window" name="Reverse Moves" model="AccountMoveReversal" view_mode="tree,form" view_id="account_view_account_move_reversal"/>
+    </data>
+</hexya>

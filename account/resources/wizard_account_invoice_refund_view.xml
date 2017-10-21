@@ -1,0 +1,45 @@
+<hexya>
+    <data>
+        <view id="account_view_account_invoice_refund" model="AccountInvoiceRefund">
+            <form string="Credit Note">
+                <group>
+                    <group>
+                        <field name="refund_only" invisible="1"/>
+                        <field name="filter_refund" attrs="{&apos;invisible&apos;: [(&apos;refund_only&apos;,&apos;=&apos;,True)]}" widget="radio"/>
+                    </group>
+                    <group>
+                        <div attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;refund_only&apos;,&apos;=&apos;,True),(&apos;filter_refund&apos;,&apos;&lt;&gt;&apos;,&apos;refund&apos;)]}" class="oe_grey" colspan="4">
+                                You will be able to edit and validate this
+                                credit note directly or keep it draft,
+                                waiting for the document to be issued by
+                                your supplier/customer.
+                             </div>
+                        <div attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;refund_only&apos;,&apos;=&apos;,True),(&apos;filter_refund&apos;,&apos;&lt;&gt;&apos;,&apos;cancel&apos;)]}" class="oe_grey" colspan="4">
+                                Use this option if you want to cancel an invoice you should not
+                                have issued. The credit note will be created, validated and reconciled
+                                with the invoice. You will not be able to modify the credit note.
+                             </div>
+                        <div attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;refund_only&apos;,&apos;=&apos;,True),(&apos;filter_refund&apos;,&apos;&lt;&gt;&apos;,&apos;modify&apos;)]}" class="oe_grey" colspan="4">
+                                Use this option if you want to cancel an invoice and create a new
+                                one. The credit note will be created, validated and reconciled
+                                with the current invoice. A new, draft, invoice will be created 
+                                so that you can edit it.
+                             </div>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                    </group>
+                    <group>
+                        <field name="date_invoice"/>
+                        <field name="date" groups="base.group_no_one"/>
+                    </group>
+                </group>
+                <footer>
+                    <button string="Create Refund" name="invoice_refund" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </view>
+        <action id="account_action_account_invoice_refund" type="ir.actions.act_window" name="Refund Invoice" model="AccountInvoiceRefund" view_mode="tree,form" view_id="account_view_account_invoice_refund"/>
+    </data>
+</hexya>
