@@ -365,8 +365,8 @@ func init() {
 
 			*/
 		})
-	pool.Partner().Methods().JournalItemCount().DeclareMethod(
-		`JournalItemCount`,
+	pool.Partner().Methods().ComputeJournalItemCount().DeclareMethod(
+		`ComputeJournalItemCount`,
 		func(rs pool.PartnerSet) {
 			//@api.multi
 			/*def _journal_item_count(self):
@@ -478,8 +478,8 @@ func init() {
 		"DebitLimit":                  models.FloatField{String: "Payable Limit')" /*['Payable Limit']*/},
 		"TotalInvoiced":               models.FloatField{String: "TotalInvoiced", Compute: pool.Partner().Methods().InvoiceTotal() /*[ string "Total Invoiced"]*/ /*[ groups 'account.group_account_invoice']*/},
 		"Currency":                    models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: pool.Partner().Methods().GetCompanyCurrency() /* readonly=true */, Help: "Utility field to express amount currency"},
-		"ContractsCount":              models.IntegerField{String: "ContractsCount", Compute: pool.Partner().Methods().JournalItemCount() /*[ string "Contracts"]*/ /*[ type 'integer']*/},
-		"JournalItemCount":            models.IntegerField{String: "JournalItemCount", Compute: pool.Partner().Methods().JournalItemCount() /*[ string "Journal Items"]*/ /*[ type "integer"]*/},
+		"ContractsCount":              models.IntegerField{String: "ContractsCount", Compute: pool.Partner().Methods().ComputeJournalItemCount() /*[ string "Contracts"]*/ /*[ type 'integer']*/},
+		"ComputeJournalItemCount":     models.IntegerField{String: "ComputeJournalItemCount", Compute: pool.Partner().Methods().ComputeJournalItemCount() /*[ string "Journal Items"]*/ /*[ type "integer"]*/},
 		"IssuedTotal":                 models.FloatField{String: "IssuedTotal", Compute: pool.Partner().Methods().ComputeIssuedTotal() /*[ string "Journal Items"]*/},
 		"PropertyAccountPayable":      models.Many2OneField{String: "Account Payable", RelationModel: pool.AccountAccount(), JSON: "property_account_payable_id" /*['account.account']*/ /*, CompanyDependent : true*/ /*[ oldname "property_account_payable"]*/ /*, Filter: "[('internal_type'*/ /*[ ' ']*/ /*[ 'payable']*/ /*[ ('deprecated']*/ /*[ ' ']*/ /*[ False)]"]*/, Help: "This account will be used instead of the default one as the payable account for the current partner", Required: true},
 		"PropertyAccountReceivable":   models.Many2OneField{String: "Account Receivable", RelationModel: pool.AccountAccount(), JSON: "property_account_receivable_id" /*['account.account']*/ /*, CompanyDependent : true*/ /*[ oldname "property_account_receivable"]*/ /*, Filter: "[('internal_type'*/ /*[ ' ']*/ /*[ 'receivable']*/ /*[ ('deprecated']*/ /*[ ' ']*/ /*[ False)]"]*/, Help: "This account will be used instead of the default one as the receivable account for the current partner", Required: true},

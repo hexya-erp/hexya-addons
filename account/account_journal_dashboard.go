@@ -4,51 +4,62 @@
 package account
 
 import (
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
+	"github.com/hexya-erp/hexya/pool"
 )
 
 func init() {
 
-	pool.AccountJournal().Methods().KanbanDashboard().DeclareMethod(
-		`KanbanDashboard`,
-		func(rs pool.AccountJournalSet) {
+	pool.AccountJournal().AddFields(map[string]models.FieldDefinition{
+		"KanbanDashboard": models.TextField{String: "KanbanDashboard",
+			Compute: pool.AccountJournal().Methods().ComputeKanbanDashboard()},
+		"KanbanDashboardGraph": models.TextField{String: "KanbanDashboardGraph",
+			Compute: pool.AccountJournal().Methods().ComputeKanbanDashboardGraph()},
+		"ShowOnDashboard": models.BooleanField{String: "Show journal on dashboard",
+			Help:    "Whether this journal should be displayed on the dashboard or not",
+			Default: models.DefaultValue(true)},
+	})
+
+	pool.AccountJournal().Methods().ComputeKanbanDashboard().DeclareMethod(
+		`ComputeKanbanDashboard`,
+		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
 			//@api.one
 			/*def _kanban_dashboard(self):
 			  self.kanban_dashboard = json.dumps(self.get_journal_dashboard_datas())
 
 			*/
+			return new(pool.AccountJournalData), []models.FieldNamer{}
 		})
-	pool.AccountJournal().Methods().KanbanDashboardGraph().DeclareMethod(
-		`KanbanDashboardGraph`,
-		func(rs pool.AccountJournalSet) {
+
+	pool.AccountJournal().Methods().ComputeKanbanDashboardGraph().DeclareMethod(
+		`ComputeKanbanDashboardGraph`,
+		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
 			//@api.one
 			/*def _kanban_dashboard_graph(self):
-			    if (self.type in ['sale', 'purchase']):
-			        self.kanban_dashboard_graph = json.dumps(self.get_bar_graph_datas())
-			    elif (self.type in ['cash', 'bank']):
-			        self.kanban_dashboard_graph = json.dumps(self.get_line_graph_datas())
-
-			kanban_dashboard = */
+			  if (self.type in ['sale', 'purchase']):
+			      self.kanban_dashboard_graph = json.dumps(self.get_bar_graph_datas())
+			  elif (self.type in ['cash', 'bank']):
+			      self.kanban_dashboard_graph = json.dumps(self.get_line_graph_datas())
+			*/
+			return new(pool.AccountJournalData), []models.FieldNamer{}
 		})
-	pool.AccountJournal().AddFields(map[string]models.FieldDefinition{
-		"KanbanDashboard":      models.TextField{String: "KanbanDashboard" /*[compute '_kanban_dashboard']*/},
-		"KanbanDashboardGraph": models.TextField{String: "KanbanDashboardGraph" /*[compute '_kanban_dashboard_graph']*/},
-		"ShowOnDashboard":      models.BooleanField{String: "ShowOnDashboard" /*[string 'Show journal on dashboard']*/, Help: "Whether this journal should be displayed on the dashboard or not", Default: models.DefaultValue(true)},
-	})
+
 	pool.AccountJournal().Methods().ToggleFavorite().DeclareMethod(
 		`ToggleFavorite`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) bool {
 			//@api.multi
 			/*def toggle_favorite(self):
 			  self.write({'show_on_dashboard': False if self.show_on_dashboard else True})
 			  return False
 
 			*/
+			return false
 		})
+
 	pool.AccountJournal().Methods().GetLineGraphDatas().DeclareMethod(
 		`GetLineGraphDatas`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) []map[string]interface{} {
 			//@api.multi
 			/*def get_line_graph_datas(self):
 			  data = []
@@ -109,18 +120,60 @@ func init() {
 			  return [{'values': data, 'area': True}]
 
 			*/
+			return []map[string]interface{}{make(map[string]interface{})}
 		})
+
 	pool.AccountJournal().Methods().GetBarGraphDatas().DeclareMethod(
 		`GetBarGraphDatas`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) []map[string]interface{} {
 			//@api.multi
 			/*def get_bar_graph_datas(self):
-			  data = []
-			  today = datetime.strptime(*/
+			data = []
+			today = datetime.strptime(fields.Date.context_today(self), DF)
+			data.append({'label': _('Past'), 'value':0.0, 'type': 'past'})
+			day_of_week = int(format_datetime(today, 'e', locale=self._context.get('lang') or 'en_US'))
+			first_day_of_week = today + timedelta(days=-day_of_week+1)
+			for i in range(-1,4):
+				if i==0:
+					label = _('This Week')
+				elif i==3:
+					label = _('Future')
+				else:
+					start_week = first_day_of_week + timedelta(days=i*7)
+					end_week = start_week + timedelta(days=6)
+					if start_week.month == end_week.month:
+						label = str(start_week.day) + '-' +str(end_week.day)+ ' ' + format_date(end_week, 'MMM', locale=self._context.get('lang') or 'en_US')
+					else:
+						label = format_date(start_week, 'd MMM', locale=self._context.get('lang') or 'en_US')+'-'+format_date(end_week, 'd MMM', locale=self._context.get('lang') or 'en_US')
+				data.append({'label':label,'value':0.0, 'type': 'past' if i<0 else 'future'})
+
+			# Build SQL query to find amount aggregated by week
+			select_sql_clause = """SELECT sum(residual_company_signed) as total, min(date) as aggr_date from account_invoice where journal_id = %(journal_id)s and state = 'open'"""
+			query = ''
+			start_date = (first_day_of_week + timedelta(days=-7))
+			for i in range(0,6):
+				if i == 0:
+					query += "("+select_sql_clause+" and date < '"+start_date.strftime(DF)+"')"
+				elif i == 5:
+					query += " UNION ALL ("+select_sql_clause+" and date >= '"+start_date.strftime(DF)+"')"
+				else:
+					next_date = start_date + timedelta(days=7)
+					query += " UNION ALL ("+select_sql_clause+" and date >= '"+start_date.strftime(DF)+"' and date < '"+next_date.strftime(DF)+"')"
+					start_date = next_date
+
+			self.env.cr.execute(query, {'journal_id':self.id})
+			query_results = self.env.cr.dictfetchall()
+			for index in range(0, len(query_results)):
+				if query_results[index].get('aggr_date') != None:
+					data[index]['value'] = query_results[index].get('total')
+
+			return [{'values': data}]*/
+			return []map[string]interface{}{make(map[string]interface{})}
 		})
+
 	pool.AccountJournal().Methods().GetJournalDashboardDatas().DeclareMethod(
 		`GetJournalDashboardDatas`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) map[string]interface{} {
 			//@api.multi
 			/*def get_journal_dashboard_datas(self):
 			  currency = self.currency_id or self.company_id.currency_id
@@ -206,10 +259,12 @@ func init() {
 			  }
 
 			*/
+			return make(map[string]interface{})
 		})
+
 	pool.AccountJournal().Methods().ActionCreateNew().DeclareMethod(
 		`ActionCreateNew`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def action_create_new(self):
 			  ctx = self._context.copy()
@@ -239,10 +294,12 @@ func init() {
 			  }
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().CreateCashStatement().DeclareMethod(
 		`CreateCashStatement`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def create_cash_statement(self):
 			  ctx = self._context.copy()
@@ -257,10 +314,12 @@ func init() {
 			  }
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().ActionOpenReconcile().DeclareMethod(
 		`ActionOpenReconcile`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def action_open_reconcile(self):
 			  if self.type in ['bank', 'cash']:
@@ -285,10 +344,12 @@ func init() {
 			      }
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().OpenAction().DeclareMethod(
 		`OpenAction`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_action(self):
 			  """return action based on type for related journals"""
@@ -335,39 +396,45 @@ func init() {
 			  return action
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().OpenSpendMoney().DeclareMethod(
 		`OpenSpendMoney`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_spend_money(self):
 			  return self.open_payments_action('outbound')
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().OpenCollectMoney().DeclareMethod(
 		`OpenCollectMoney`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_collect_money(self):
 			  return self.open_payments_action('inbound')
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().OpenTransferMoney().DeclareMethod(
 		`OpenTransferMoney`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_transfer_money(self):
 			  return self.open_payments_action('transfer')
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().OpenPaymentsAction().DeclareMethod(
 		`OpenPaymentsAction`,
-		func(rs pool.AccountJournalSet, args struct {
-			PaymentType interface{}
-		}) {
+		func(rs pool.AccountJournalSet, paymentType string) *actions.Action {
 			//@api.multi
 			/*def open_payments_action(self, payment_type):
 			  ctx = self._context.copy()
@@ -384,10 +451,12 @@ func init() {
 			      return action
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().OpenActionWithContext().DeclareMethod(
 		`OpenActionWithContext`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_action_with_context(self):
 			  action_name = self.env.context.get('action_name', False)
@@ -407,10 +476,12 @@ func init() {
 			  return action
 
 			*/
+			return new(actions.Action)
 		})
+
 	pool.AccountJournal().Methods().CreateBankStatement().DeclareMethod(
 		`CreateBankStatement`,
-		func(rs pool.AccountJournalSet) {
+		func(rs pool.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def create_bank_statement(self):
 			  """return action to create a bank statements. This button should be called only on journals with type =='bank'"""
@@ -422,6 +493,7 @@ func init() {
 			  })
 			  return action
 			*/
+			return new(actions.Action)
 		})
 
 }

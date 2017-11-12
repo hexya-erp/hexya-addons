@@ -355,8 +355,8 @@ func init() {
 
 			*/
 		})
-	pool.AccountMoveLine().Methods().AmountResidual().DeclareMethod(
-		`AmountResidual`,
+	pool.AccountMoveLine().Methods().ComputeAmountResidual().DeclareMethod(
+		`ComputeAmountResidual`,
 		func(rs pool.AccountMoveLineSet) {
 			//@api.depends('debit','credit','amount_currency','currency_id','matched_debit_ids','matched_credit_ids','matched_debit_ids.amount','matched_credit_ids.amount','account_id.currency_id','move_id.state')
 			/*def _amount_residual(self):
@@ -493,8 +493,8 @@ func init() {
 			*/
 			return 0
 		}, Help: "The optional other currency if it is a multi-currency entry."},
-		"AmountResidual":         models.FloatField{String: "AmountResidual", Compute: pool.AccountMoveLine().Methods().AmountResidual() /*[ string 'Residual Amount']*/, Stored: true /*[ currency_field 'company_currency_id']*/, Help: "The residual amount on a journal item expressed in the company currency."},
-		"AmountResidualCurrency": models.FloatField{String: "AmountResidualCurrency", Compute: pool.AccountMoveLine().Methods().AmountResidual() /*[ string 'Residual Amount in Currency']*/, Stored: true, Help: "The residual amount on a journal item expressed in its currency (possibly not the company currency)."},
+		"AmountResidual":         models.FloatField{String: "AmountResidual", Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual() /*[ string 'Residual Amount']*/, Stored: true /*[ currency_field 'company_currency_id']*/, Help: "The residual amount on a journal item expressed in the company currency."},
+		"AmountResidualCurrency": models.FloatField{String: "AmountResidualCurrency", Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual() /*[ string 'Residual Amount in Currency']*/, Stored: true, Help: "The residual amount on a journal item expressed in its currency (possibly not the company currency)."},
 		"Account": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(), JSON: "account_id" /*['account.account']*/, Required: true, Index: true, OnDelete: models.Cascade /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Default: func(models.Environment, models.FieldMap) interface{} {
 			/*lambda self: self._context.get('account_id'*/
 			return 0

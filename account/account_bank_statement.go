@@ -4,39 +4,46 @@
 package account
 
 import (
-	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
+	"github.com/hexya-erp/hexya/hexya/models/types"
+	"github.com/hexya-erp/hexya/hexya/models/types/dates"
+	"github.com/hexya-erp/hexya/pool"
 )
 
 func init() {
 
 	pool.AccountCashboxLine().DeclareModel()
+	pool.AccountCashboxLine().SetDefaultOrder("CoinValue")
+
+	pool.AccountCashboxLine().AddFields(map[string]models.FieldDefinition{
+		"CoinValue": models.FloatField{String: "Coin/Bill Value", Required: true},
+		"Number":    models.IntegerField{String: "Number of Coins/Bills", Help: "Opening Unit Numbers"},
+		"Subtotal":  models.FloatField{Compute: pool.AccountCashboxLine().Methods().SubTotal() /*[ readonly True]*/},
+		"Cashbox":   models.Many2OneField{String: "Cashbox", RelationModel: pool.AccountBankStatementCashbox()},
+	})
+
 	pool.AccountCashboxLine().Methods().SubTotal().DeclareMethod(
 		`SubTotal`,
-		func(rs pool.AccountCashboxLineSet) {
+		func(rs pool.AccountCashboxLineSet) (*pool.AccountCashboxLineData, []models.FieldNamer) {
 			//@api.depends('coin_value','number')
 			/*def _sub_total(self):
-			    """ Calculates Sub total"""
-			    self.subtotal = self.coin_value * self.number
-
-			coin_value = */
+			  """ Calculates Sub total"""
+			  self.subtotal = self.coin_value * self.number
+			*/
+			return new(pool.AccountCashboxLineData), []models.FieldNamer{}
 		})
-	pool.AccountCashboxLine().AddFields(map[string]models.FieldDefinition{
-		"CoinValue": models.FloatField{String: "CoinValue" /*[string 'Coin/Bill Value']*/, Required: true, Digits: nbutils.Digits{0, 0}},
-		"Number":    models.IntegerField{String: "Number" /*[string 'Number of Coins/Bills']*/, Help: "Opening Unit Numbers"},
-		"Subtotal":  models.FloatField{String: "Subtotal", Compute: pool.AccountCashboxLine().Methods().SubTotal() /*[ string 'Subtotal']*/, Digits: nbutils.Digits{0, 0} /*[ readonly True]*/},
-		"Cashbox":   models.Many2OneField{String: "Cashbox", RelationModel: pool.AccountBankStatementCashbox(), JSON: "cashbox_id" /*['account.bank.statement.cashbox']*/},
-	})
 
 	pool.AccountBankStatementCashbox().DeclareModel()
+
 	pool.AccountBankStatementCashbox().AddFields(map[string]models.FieldDefinition{
-		"CashboxLiness": models.One2ManyField{String: "CashboxLinesIds", RelationModel: pool.AccountCashboxLine(), ReverseFK: "Cashbox", JSON: "cashbox_lines_ids" /*['account.cashbox.line']*/ /*[ 'cashbox_id']*/ /*[string 'Cashbox Lines']*/},
+		"CashboxLines": models.One2ManyField{RelationModel: pool.AccountCashboxLine(), ReverseFK: "Cashbox",
+			JSON: "cashbox_lines_ids"},
 	})
+
 	pool.AccountBankStatementCashbox().Methods().Validate().DeclareMethod(
 		`Validate`,
-		func(rs pool.AccountBankStatementCashboxSet) {
+		func(rs pool.AccountBankStatementCashboxSet) *actions.Action {
 			//@api.multi
 			/*def validate(self):
 			  bnk_stmt_id = self.env.context.get('bank_statement_id', False) or self.env.context.get('active_id', False)
@@ -54,12 +61,16 @@ func init() {
 
 
 			*/
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
 		})
 
 	pool.AccountBankStatementClosebalance().DeclareTransientModel()
+
 	pool.AccountBankStatementClosebalance().Methods().Validate().DeclareMethod(
 		`Validate`,
-		func(rs pool.AccountBankStatementClosebalanceSet) {
+		func(rs pool.AccountBankStatementClosebalanceSet) *actions.Action {
 			//@api.multi
 			/*def validate(self):
 			  bnk_stmt_id = self.env.context.get('bank_statement_id', False) or self.env.context.get('active_id', False)
@@ -77,48 +88,144 @@ func init() {
 
 
 			*/
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
 		})
 
 	pool.AccountBankStatement().DeclareModel()
+	pool.AccountBankStatement().SetDefaultOrder("Date DESC", "ID DESC")
+
+	pool.AccountBankStatement().AddFields(map[string]models.FieldDefinition{
+		"Name": models.CharField{String: "Reference", /*[ states {'open': [('readonly'] '=' [ False)]}]*/
+			NoCopy: true /*[ readonly True]*/},
+		"Reference": models.CharField{String: "External Reference", /*[ states {'open': [('readonly'] '=' [ False)]}]*/
+			NoCopy: true, /*[ readonly True]*/
+			Help: `Used to hold the reference of the external mean that created this statement
+(name of imported file, reference of online synchronization...)`},
+		"Date": models.DateField{Required: true /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/, Index: true,
+			NoCopy: true, Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return dates.Today()
+			}},
+		"DateDone": models.DateTimeField{String: "Closed On"},
+		"BalanceStart": models.FloatField{String: "Starting Balance", /*[ states {'confirm': [('readonly'] '=' [ True)]}]*/
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				// Search last bank statement and set current opening balance as closing balance of previous one
+				journal := pool.AccountJournal().NewSet(env)
+				switch {
+				case env.Context().HasKey("default_journal_id"):
+					journal = pool.AccountJournal().Browse(env, []int64{env.Context().GetInteger("default_journal_id")})
+				case env.Context().HasKey("journal_id"):
+					journal = pool.AccountJournal().Browse(env, []int64{env.Context().GetInteger("default_journal_id")})
+				}
+				return pool.AccountBankStatement().NewSet(env).GetOpeningBalance(journal)
+			}},
+		"BalanceEndReal": models.FloatField{String: "Ending Balance" /*[ states {'confirm': [('readonly'] '=' [ True)]}]*/},
+		"State": models.SelectionField{String: "Status",
+			Selection: types.Selection{
+				"open":    "New",
+				"confirm": "Validated",
+			}, Required: true /*[ readonly True]*/, NoCopy: true, Default: models.DefaultValue("open")},
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+			Compute: pool.AccountBankStatement().Methods().ComputeCurrency(),
+			Depends: []string{"Journal"}},
+		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(),
+			Required: true, /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/
+			OnChange: pool.AccountBankStatement().Methods().OnchangeJournalId(),
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				journalType := env.Context().GetString("journal_type")
+				company := pool.Company().NewSet(env).CompanyDefaultGet()
+				if journalType != "" {
+					return pool.AccountJournal().Search(env,
+						pool.AccountJournal().Type().Equals(journalType).And().Company().Equals(company)).Limit(1)
+				}
+				return pool.AccountJournal().NewSet(env)
+			}},
+		"JournalType": models.SelectionField{Related: "Journal.Type", Help: "Technical field used for usability purposes"},
+		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Journal.Company", /* readonly=true */
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.Company().NewSet(env).CompanyDefaultGet()
+			}},
+		"TotalEntryEncoding": models.FloatField{String: "Transactions Subtotal",
+			Compute: pool.AccountBankStatement().Methods().EndBalance(), Stored: true,
+			Depends: []string{"Lines", "BalanceStart", "Lines.Amount", "BalanceEndReal"},
+			Help:    "Total of transaction lines."},
+		"BalanceEnd": models.FloatField{String: "Computed Balance",
+			Compute: pool.AccountBankStatement().Methods().EndBalance(), Stored: true,
+			Depends: []string{"Lines", "BalanceStart", "Lines.Amount", "BalanceEndReal"},
+			Help:    "Balance as calculated based on Opening Balance and transaction lines"},
+		"Difference": models.FloatField{Compute: pool.AccountBankStatement().Methods().EndBalance(),
+			Depends: []string{"Lines", "BalanceStart", "Lines.Amount", "BalanceEndReal"},
+			Stored:  true,
+			Help:    "Difference between the computed ending balance and the specified ending balance."},
+		"Lines": models.One2ManyField{String: "Statement Line",
+			RelationModel: pool.AccountBankStatementLine(), ReverseFK: "Statement", JSON: "line_ids",
+			/*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/ NoCopy: false},
+		"MoveLines": models.One2ManyField{String: "Entry Lines", RelationModel: pool.AccountMoveLine(),
+			ReverseFK: "Statement", JSON: "move_line_ids" /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/},
+		"AllLinesReconciled": models.BooleanField{
+			Compute: pool.AccountBankStatement().Methods().CheckLinesReconciled(),
+			Depends: []string{"Lines.JournalEntries"}},
+		"User": models.Many2OneField{String: "Responsible", RelationModel: pool.User(),
+			Required: false,
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.User().NewSet(env).CurrentUser()
+			}},
+		"CashboxStart": models.Many2OneField{String: "Starting Cashbox",
+			RelationModel: pool.AccountBankStatementCashbox()},
+		"CashboxEnd": models.Many2OneField{String: "Ending Cashbox",
+			RelationModel: pool.AccountBankStatementCashbox()},
+		"IsDifferenceZero": models.BooleanField{String: "Is Zero",
+			Compute: pool.AccountBankStatement().Methods().ComputeIsDifferenceZero(),
+			Help:    "Check if difference is zero."},
+	})
+
 	pool.AccountBankStatement().Methods().EndBalance().DeclareMethod(
 		`EndBalance`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) (*pool.AccountBankStatementData, []models.FieldNamer) {
 			//@api.depends('line_ids','balance_start','line_ids.amount','balance_end_real')
 			/*def _end_balance(self):
 			  self.total_entry_encoding = sum([line.amount for line in self.line_ids])
 			  self.balance_end = self.balance_start + self.total_entry_encoding
 			  self.difference = self.balance_end_real - self.balance_end
-
 			*/
+			return new(pool.AccountBankStatementData), []models.FieldNamer{}
 		})
-	pool.AccountBankStatement().Methods().IsDifferenceZero().DeclareMethod(
-		`IsDifferenceZero`,
-		func(rs pool.AccountBankStatementSet) {
+
+	pool.AccountBankStatement().Methods().ComputeIsDifferenceZero().DeclareMethod(
+		`ComputeIsDifferenceZero`,
+		func(rs pool.AccountBankStatementSet) (*pool.AccountBankStatementData, []models.FieldNamer) {
 			//@api.multi
 			/*def _is_difference_zero(self):
 			  for bank_stmt in self:
 			      bank_stmt.is_difference_zero = float_is_zero(bank_stmt.difference, precision_digits=bank_stmt.currency_id.decimal_places)
 
 			*/
+			return new(pool.AccountBankStatementData), []models.FieldNamer{}
 		})
+
 	pool.AccountBankStatement().Methods().ComputeCurrency().DeclareMethod(
 		`ComputeCurrency`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) (*pool.AccountBankStatementData, []models.FieldNamer) {
 			//@api.depends('journal_id')
 			/*def _compute_currency(self):
 			  self.currency_id = self.journal_id.currency_id or self.company_id.currency_id
 
 			*/
+			return new(pool.AccountBankStatementData), []models.FieldNamer{}
 		})
+
 	pool.AccountBankStatement().Methods().CheckLinesReconciled().DeclareMethod(
 		`CheckLinesReconciled`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) (*pool.AccountBankStatementData, []models.FieldNamer) {
 			//@api.depends('line_ids.journal_entry_ids')
 			/*def _check_lines_reconciled(self):
 			  self.all_lines_reconciled = all([line.journal_entry_ids.ids or line.account_id.id for line in self.line_ids])
 
 			*/
+			return new(pool.AccountBankStatementData), []models.FieldNamer{}
 		})
+
 	pool.AccountBankStatement().Methods().DefaultJournal().DeclareMethod(
 		`DefaultJournal`,
 		func(rs pool.AccountBankStatementSet) {
@@ -134,11 +241,10 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatement().Methods().GetOpeningBalance().DeclareMethod(
 		`GetOpeningBalance`,
-		func(rs pool.AccountBankStatementSet, args struct {
-			JournalId interface{}
-		}) {
+		func(rs pool.AccountBankStatementSet, journal pool.AccountJournalSet) float64 {
 			//@api.multi
 			/*def _get_opening_balance(self, journal_id):
 			  last_bnk_stmt = self.search([('journal_id', '=', journal_id)], limit=1)
@@ -147,106 +253,33 @@ func init() {
 			  return 0
 
 			*/
+			return 0
 		})
-	pool.AccountBankStatement().Methods().InverseOpeningBalance().DeclareMethod(
-		`InverseOpeningBalance`,
-		func(rs pool.AccountBankStatementSet, args struct {
-			JournalId interface{}
-		}) {
+
+	pool.AccountBankStatement().Methods().DefineOpeningBalance().DeclareMethod(
+		`DefineOpeningBalance`,
+		func(rs pool.AccountBankStatementSet, journal pool.AccountJournalSet) {
 			//@api.multi
 			/*def _set_opening_balance(self, journal_id):
 			  self.balance_start = self._get_opening_balance(journal_id)
 
 			*/
 		})
-	pool.AccountBankStatement().Methods().DefaultOpeningBalance().DeclareMethod(
-		`DefaultOpeningBalance`,
-		func(rs pool.AccountBankStatementSet) {
-			//@api.model
-			/*def _default_opening_balance(self):
-			      #Search last bank statement and set current opening balance as closing balance of previous one
-			      journal_id = self._context.get('default_journal_id', False) or self._context.get('journal_id', False)
-			      if journal_id:
-			          return self._get_opening_balance(journal_id)
-			      return 0
 
-			  _name = "account.bank.statement"
-			  _description = "Bank Statement"
-			  _order = "date desc, id desc"
-			  _inherit = ['mail.thread']
-
-			  name = */
-		})
-	pool.AccountBankStatement().AddFields(map[string]models.FieldDefinition{
-		"Name":      models.CharField{String: "Name" /*[string 'Reference']*/ /*[ states {'open': [('readonly']*/ /*[ False)]}]*/, NoCopy: true /*[ readonly True]*/},
-		"Reference": models.CharField{String: "Reference" /*[string 'External Reference']*/ /*[ states {'open': [('readonly']*/ /*[ False)]}]*/, NoCopy: true /*[ readonly True]*/, Help: "Used to hold the reference of the external mean that created this statement (name of imported file, reference of online synchronization...)" /*[ reference of online synchronization...)"]*/},
-		"Date":      models.DateField{String: "Date" /*[required True]*/ /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/ /*[ index True]*/ /*[ copy False]*/ /*[ default fields.Date.context_today]*/},
-		"DateDone":  models.DateTimeField{String: "DateDone" /*[string "Closed On"]*/},
-		"BalanceStart": models.FloatField{String: "BalanceStart" /*[string 'Starting Balance']*/ /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*_default_opening_balance(self):
-			      #Search last bank statement and set current opening balance as closing balance of previous one
-			      journal_id = self._context.get('default_journal_id', False) or self._context.get('journal_id', False)
-			      if journal_id:
-			          return self._get_opening_balance(journal_id)
-			      return 0
-
-			  _name = "account.bank.statement"
-			  _description = "Bank Statement"
-			  _order = "date desc, id desc"
-			  _inherit = ['mail.thread']
-
-			  name = */return 0
-		}},
-		"BalanceEndReal": models.FloatField{String: "Ending Balance" /*['Ending Balance']*/ /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/},
-		"State": models.SelectionField{String: "Status", Selection: types.Selection{
-			"open":    "New",
-			"confirm": "Validated",
-		}, /*[]*/ Required: true /*[ readonly True]*/ /*[ copy False]*/, Default: models.DefaultValue("open")},
-		"Currency": models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: pool.AccountBankStatement().Methods().ComputeCurrency() /*[ oldname 'currency']*/},
-		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*_default_journal(self):
-			  journal_type = self.env.context.get('journal_type', False)
-			  company_id = self.env['res.company']._company_default_get('account.bank.statement').id
-			  if journal_type:
-			      journals = self.env['account.journal'].search([('type', '=', journal_type), ('company_id', '=', company_id)])
-			      if journals:
-			          return journals[0]
-			  return self.env['account.journal']
-
-			*/
-			return 0
-		}},
-		"JournalType": models.SelectionField{ /*journal_type = fields.Selection(related='journal_id.type', help="Technical field used for usability purposes")*/ },
-		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Related: "Journal.Company", Stored: true /* readonly=true */, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*lambda self: self.env['res.company']._company_default_get('account.bank.statement'*/
-			return 0
-		}},
-		"TotalEntryEncoding": models.FloatField{String: "Transactions Subtotal" /*['Transactions Subtotal']*/, Compute: pool.AccountBankStatement().Methods().EndBalance(), Stored: true, Help: "Total of transaction lines."},
-		"BalanceEnd":         models.FloatField{String: "Computed Balance" /*['Computed Balance']*/, Compute: pool.AccountBankStatement().Methods().EndBalance(), Stored: true, Help: "Balance as calculated based on Opening Balance and transaction lines"},
-		"Difference":         models.FloatField{String: "Difference", Compute: pool.AccountBankStatement().Methods().EndBalance(), Stored: true, Help: "Difference between the computed ending balance and the specified ending balance."},
-		"Lines":              models.One2ManyField{String: "LineIds", RelationModel: pool.AccountBankStatementLine(), ReverseFK: "Statement", JSON: "line_ids" /*['account.bank.statement.line']*/ /*[ 'statement_id']*/ /*[string 'Statement lines']*/ /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/, NoCopy: false},
-		"MoveLines":          models.One2ManyField{String: "MoveLineIds", RelationModel: pool.AccountMoveLine(), ReverseFK: "Statement", JSON: "move_line_ids" /*['account.move.line']*/ /*[ 'statement_id']*/ /*[string 'Entry lines']*/ /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/},
-		"AllLinesReconciled": models.BooleanField{String: "AllLinesReconciled" /*[compute '_check_lines_reconciled']*/},
-		"User": models.Many2OneField{String: "Responsible", RelationModel: pool.User(), JSON: "user_id" /*['res.users']*/, Required: false, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*lambda self: self.env.user*/
-			return 0
-		}},
-		"CashboxStart":     models.Many2OneField{String: "Starting Cashbox", RelationModel: pool.AccountBankStatementCashbox(), JSON: "cashbox_start_id" /*['account.bank.statement.cashbox']*/},
-		"CashboxEnd":       models.Many2OneField{String: "Ending Cashbox", RelationModel: pool.AccountBankStatementCashbox(), JSON: "cashbox_end_id" /*['account.bank.statement.cashbox']*/},
-		"IsDifferenceZero": models.BooleanField{String: "IsDifferenceZero" /*[compute '_is_difference_zero']*/ /*[ string 'Is zero']*/, Help: "Check if difference is zero."},
-	})
 	pool.AccountBankStatement().Methods().OnchangeJournalId().DeclareMethod(
 		`OnchangeJournalId`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) (*pool.AccountBankStatementData, []models.FieldNamer) {
 			//@api.onchange('journal_id')
 			/*def onchange_journal_id(self):
 			  self._set_opening_balance(self.journal_id.id)
 
 			*/
+			return new(pool.AccountBankStatementData), []models.FieldNamer{}
 		})
+
 	pool.AccountBankStatement().Methods().BalanceCheck().DeclareMethod(
 		`BalanceCheck`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) bool {
 			//@api.multi
 			/*def _balance_check(self):
 			  for stmt in self:
@@ -277,10 +310,11 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
-	pool.AccountBankStatement().Methods().Unlink().DeclareMethod(
-		`Unlink`,
-		func(rs pool.AccountBankStatementSet) {
+
+	pool.AccountBankStatement().Methods().Unlink().Extend("",
+		func(rs pool.AccountBankStatementSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  for statement in self:
@@ -291,10 +325,12 @@ func init() {
 			  return super(AccountBankStatement, self).unlink()
 
 			*/
+			return rs.Super().Unlink()
 		})
+
 	pool.AccountBankStatement().Methods().OpenCashboxId().DeclareMethod(
 		`OpenCashboxId`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) *actions.Action {
 			//@api.multi
 			/*def open_cashbox_id(self):
 			  context = dict(self.env.context or {})
@@ -313,7 +349,11 @@ func init() {
 			      }
 
 			*/
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
 		})
+
 	pool.AccountBankStatement().Methods().ButtonCancel().DeclareMethod(
 		`ButtonCancel`,
 		func(rs pool.AccountBankStatementSet) {
@@ -326,6 +366,7 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatement().Methods().CheckConfirmBank().DeclareMethod(
 		`CheckConfirmBank`,
 		func(rs pool.AccountBankStatementSet) {
@@ -340,6 +381,7 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatement().Methods().ButtonConfirmBank().DeclareMethod(
 		`ButtonConfirmBank`,
 		func(rs pool.AccountBankStatementSet) {
@@ -363,9 +405,10 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatement().Methods().ButtonJournalEntries().DeclareMethod(
 		`ButtonJournalEntries`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) *actions.Action {
 			//@api.multi
 			/*def button_journal_entries(self):
 			  context = dict(self._context or {})
@@ -382,7 +425,11 @@ func init() {
 			  }
 
 			*/
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
 		})
+
 	pool.AccountBankStatement().Methods().ButtonOpen().DeclareMethod(
 		`ButtonOpen`,
 		func(rs pool.AccountBankStatementSet) {
@@ -402,9 +449,10 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatement().Methods().ReconciliationWidgetPreprocess().DeclareMethod(
 		`ReconciliationWidgetPreprocess`,
-		func(rs pool.AccountBankStatementSet) {
+		func(rs pool.AccountBankStatementSet) (pool.AccountBankStatementLineSet, []string, string, int) {
 			//@api.multi
 			/*def reconciliation_widget_preprocess(self):
 			  """ Get statement lines of the specified statements or all unreconciled statement lines and try to automatically reconcile them / find them a partner.
@@ -466,7 +514,9 @@ func init() {
 			  }
 
 			*/
+			return pool.AccountBankStatementLine().NewSet(rs.Env()), []string{}, "", 0
 		})
+
 	pool.AccountBankStatement().Methods().LinkBankToPartner().DeclareMethod(
 		`LinkBankToPartner`,
 		func(rs pool.AccountBankStatementSet) {
@@ -482,27 +532,57 @@ func init() {
 		})
 
 	pool.AccountBankStatementLine().DeclareModel()
+	pool.AccountBankStatementLine().SetDefaultOrder("Statement DESC", "Sequence", "ID DESC")
+	//_inherit = ['ir.needaction_mixin']
+
 	pool.AccountBankStatementLine().AddFields(map[string]models.FieldDefinition{
-		"Name":            models.CharField{String: "Name" /*[string 'Label']*/, Required: true},
-		"Date":            models.DateField{String: "Date" /*[required True]*/ /*[ default lambda self: self._context.get('date']*/ /*[ fields.Date.context_today(self]*/},
-		"Amount":          models.FloatField{String: "Amount", Digits: nbutils.Digits{0, 0} /*[ currency_field 'journal_currency_id']*/},
-		"JournalCurrency": models.Many2OneField{String: "JournalCurrencyId", RelationModel: pool.Currency(), JSON: "journal_currency_id" /*['res.currency']*/, Related: "Statement.Currency", Help: "Utility field to express amount currency', readonly=True" /* readonly=true */},
-		"Partner":         models.Many2OneField{String: "Partner", RelationModel: pool.Partner(), JSON: "partner_id" /*['res.partner']*/},
-		"BankAccount":     models.Many2OneField{String: "Bank Account", RelationModel: pool.BankAccount(), JSON: "bank_account_id" /*['res.partner.bank']*/},
-		"Account":         models.Many2OneField{String: "Counterpart Account", RelationModel: pool.AccountAccount(), JSON: "account_id" /*['account.account']*/ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Help: "This technical field can be used at the statement line creation/import time in order to avoid the reconciliation  process on it later on. The statement line will simply create a counterpart on this account"},
-		"Statement":       models.Many2OneField{String: "Statement", RelationModel: pool.AccountBankStatement(), JSON: "statement_id" /*['account.bank.statement']*/, Index: true, Required: true, OnDelete: models.Cascade},
-		"Journal":         models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Related: "Statement.Journal", Stored: true /* readonly=true */},
-		"PartnerName":     models.CharField{String: "PartnerName", Help: "This field is used to record the third party name when importing bank statement in electronic format,  when the partner doesn't exist yet in the database (or cannot be found)." /*[" " when the partner doesn't exist yet in the database (or cannot be found)."]*/},
-		"Ref":             models.CharField{String: "Ref" /*[string 'Reference']*/},
-		"Note":            models.TextField{String: "Note" /*[string 'Notes']*/},
-		"Sequence":        models.IntegerField{String: "Sequence", Index: true, Help: "Gives the sequence order when displaying a list of bank statement lines.", Default: models.DefaultValue(1)},
-		"Company":         models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Related: "Statement.Company", Stored: true /* readonly=true */},
-		"JournalEntrys":   models.One2ManyField{String: "Journal Entries", RelationModel: pool.AccountMove(), ReverseFK: "StatementLine", JSON: "journal_entry_ids" /*['account.move']*/ /*[ 'statement_line_id']*/ /*['Journal Entries']*/, NoCopy: true /* readonly */},
-		"AmountCurrency":  models.FloatField{String: "AmountCurrency", Help: "The amount expressed in an optional other currency if it is a multi-currency entry."},
-		"Currency":        models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Help: "The optional other currency if it is a multi-currency entry."},
-		"State":           models.SelectionField{ /*state = fields.Selection(related='statement_id.state' , string='Status', readonly=True)*/ },
-		"MoveName":        models.CharField{String: "MoveName" /*[string 'Journal Entry Name']*/ /*[ readonly True]*/ /*[ default False]*/, NoCopy: true, Help: "Technical field holding the number given to the journal entry, automatically set when the statement line is reconciled then stored to set the same number again if the line is cancelled, set to draft and re-processed again." /*[ automatically set when the statement line is reconciled then stored to set the same number again if the line is cancelled]*/ /*[ set to draft and re-processed again."]*/},
+		"Name": models.CharField{String: "Label", Required: true},
+		"Date": models.DateField{ /*[required True]*/
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				date := dates.Today()
+				if env.Context().HasKey("date") {
+					date = env.Context().GetDate("date")
+				}
+				return date
+			}},
+		"Amount": models.FloatField{Constraint: pool.AccountBankStatementLine().Methods().CheckAmount()},
+		"JournalCurrency": models.Many2OneField{RelationModel: pool.Currency(),
+			Related: "Statement.Currency",
+			Help:    "Utility field to express amount currency', readonly=True" /* readonly=true */},
+		"Partner":     models.Many2OneField{RelationModel: pool.Partner()},
+		"BankAccount": models.Many2OneField{RelationModel: pool.BankAccount()},
+		"Account": models.Many2OneField{String: "Counterpart Account", RelationModel: pool.AccountAccount(),
+			Filter: pool.AccountAccount().Deprecated().Equals(false),
+			Help: `This technical field can be used at the statement line creation/import time in order
+to avoid the reconciliation process on it later on. The statement line will simply
+create a counterpart on this account`},
+		"Statement": models.Many2OneField{RelationModel: pool.AccountBankStatement(), Index: true, Required: true,
+			OnDelete: models.Cascade},
+		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(),
+			Related: "Statement.Journal" /* readonly=true */},
+		"PartnerName": models.CharField{
+			Help: `This field is used to record the third party name when importing bank statement in electronic format,
+when the partner doesn't exist yet in the database (or cannot be found).`},
+		"Ref":  models.CharField{String: "Reference"},
+		"Note": models.TextField{String: "Notes"},
+		"Sequence": models.IntegerField{Index: true,
+			Help:    "Gives the sequence order when displaying a list of bank statement lines.",
+			Default: models.DefaultValue(1)},
+		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Statement.Company" /* readonly=true */},
+		"JournalEntries": models.One2ManyField{RelationModel: pool.AccountMove(), ReverseFK: "StatementLine",
+			JSON: "journal_entry_ids", NoCopy: true /* readonly True */},
+		"AmountCurrency": models.FloatField{Constraint: pool.AccountBankStatementLine().Methods().CheckAmount(),
+			Help: "The amount expressed in an optional other currency if it is a multi-currency entry."},
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+			Help: "The optional other currency if it is a multi-currency entry."},
+		"State": models.SelectionField{Related: "Statement.State", String: "Status" /* readonly=True */},
+		"MoveName": models.CharField{String: "Journal Entry Name", /*[ readonly True]*/
+			Default: models.DefaultValue(false), NoCopy: true,
+			Help: `Technical field holding the number given to the journal entry, automatically set when the statement line
+is reconciled then stored to set the same number again if the line is cancelled,
+set to draft and re-processed again.`},
 	})
+
 	pool.AccountBankStatementLine().Methods().CheckAmount().DeclareMethod(
 		`CheckAmount`,
 		func(rs pool.AccountBankStatementLineSet) {
@@ -514,10 +594,7 @@ func init() {
 			      raise ValidationError(_('A transaction can\'t have a 0 amount.'))
 
 			*/
-		})
-	pool.AccountBankStatementLine().Methods().CheckAmountCurrency().DeclareMethod(
-		`CheckAmountCurrency`,
-		func(rs pool.AccountBankStatementLineSet) {
+
 			//@api.constrains('amount','amount_currency')
 			/*def _check_amount_currency(self):
 			  if self.amount_currency != 0 and self.amount == 0:
@@ -525,11 +602,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountBankStatementLine().Methods().Create().DeclareMethod(
-		`Create`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			Vals interface{}
-		}) {
+
+	pool.AccountBankStatementLine().Methods().Create().Extend("",
+		func(rs pool.AccountBankStatementLineSet, data *pool.AccountBankStatementLineData) pool.AccountBankStatementLineSet {
 			//@api.model
 			/*def create(self, vals):
 			  line = super(AccountBankStatementLine, self).create(vals)
@@ -545,10 +620,11 @@ func init() {
 			  return line
 
 			*/
+			return rs.Super().Create(data)
 		})
-	pool.AccountBankStatementLine().Methods().Unlink().DeclareMethod(
-		`Unlink`,
-		func(rs pool.AccountBankStatementLineSet) {
+
+	pool.AccountBankStatementLine().Methods().Unlink().Extend("",
+		func(rs pool.AccountBankStatementLineSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  for statement in self:
@@ -559,63 +635,61 @@ func init() {
 			  return super(AccountBankStatement, self).unlink()
 
 			*/
+			return rs.Super().Unlink()
 		})
-	pool.AccountBankStatementLine().Methods().NeedactionDomainGet().DeclareMethod(
-		`NeedactionDomainGet`,
-		func(rs pool.AccountBankStatementLineSet) {
-			//@api.model
-			/*def _needaction_domain_get(self):
-			  return [('journal_entry_ids', '=', False), ('account_id', '=', False)]
 
-			*/
-		})
+	//pool.AccountBankStatementLine().Methods().NeedactionDomainGet().DeclareMethod(
+	//	`NeedactionDomainGet`,
+	//	func(rs pool.AccountBankStatementLineSet) {
+	//		//@api.model
+	//		/*def _needaction_domain_get(self):
+	//		  return [('journal_entry_ids', '=', False), ('account_id', '=', False)]
+	//
+	//		*/
+	//	})
+
 	pool.AccountBankStatementLine().Methods().ButtonCancelReconciliation().DeclareMethod(
 		`ButtonCancelReconciliation`,
 		func(rs pool.AccountBankStatementLineSet) {
 			//@api.multi
 			/*def button_cancel_reconciliation(self):
-			      moves_to_cancel = self.env['account.move']
-			      payment_to_unreconcile = self.env['account.payment']
-			      payment_to_cancel = self.env['account.payment']
-			      for st_line in self:
-			          moves_to_unbind = st_line.journal_entry_ids
-			          for move in st_line.journal_entry_ids:
-			              for line in move.line_ids:
-			                  payment_to_unreconcile |= line.payment_id
-			                  if st_line.move_name and line.payment_id.payment_reference == st_line.move_name:
-			                      #there can be several moves linked to a statement line but maximum one created by the line itself
-			                      moves_to_cancel |= move
-			                      payment_to_cancel |= line.payment_id
+			  moves_to_cancel = self.env['account.move']
+			  payment_to_unreconcile = self.env['account.payment']
+			  payment_to_cancel = self.env['account.payment']
+			  for st_line in self:
+			      moves_to_unbind = st_line.journal_entry_ids
+			      for move in st_line.journal_entry_ids:
+			          for line in move.line_ids:
+			              payment_to_unreconcile |= line.payment_id
+			              if st_line.move_name and line.payment_id.payment_reference == st_line.move_name:
+			                  #there can be several moves linked to a statement line but maximum one created by the line itself
+			                  moves_to_cancel |= move
+			                  payment_to_cancel |= line.payment_id
 
-			          moves_to_unbind = moves_to_unbind - moves_to_cancel
+			      moves_to_unbind = moves_to_unbind - moves_to_cancel
 
-			          if moves_to_unbind:
-			              moves_to_unbind.write({'statement_line_id': False})
-			              for move in moves_to_unbind:
-			                  move.line_ids.filtered(lambda x: x.statement_id == st_line.statement_id).write({'statement_id': False})
+			      if moves_to_unbind:
+			          moves_to_unbind.write({'statement_line_id': False})
+			          for move in moves_to_unbind:
+			              move.line_ids.filtered(lambda x: x.statement_id == st_line.statement_id).write({'statement_id': False})
 
-			      payment_to_unreconcile = payment_to_unreconcile - payment_to_cancel
-			      if payment_to_unreconcile:
-			          payment_to_unreconcile.unreconcile()
+			  payment_to_unreconcile = payment_to_unreconcile - payment_to_cancel
+			  if payment_to_unreconcile:
+			      payment_to_unreconcile.unreconcile()
 
-			      if moves_to_cancel:
-			          for move in moves_to_cancel:
-			              move.line_ids.remove_move_reconcile()
-			          moves_to_cancel.button_cancel()
-			          moves_to_cancel.unlink()
-			      if payment_to_cancel:
-			          payment_to_cancel.unlink()
-
-			  ####################################################
-			  # Reconciliation interface methods
-			  ####################################################
+			  if moves_to_cancel:
+			      for move in moves_to_cancel:
+			          move.line_ids.remove_move_reconcile()
+			      moves_to_cancel.button_cancel()
+			      moves_to_cancel.unlink()
+			  if payment_to_cancel:
+			      payment_to_cancel.unlink()
 			*/
 		})
+
 	pool.AccountBankStatementLine().Methods().ReconciliationWidgetAutoReconcile().DeclareMethod(
 		`ReconciliationWidgetAutoReconcile`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			NumAlreadyReconciledLines interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, numAlreadyReconciledLines int) (pool.AccountBankStatementLineSet, []string, string, int) {
 			//@api.multi
 			/*def reconciliation_widget_auto_reconcile(self, num_already_reconciled_lines):
 			  automatic_reconciliation_entries = self.env['account.bank.statement.line']
@@ -651,12 +725,12 @@ func init() {
 			  }
 
 			*/
+			return pool.AccountBankStatementLine().NewSet(rs.Env()), []string{}, "", 0
 		})
+
 	pool.AccountBankStatementLine().Methods().GetDataForReconciliationWidget().DeclareMethod(
 		`GetDataForReconciliationWidget`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			ExcludedIds interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, excludedIds []int64) (*pool.AccountBankStatementLineData, *pool.AccountMoveLineData) {
 			//@api.multi
 			/*def get_data_for_reconciliation_widget(self, excluded_ids=None):
 			  """ Returns the data required to display a reconciliation widget, for each statement line in self """
@@ -676,10 +750,12 @@ func init() {
 			  return ret
 
 			*/
+			return new(pool.AccountBankStatementLineData), new(pool.AccountMoveLineData)
 		})
+
 	pool.AccountBankStatementLine().Methods().GetStatementLineForReconciliationWidget().DeclareMethod(
 		`GetStatementLineForReconciliationWidget`,
-		func(rs pool.AccountBankStatementLineSet) {
+		func(rs pool.AccountBankStatementLineSet) *pool.AccountBankStatementLineData {
 			/*def get_statement_line_for_reconciliation_widget(self):
 			  """ Returns the data required by the bank statement reconciliation widget to display a statement line """
 			  statement_currency = self.journal_id.currency_id or self.journal_id.company_id.currency_id
@@ -721,39 +797,27 @@ func init() {
 			  return data
 
 			*/
+			return new(pool.AccountBankStatementLineData)
 		})
+
 	pool.AccountBankStatementLine().Methods().GetMoveLinesForReconciliationWidget().DeclareMethod(
 		`GetMoveLinesForReconciliationWidget`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			ExcludedIds interface{}
-			Str         interface{}
-			Offset      interface{}
-			Limit       interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, excludedIds []int64, str string, offset int, limit int) *pool.AccountMoveLineData {
 			//@api.multi
 			/*def get_move_lines_for_reconciliation_widget(self, excluded_ids=None, str=False, offset=0, limit=None):
-			      """ Returns move lines for the bank statement reconciliation widget, formatted as a list of dicts
-			      """
-			      aml_recs = self.get_move_lines_for_reconciliation(excluded_ids=excluded_ids, str=str, offset=offset, limit=limit)
-			      target_currency = self.currency_id or self.journal_id.currency_id or self.journal_id.company_id.currency_id
-			      return aml_recs.prepare_move_lines_for_reconciliation_widget(target_currency=target_currency, target_date=self.date)
-
-			  ####################################################
-			  # Reconciliation methods
-			  ####################################################
-
+			  """ Returns move lines for the bank statement reconciliation widget, formatted as a list of dicts
+			  """
+			  aml_recs = self.get_move_lines_for_reconciliation(excluded_ids=excluded_ids, str=str, offset=offset, limit=limit)
+			  target_currency = self.currency_id or self.journal_id.currency_id or self.journal_id.company_id.currency_id
+			  return aml_recs.prepare_move_lines_for_reconciliation_widget(target_currency=target_currency, target_date=self.date)
 			*/
+			return new(pool.AccountMoveLineData)
 		})
+
 	pool.AccountBankStatementLine().Methods().GetMoveLinesForReconciliation().DeclareMethod(
 		`GetMoveLinesForReconciliation`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			ExcludedIds      interface{}
-			Str              interface{}
-			Offset           interface{}
-			Limit            interface{}
-			AdditionalDomain interface{}
-			OverlookPartner  interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, excludedIds []int64, str string, offset, limit int,
+			additionalCond pool.AccountMoveLineCondition, overlookPartner pool.PartnerSet) pool.AccountMoveLineSet {
 			/*def get_move_lines_for_reconciliation(self, excluded_ids=None, str=False, offset=0, limit=None, additional_domain=None, overlook_partner=False):
 			  """ Return account.move.line records which can be used for bank statement reconciliation.
 
@@ -797,14 +861,12 @@ func init() {
 			  return self.env['account.move.line'].search(domain, offset=offset, limit=limit, order="date_maturity asc, id asc")
 
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env())
 		})
+
 	pool.AccountBankStatementLine().Methods().GetCommonSqlQuery().DeclareMethod(
 		`GetCommonSqlQuery`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			OverlookPartner interface{}
-			ExcludedIds     interface{}
-			Split           interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, overlookPartner pool.PartnerSet, excludedIds []int64) (string, string, string) {
 			/*def _get_common_sql_query(self, overlook_partner = False, excluded_ids = None, split = False):
 			  acc_type = "acc.internal_type IN ('payable', 'receivable')" if (self.partner_id or overlook_partner) else "acc.reconcile = true"
 			  select_clause = "SELECT aml.id "
@@ -824,12 +886,12 @@ func init() {
 			  return select_clause + from_clause + where_clause
 
 			*/
+			return "", "", ""
 		})
+
 	pool.AccountBankStatementLine().Methods().GetReconciliationProposition().DeclareMethod(
 		`GetReconciliationProposition`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			ExcludedIds interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, excludedIds []int64) pool.AccountMoveLineSet {
 			/*def get_reconciliation_proposition(self, excluded_ids=None):
 			  """ Returns move lines that constitute the best guess to reconcile a statement line
 			      Note: it only looks for move lines in the same currency as the statement line.
@@ -877,19 +939,23 @@ func init() {
 			  return self.env['account.move.line']
 
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env())
 		})
+
 	pool.AccountBankStatementLine().Methods().GetMoveLinesForAutoReconcile().DeclareMethod(
 		`GetMoveLinesForAutoReconcile`,
-		func(rs pool.AccountBankStatementLineSet) {
+		func(rs pool.AccountBankStatementLineSet) pool.AccountMoveLineSet {
 			/*def _get_move_lines_for_auto_reconcile(self):
 			  """ Returns the move lines that the method auto_reconcile can use to try to reconcile the statement line """
 			  pass
 
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env())
 		})
+
 	pool.AccountBankStatementLine().Methods().AutoReconcile().DeclareMethod(
 		`AutoReconcile`,
-		func(rs pool.AccountBankStatementLineSet) {
+		func(rs pool.AccountBankStatementLineSet) pool.AccountMoveLineSet {
 			//@api.multi
 			/*def auto_reconcile(self):
 			  """ Try to automatically reconcile the statement.line ; return the counterpart journal entry/ies if the automatic reconciliation succeeded, False otherwise.
@@ -965,12 +1031,12 @@ func init() {
 			      return False
 
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env())
 		})
+
 	pool.AccountBankStatementLine().Methods().PrepareReconciliationMove().DeclareMethod(
 		`PrepareReconciliationMove`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			MoveRef interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, moveRef string) *pool.AccountMoveData {
 			/*def _prepare_reconciliation_move(self, move_ref):
 			  """ Prepare the dict of values to create the move from a statement line. This method may be overridden to adapt domain logic
 			      through model inheritance (make sure to call super() to establish a clean extension chain).
@@ -992,13 +1058,12 @@ func init() {
 			  return data
 
 			*/
+			return new(pool.AccountMoveData)
 		})
+
 	pool.AccountBankStatementLine().Methods().PrepareReconciliationMoveLine().DeclareMethod(
 		`PrepareReconciliationMoveLine`,
-		func(rs pool.AccountBankStatementLineSet, args struct {
-			Move   interface{}
-			Amount interface{}
-		}) {
+		func(rs pool.AccountBankStatementLineSet, move pool.AccountMoveSet, amount float64) *pool.AccountMoveLineData {
 			/*def _prepare_reconciliation_move_line(self, move, amount):
 			  """ Prepare the dict of values to balance the move.
 
@@ -1046,7 +1111,9 @@ func init() {
 			  }
 
 			*/
+			return new(pool.AccountMoveLineData)
 		})
+
 	pool.AccountBankStatementLine().Methods().ProcessReconciliations().DeclareMethod(
 		`ProcessReconciliations`,
 		func(rs pool.AccountBankStatementLineSet, args struct {
@@ -1069,6 +1136,7 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatementLine().Methods().FastCounterpartCreation().DeclareMethod(
 		`FastCounterpartCreation`,
 		func(rs pool.AccountBankStatementLineSet) {
@@ -1085,13 +1153,14 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountBankStatementLine().Methods().ProcessReconciliation().DeclareMethod(
 		`ProcessReconciliation`,
 		func(rs pool.AccountBankStatementLineSet, args struct {
 			CounterpartAmlDicts interface{}
 			PaymentAmlRec       interface{}
 			NewAmlDicts         interface{}
-		}) {
+		}) pool.AccountMoveSet {
 			/*def process_reconciliation(self, counterpart_aml_dicts=None, payment_aml_rec=None, new_aml_dicts=None):
 			  """ Match statement lines with existing payments (eg. checks) and/or payables/receivables (eg. invoices and refunds) and/or new move lines (eg. write-offs).
 			      If any new journal item needs to be created (via new_aml_dicts or counterpart_aml_dicts), a new journal entry will be created and will contain those
@@ -1272,6 +1341,7 @@ func init() {
 			  counterpart_moves.assert_balanced()
 			  return counterpart_moves
 			*/
+			return pool.AccountMove().NewSet(rs.Env())
 		})
 
 }
