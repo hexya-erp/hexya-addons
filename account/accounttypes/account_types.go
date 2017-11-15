@@ -16,3 +16,10 @@ type TaxGroup struct {
 	GroupName string
 	TaxAmount float64
 }
+
+// A DataForReconciliationWidget holds data for the reconciliation widget
+type DataForReconciliationWidget struct {
+	Customers []map[string]interface{} `json:"customers"`
+	Suppliers []map[string]interface{} `json:"suppliers"`
+	Accounts  []map[string]interface{} `json:"accounts"`
+}

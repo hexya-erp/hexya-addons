@@ -131,7 +131,7 @@ func init() {
 			Depends: []string{"Journal"}},
 		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(),
 			Required: true, /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/
-			OnChange: pool.AccountBankStatement().Methods().OnchangeJournalId(),
+			OnChange: pool.AccountBankStatement().Methods().OnchangeJournal(),
 			Default: func(env models.Environment, vals models.FieldMap) interface{} {
 				journalType := env.Context().GetString("journal_type")
 				company := pool.Company().NewSet(env).CompanyDefaultGet()
@@ -266,7 +266,7 @@ func init() {
 			*/
 		})
 
-	pool.AccountBankStatement().Methods().OnchangeJournalId().DeclareMethod(
+	pool.AccountBankStatement().Methods().OnchangeJournal().DeclareMethod(
 		`OnchangeJournalId`,
 		func(rs pool.AccountBankStatementSet) (*pool.AccountBankStatementData, []models.FieldNamer) {
 			//@api.onchange('journal_id')
@@ -627,12 +627,10 @@ set to draft and re-processed again.`},
 		func(rs pool.AccountBankStatementLineSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  for statement in self:
-			      if statement.state != 'open':
-			          raise UserError(_('In order to delete a bank statement, you must first cancel it to delete related journal items.'))
-			      # Explicitly unlink bank statement lines so it will check that the related journal entries have been deleted first
-			      statement.line_ids.unlink()
-			  return super(AccountBankStatement, self).unlink()
+			for line in self:
+				if line.journal_entry_ids.ids:
+					raise UserError(_('In order to delete a bank statement line, you must first cancel it to delete related journal items.'))
+			return super(AccountBankStatementLine, self).unlink()
 
 			*/
 			return rs.Super().Unlink()

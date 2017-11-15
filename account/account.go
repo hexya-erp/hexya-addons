@@ -410,15 +410,14 @@ to manage payments outside of the software.`},
 		func(rs pool.AccountJournalSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  if self.env['account.move.line'].search([('account_id', 'in', self.ids)], limit=1):
-			      raise UserError(_('You cannot do that on an account that contains journal items.'))
-			  #Checking whether the account is set as a property to any Partner or not
-			  values = ['account.account,%s' % (account_id,) for account_id in self.ids]
-			  partner_prop_acc = self.env['ir.property'].search([('value_reference', 'in', values)], limit=1)
-			  if partner_prop_acc:
-			      raise UserError(_('You cannot remove/deactivate an account which is set on a customer or vendor.'))
-			  return super(AccountAccount, self).unlink()
-
+			bank_accounts = self.env['res.partner.bank'].browse()
+			for bank_account in self.mapped('bank_account_id'):
+				accounts = self.search([('bank_account_id', '=', bank_account.id)])
+				if accounts <= self:
+					bank_accounts += bank_account
+			ret = super(AccountJournal, self).unlink()
+			bank_accounts.unlink()
+			return ret
 			*/
 			return rs.Super().Unlink()
 		})
@@ -427,10 +426,11 @@ to manage payments outside of the software.`},
 		func(rs pool.AccountJournalSet, overrides *pool.AccountJournalData, fieldsToReset ...models.FieldNamer) pool.AccountJournalSet {
 			//@api.returns('self',lambdavalue:value.id)
 			/*def copy(self, default=None):
-			  default = dict(default or {})
-			  default.setdefault('code', _("%s (copy)") % (self.code or ''))
-			  return super(AccountAccount, self).copy(default)
-
+			default = dict(default or {})
+			default.update(
+				code=_("%s (copy)") % (self.code or ''),
+				name=_("%s (copy)") % (self.name or ''))
+			return super(AccountJournal, self).copy(default)
 			*/
 			return rs.Super().Copy(overrides, fieldsToReset...)
 		})
@@ -439,21 +439,42 @@ to manage payments outside of the software.`},
 		func(rs pool.AccountJournalSet, vals *pool.AccountJournalData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
-			  # Dont allow changing the company_id when account_move_line already exist
-			  if vals.get('company_id', False):
-			      move_lines = self.env['account.move.line'].search([('account_id', 'in', self.ids)], limit=1)
-			      for account in self:
-			          if (account.company_id.id <> vals['company_id']) and move_lines:
-			              raise UserError(_('You cannot change the owner company of an account that already contains journal items.'))
-			  # If user change the reconcile flag, all aml should be recomputed for that account and this is very costly.
-			  # So to prevent some bugs we add a constraint saying that you cannot change the reconcile field if there is any aml existing
-			  # for that account.
-			  if vals.get('reconcile'):
-			      move_lines = self.env['account.move.line'].search([('account_id', 'in', self.ids)], limit=1)
-			      if len(move_lines):
-			          raise UserError(_('You cannot change the value of the reconciliation on this account as it already has some moves'))
-			  return super(AccountAccount, self).write(vals)
+			for journal in self:
+				if ('company_id' in vals and journal.company_id.id != vals['company_id']):
+					if self.env['account.move'].search([('journal_id', 'in', self.ids)], limit=1):
+						raise UserError(_('This journal already contains items, therefore you cannot modify its company.'))
+				if ('code' in vals and journal.code != vals['code']):
+					if self.env['account.move'].search([('journal_id', 'in', self.ids)], limit=1):
+						raise UserError(_('This journal already contains items, therefore you cannot modify its short name.'))
+					new_prefix = self._get_sequence_prefix(vals['code'], refund=False)
+					journal.sequence_id.write({'prefix': new_prefix})
+					if journal.refund_sequence_id:
+						new_prefix = self._get_sequence_prefix(vals['code'], refund=True)
+						journal.refund_sequence_id.write({'prefix': new_prefix})
+				if 'currency_id' in vals:
+					if not 'default_debit_account_id' in vals and self.default_debit_account_id:
+						self.default_debit_account_id.currency_id = vals['currency_id']
+					if not 'default_credit_account_id' in vals and self.default_credit_account_id:
+						self.default_credit_account_id.currency_id = vals['currency_id']
+				if 'bank_acc_number' in vals and not vals.get('bank_acc_number') and journal.bank_account_id:
+					raise UserError(_('You cannot empty the account number once set.\nIf you would like to delete the account number, you can do it from the Bank Accounts list.'))
+			result = super(AccountJournal, self).write(vals)
 
+			# Create the bank_account_id if necessary
+			if 'bank_acc_number' in vals:
+				for journal in self.filtered(lambda r: r.type == 'bank' and not r.bank_account_id):
+					journal.set_bank_account(vals.get('bank_acc_number'), vals.get('bank_id'))
+			# create the relevant refund sequence
+			if vals.get('refund_sequence'):
+				for journal in self.filtered(lambda j: j.type in ('sale', 'purchase') and not j.refund_sequence_id):
+					journal_vals = {
+						'name': journal.name,
+						'company_id': journal.company_id.id,
+						'code': journal.code
+					}
+					journal.refund_sequence_id = self.sudo()._create_sequence(journal_vals, refund=True).id
+
+			return result
 			*/
 			return rs.Super().Write(vals, fieldsToReset...)
 		})
@@ -463,12 +484,12 @@ to manage payments outside of the software.`},
 		func(rs pool.AccountJournalSet, code string, refund bool) string {
 			//@api.model
 			/*def _get_sequence_prefix(self, code, refund=False):
-			  prefix = code.upper()
-			  if refund:
-			      prefix = 'R' + prefix
-			  return prefix + '/%(range_year)s/'
+						  prefix = code.upper()
+						  if refund:
+						      prefix = 'R' + prefix
+						  return prefix + '/%(range_year)s/'
 
-			*/
+			x			*/
 			return ""
 		})
 
@@ -609,11 +630,12 @@ to manage payments outside of the software.`},
 		func(rs pool.AccountJournalSet) string {
 			//@api.depends('name','currency_id','company_id','company_id.currency_id')
 			/*def name_get(self):
-			  result = []
-			  for account in self:
-			      name = account.code + ' ' + account.name
-			      result.append((account.id, name))
-			  return result
+			res = []
+			for journal in self:
+				currency = journal.currency_id or journal.company_id.currency_id
+				name = "%s (%s)" % (journal.name, currency.name)
+				res += [(journal.id, name)]
+			return res
 
 			*/
 			return rs.Super().NameGet()
@@ -623,14 +645,12 @@ to manage payments outside of the software.`},
 		func(rs pool.AccountJournalSet, name string, op operator.Operator, additionalCond pool.AccountJournalCondition, limit int) pool.AccountJournalSet {
 			//@api.model
 			/*def name_search(self, name, args=None, operator='ilike', limit=100):
-			  args = args or []
-			  domain = []
-			  if name:
-			      domain = ['|', ('code', '=ilike', name + '%'), ('name', operator, name)]
-			      if operator in expression.NEGATIVE_TERM_OPERATORS:
-			          domain = ['&', '!'] + domain[1:]
-			  accounts = self.search(domain + args, limit=limit)
-			  return accounts.name_get()
+			args = args or []
+			connector = '|'
+			if operator in expression.NEGATIVE_TERM_OPERATORS:
+				connector = '&'
+			recs = self.search([connector, ('code', operator, name), ('name', operator, name)] + args, limit=limit)
+			return recs.name_get()
 
 			*/
 			return rs.Super().SearchByName(name, op, additionalCond, limit)
@@ -777,14 +797,17 @@ to the same analytic account as the invoice line (if any)`},
 		func(rs pool.AccountTaxSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  if self.env['account.move.line'].search([('account_id', 'in', self.ids)], limit=1):
-			      raise UserError(_('You cannot do that on an account that contains journal items.'))
-			  #Checking whether the account is set as a property to any Partner or not
-			  values = ['account.account,%s' % (account_id,) for account_id in self.ids]
-			  partner_prop_acc = self.env['ir.property'].search([('value_reference', 'in', values)], limit=1)
-			  if partner_prop_acc:
-			      raise UserError(_('You cannot remove/deactivate an account which is set on a customer or vendor.'))
-			  return super(AccountAccount, self).unlink()
+			  company_id = self.env.user.company_id.id
+			  ir_values = self.env['ir.values']
+			  supplier_taxes_id = set(ir_values.get_default('product.template', 'supplier_taxes_id', company_id=company_id) or [])
+			  deleted_sup_tax = self.filtered(lambda tax: tax.id in supplier_taxes_id)
+			  if deleted_sup_tax:
+			      ir_values.sudo().set_default('product.template', "supplier_taxes_id", list(supplier_taxes_id - set(deleted_sup_tax.ids)), for_all_users=True, company_id=company_id)
+			  taxes_id = set(self.env['ir.values'].get_default('product.template', 'taxes_id', company_id=company_id) or [])
+			  deleted_tax = self.filtered(lambda tax: tax.id in taxes_id)
+			  if deleted_tax:
+			      ir_values.sudo().set_default('product.template', "taxes_id", list(taxes_id - set(deleted_tax.ids)), for_all_users=True, company_id=company_id)
+			  return super(AccountTax, self).unlink()
 
 			*/
 			return rs.Super().Unlink()
@@ -805,9 +828,8 @@ to the same analytic account as the invoice line (if any)`},
 		func(rs pool.AccountTaxSet, overrides *pool.AccountTaxData, fieldsToReset ...models.FieldNamer) pool.AccountTaxSet {
 			//@api.returns('self',lambdavalue:value.id)
 			/*def copy(self, default=None):
-			  default = dict(default or {})
-			  default.setdefault('code', _("%s (copy)") % (self.code or ''))
-			  return super(AccountAccount, self).copy(default)
+			default = dict(default or {}, name=_("%s (Copy)") % self.name)
+			return super(AccountTax, self).copy(default=default)
 
 			*/
 			return rs.Super().Copy(overrides, fieldsToReset...)
@@ -817,14 +839,17 @@ to the same analytic account as the invoice line (if any)`},
 		func(rs pool.AccountTaxSet, name string, op operator.Operator, additionalCond pool.AccountTaxCondition, limit int) pool.AccountTaxSet {
 			//@api.model
 			/*def name_search(self, name, args=None, operator='ilike', limit=100):
-			  args = args or []
-			  domain = []
-			  if name:
-			      domain = ['|', ('code', '=ilike', name + '%'), ('name', operator, name)]
-			      if operator in expression.NEGATIVE_TERM_OPERATORS:
-			          domain = ['&', '!'] + domain[1:]
-			  accounts = self.search(domain + args, limit=limit)
-			  return accounts.name_get()
+			""" Returns a list of tupples containing id, name, as internally it is called {def name_get}
+				result format: {[(id, name), (id, name), ...]}
+			"""
+			args = args or []
+			if operator in expression.NEGATIVE_TERM_OPERATORS:
+				domain = [('description', operator, name), ('name', operator, name)]
+			else:
+				domain = ['|', ('description', operator, name), ('name', operator, name)]
+			taxes = self.search(expression.AND([domain, args]), limit=limit)
+			return taxes.name_get()
+
 			*/
 			return rs.Super().SearchByName(name, op, additionalCond, limit)
 		})

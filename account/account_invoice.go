@@ -418,41 +418,32 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 	pool.AccountInvoice().Methods().FieldsViewGet().Extend("",
 		func(rs pool.AccountInvoiceSet, params webdata.FieldsViewGetParams) *webdata.FieldsViewData {
 			//@api.model
-			/*def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
-			 */
+			/*
+				  def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+					  def get_view_id(xid, name):
+						  try:
+							  return self.env.ref('account.' + xid)
+						  except ValueError:
+							  view = self.env['ir.ui.view'].search([('name', '=', name)], limit=1)
+							  if not view:
+								  return False
+							  return view.id
+
+					  context = self._context
+					  if context.get('active_model') == 'res.partner' and context.get('active_ids'):
+						  partner = self.env['res.partner'].browse(context['active_ids'])[0]
+						  if not view_type:
+							  view_id = get_view_id('invoice_tree', 'account.invoice.tree')
+							  view_type = 'tree'
+						  elif view_type == 'form':
+							  if partner.supplier and not partner.customer:
+								  view_id = get_view_id('invoice_supplier_form', 'account.invoice.supplier.form').id
+							  elif partner.customer and not partner.supplier:
+								  view_id = get_view_id('invoice_form', 'account.invoice.form').id
+					  return super(AccountInvoice, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
+			*/
 			return rs.Super().FieldsViewGet(params)
 		})
-
-	//pool.AccountInvoice().Methods().GetViewId().DeclareMethod(
-	//	`GetViewId`,
-	//	func(rs pool.AccountInvoiceSet, args struct {
-	//		Xid  interface{}
-	//		Name interface{}
-	//	}) {
-	//		/*def get_view_id(xid, name):
-	//		      try:
-	//		          return self.env.ref('account.' + xid)
-	//		      except ValueError:
-	//		          view = self.env['ir.ui.view'].search([('name', '=', name)], limit=1)
-	//		          if not view:
-	//		              return False
-	//		          return view.id
-	//
-	//		  context = self._context
-	//		  if context.get('active_model') == 'res.partner' and context.get('active_ids'):
-	//		      partner = self.env['res.partner'].browse(context['active_ids'])[0]
-	//		      if not view_type:
-	//		          view_id = get_view_id('invoice_tree', 'account.invoice.tree')
-	//		          view_type = 'tree'
-	//		      elif view_type == 'form':
-	//		          if partner.supplier and not partner.customer:
-	//		              view_id = get_view_id('invoice_supplier_form', 'account.invoice.supplier.form').id
-	//		          elif partner.customer and not partner.supplier:
-	//		              view_id = get_view_id('invoice_form', 'account.invoice.form').id
-	//		  return super(AccountInvoice, self).fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
-	//
-	//		*/
-	//	})
 
 	pool.AccountInvoice().Methods().InvoicePrint().DeclareMethod(
 		`InvoicePrint`,
@@ -912,11 +903,27 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		func(rs pool.AccountInvoiceSet, companyCurrency pool.CurrencySet, invoiceMoveLines pool.AccountMoveLineSet) {
 			//@api.multi
 			/*def compute_invoice_totals(self, company_currency, invoice_move_lines):
-			  total = 0
-			  total_currency = 0
-			  for line in invoice_move_lines:
-			      if self.currency_id != company_currency:
-			          currency = self.currency_id.with_context(date=self.date or self.date_invoice or */
+						  total = 0
+						  total_currency = 0
+						  for line in invoice_move_lines:
+						      if self.currency_id != company_currency:
+						          currency = self.currency_id.with_context(date=self.date or self.date_invoice or fields.Date.context_today(self))
+			                  if not (line.get('currency_id') and line.get('amount_currency')):
+			                      line['currency_id'] = currency.id
+			                      line['amount_currency'] = currency.round(line['price'])
+			                      line['price'] = currency.compute(line['price'], company_currency)
+			              else:
+			                  line['currency_id'] = False
+			                  line['amount_currency'] = False
+			                  line['price'] = self.currency_id.round(line['price'])
+			              if self.type in ('out_invoice', 'in_refund'):
+			                  total += line['price']
+			                  total_currency += line['amount_currency'] or line['price']
+			                  line['price'] = - line['price']
+			              else:
+			                  total -= line['price']
+			                  total_currency -= line['amount_currency'] or line['price']
+			          return total, total_currency, invoice_move_lines*/
 		})
 
 	pool.AccountInvoice().Methods().InvoiceLineMoveLineGet().DeclareMethod(
@@ -1727,12 +1734,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		func(rs pool.AccountInvoiceLineSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  for invoice in self:
-			      if invoice.state not in ('draft', 'cancel'):
-			          raise UserError(_('You cannot delete an invoice which is not draft or cancelled. You should refund it instead.'))
-			      elif invoice.move_name:
-			          raise UserError(_('You cannot delete an invoice after it has been validated (and received a number). You can set it back to "Draft" state and modify its content, then re-confirm it.'))
-			  return super(AccountInvoice, self).unlink()
+			  if self.filtered(lambda r: r.invoice_id and r.invoice_id.state != 'draft'):
+			      raise UserError(_('You can only delete an invoice line if the invoice is in draft state.'))
+			  return super(AccountInvoiceLine, self).unlink()
 
 			*/
 			return rs.Super().Unlink()
@@ -1866,12 +1870,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		func(rs pool.AccountPaymentTermSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  for invoice in self:
-			      if invoice.state not in ('draft', 'cancel'):
-			          raise UserError(_('You cannot delete an invoice which is not draft or cancelled. You should refund it instead.'))
-			      elif invoice.move_name:
-			          raise UserError(_('You cannot delete an invoice after it has been validated (and received a number). You can set it back to "Draft" state and modify its content, then re-confirm it.'))
-			  return super(AccountInvoice, self).unlink()
+			property_recs = self.env['ir.property'].search([('value_reference', 'in', ['account.payment.term,%s'%payment_term.id for payment_term in self])])
+			property_recs.unlink()
+			return super(AccountPaymentTerm, self).unlink()
 
 			*/
 			return rs.Super().Unlink()

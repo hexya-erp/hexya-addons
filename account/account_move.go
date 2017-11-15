@@ -4,18 +4,72 @@
 package account
 
 import (
+	"github.com/hexya-erp/hexya-addons/account/accounttypes"
+	"github.com/hexya-erp/hexya-addons/decimalPrecision"
+	"github.com/hexya-erp/hexya-base/web/webdata"
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
+	"github.com/hexya-erp/hexya/hexya/models/types/dates"
 	"github.com/hexya-erp/hexya/pool"
 )
 
 func init() {
 
 	pool.AccountMove().DeclareModel()
-	pool.AccountMove().Methods().NameGet().DeclareMethod(
-		`NameGet`,
-		func(rs pool.AccountMoveSet) {
+	pool.AccountMove().SetDefaultOrder("Date DESC", "ID DESC")
+
+	pool.AccountMove().AddFields(map[string]models.FieldDefinition{
+		"Name": models.CharField{String: "Number", Required: true, NoCopy: true, Default: models.DefaultValue("/")},
+		"Ref":  models.CharField{String: "Reference", NoCopy: true},
+		"Date": models.DateField{String: "Date", Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
+			Index: true, Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return dates.Today()
+			}},
+		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				if env.Context().HasKey("default_journal_type") {
+					return pool.AccountJournal().Search(env,
+						pool.AccountJournal().Type().Equals(env.Context().GetString("default_journal_type"))).Limit(1)
+				}
+				return pool.AccountJournal().NewSet(env)
+			}},
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+			Compute: pool.AccountMove().Methods().ComputeCurrency(), Stored: true, Depends: []string{"Comoany"}},
+		"State": models.SelectionField{String: "Status", Selection: types.Selection{
+			"draft":  "Unposted",
+			"posted": "Posted",
+		}, Required: true /*[ readonly True]*/, NoCopy: true, Default: models.DefaultValue("draft"),
+			Help: `All manually created new journal entries are usually in the status 'Unposted' but you can set the option
+to skip that status on the related journal. In that case they will behave as journal entries
+automatically created by the system on document validation (invoices, bank statements...) and
+will be created in 'Posted' status.'`},
+		"Lines": models.One2ManyField{String: "Journal Items", RelationModel: pool.AccountMoveLine(),
+			ReverseFK: "Move", JSON: "line_ids" /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, NoCopy: false},
+		"Partner": models.Many2OneField{RelationModel: pool.Partner(),
+			Compute: pool.AccountMove().Methods().ComputePartner(),
+			Depends: []string{"Lines", "Lines.Partner"}, Stored: true /* readonly=true */},
+		"Amount": models.FloatField{Compute: pool.AccountMove().Methods().AmountCompute(),
+			Depends: []string{"Lines", "Lines.Debit", "Lines.Credit"}, Stored: true},
+		"Narration": models.TextField{String: "Internal Note"},
+		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Journal.Company", /* readonly=true */
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.User().NewSet(env).CurrentUser().Company()
+			}},
+		"MatchedPercentage": models.FloatField{String: "Percentage Matched",
+			Compute: pool.AccountMove().Methods().ComputeMatchedPercentage(),
+			Depends: []string{"Lines", "Lines.Debit", "Lines.Credit", "Lines.MatchedDebits",
+				"Lines.MatchedDebits.Amount", "Lines.MatchedCredits", "Lines.MatchedCredits.Amount",
+				"Lines.Account", "Lines.Account.UserType", "Lines.Account.UserType.Type"}, Stored: true,
+			Help: "Technical field used in cash basis method"},
+		"StatementLine": models.Many2OneField{String: "Bank statement line reconciled with this entry",
+			RelationModel: pool.AccountBankStatementLine(), Index: true, NoCopy: true /* readonly=true */},
+		"DummyAccount": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(),
+			Related: "Lines.Account"},
+	})
+
+	pool.AccountMove().Methods().NameGet().Extend("",
+		func(rs pool.AccountMoveSet) string {
 			//@api.depends('name','state')
 			/*def name_get(self):
 			  result = []
@@ -28,10 +82,12 @@ func init() {
 			  return result
 
 			*/
+			return rs.Super().NameGet()
 		})
+
 	pool.AccountMove().Methods().AmountCompute().DeclareMethod(
 		`AmountCompute`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('line_ids.debit','line_ids.credit')
 			/*def _amount_compute(self):
 			  for move in self:
@@ -41,10 +97,12 @@ func init() {
 			      move.amount = total
 
 			*/
+			return new(pool.AccountMoveData), []models.FieldNamer{}
 		})
+
 	pool.AccountMove().Methods().ComputeMatchedPercentage().DeclareMethod(
 		`ComputeMatchedPercentage`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('line_ids.debit','line_ids.credit','line_ids.matched_debit_ids.amount','line_ids.matched_credit_ids.amount','line_ids.account_id.user_type_id.type')
 			/*def _compute_matched_percentage(self):
 			  """Compute the percentage to apply for cash basis method. This value is relevant only for moves that
@@ -65,74 +123,34 @@ func init() {
 			          move.matched_percentage = total_reconciled / total_amount
 
 			*/
+			return new(pool.AccountMoveData), []models.FieldNamer{}
 		})
+
 	pool.AccountMove().Methods().ComputeCurrency().DeclareMethod(
 		`ComputeCurrency`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('company_id')
 			/*def _compute_currency(self):
 			  self.currency_id = self.company_id.currency_id or self.env.user.company_id.currency_id
 
 			*/
+			return new(pool.AccountMoveData), []models.FieldNamer{}
 		})
-	pool.AccountMove().Methods().GetDefaultJournal().DeclareMethod(
-		`GetDefaultJournal`,
-		func(rs pool.AccountMoveSet) {
-			//@api.multi
-			/*def _get_default_journal(self):
-			  if self.env.context.get('default_journal_type'):
-			      return self.env['account.journal'].search([('type', '=', self.env.context['default_journal_type'])], limit=1).id
 
-			*/
-		})
-	pool.AccountMove().Methods().ComputePartnerId().DeclareMethod(
-		`ComputePartnerId`,
-		func(rs pool.AccountMoveSet) {
+	pool.AccountMove().Methods().ComputePartner().DeclareMethod(
+		`ComputePartner`,
+		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('line_ids.partner_id')
 			/*def _compute_partner_id(self):
-			    for move in self:
-			        partner = move.line_ids.mapped('partner_id')
-			        move.partner_id = partner.id if len(partner) == 1 else False
-
-			name = */
-		})
-	pool.AccountMove().AddFields(map[string]models.FieldDefinition{
-		"Name": models.CharField{String: "Name" /*[string 'Number']*/, Required: true, NoCopy: true /*[ default '/']*/},
-		"Ref":  models.CharField{String: "Ref" /*[string 'Reference']*/, NoCopy: true},
-		"Date": models.DateField{String: "Date" /*[required True]*/ /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/ /*[ index True]*/ /*[ default fields.Date.context_today]*/},
-		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*_get_default_journal(self):
-			  if self.env.context.get('default_journal_type'):
-			      return self.env['account.journal'].search([('type', '=', self.env.context['default_journal_type'])], limit=1).id
-
+			  for move in self:
+			      partner = move.line_ids.mapped('partner_id')
+			      move.partner_id = partner.id if len(partner) == 1 else False
 			*/
-			return 0
-		}},
-		"Currency": models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: pool.AccountMove().Methods().ComputeCurrency(), Stored: true},
-		"State": models.SelectionField{String: "Status", Selection: types.Selection{
-			"draft":  "Unposted",
-			"posted": "Posted",
-		}, /*[]*/ Required: true /*[ readonly True]*/ /*[ copy False]*/, Default: models.DefaultValue("draft"), Help: `All manually created new journal entries are usually in the status \'Unposted\"/*[ ' 'but you can set the option to skip that status on the related journal. ' 'In that case]*//*[ they will behave as journal entries automatically created by the ' 'system on document validation (invoices]*//*[ bank statements...) and will be created ' 'in \'Posted\' status.']`},
-		"Lines":     models.One2ManyField{String: "LineIds", RelationModel: pool.AccountMoveLine(), ReverseFK: "Move", JSON: "line_ids" /*['account.move.line']*/ /*[ 'move_id']*/ /*[string 'Journal Items']*/ /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, NoCopy: false},
-		"Partner":   models.Many2OneField{String: "Partner", RelationModel: pool.Partner(), JSON: "partner_id" /*['res.partner']*/, Compute: pool.AccountMove().Methods().ComputePartnerId(), Stored: true /* readonly=true */},
-		"Amount":    models.FloatField{String: "Amount", Compute: pool.AccountMove().Methods().AmountCompute(), Stored: true},
-		"Narration": models.TextField{String: "Narration" /*[string 'Internal Note']*/},
-		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Related: "Journal.Company", Stored: true /* readonly=true */, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*lambda self: self.env.user.company_id*/
-			return 0
-		}},
-		"MatchedPercentage": models.FloatField{String: "Percentage Matched" /*['Percentage Matched']*/, Compute: pool.AccountMove().Methods().ComputeMatchedPercentage(), Digits: nbutils.Digits{0, 0}, Stored: true /*[ readonly True]*/, Help: "Technical field used in cash basis method"},
-		"StatementLine":     models.Many2OneField{String: "Bank statement line reconciled with this entry", RelationModel: pool.AccountBankStatementLine(), JSON: "statement_line_id" /*['account.bank.statement.line']*/, Index: true /*[ copy False]*/ /* readonly=true */},
-		"DummyAccount":      models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(), JSON: "dummy_account_id" /*['account.account']*/, Related: "Lines.Account", Stored: false},
-	})
-	pool.AccountMove().Methods().FieldsViewGet().DeclareMethod(
-		`FieldsViewGet`,
-		func(rs pool.AccountMoveSet, args struct {
-			ViewId   interface{}
-			ViewType interface{}
-			Toolbar  interface{}
-			Submenu  interface{}
-		}) {
+			return new(pool.AccountMoveData), []models.FieldNamer{}
+		})
+
+	pool.AccountMove().Methods().FieldsViewGet().Extend("",
+		func(rs pool.AccountMoveSet, args webdata.FieldsViewGetParams) *webdata.FieldsViewData {
 			//@api.model
 			/*def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
 			  res = super(AccountMove, self).fields_view_get(
@@ -142,12 +160,11 @@ func init() {
 			  return res
 
 			*/
+			return rs.Super().FieldsViewGet(args)
 		})
-	pool.AccountMove().Methods().Create().DeclareMethod(
-		`Create`,
-		func(rs pool.AccountMoveSet, args struct {
-			Vals interface{}
-		}) {
+
+	pool.AccountMove().Methods().Create().Extend("",
+		func(rs pool.AccountMoveSet, data *pool.AccountMoveData) pool.AccountMoveSet {
 			//@api.model
 			/*def create(self, vals):
 			  move = super(AccountMove, self.with_context(check_move_validity=False, partner_id=vals.get('partner_id'))).create(vals)
@@ -155,12 +172,11 @@ func init() {
 			  return move
 
 			*/
+			return rs.Super().Create(data)
 		})
-	pool.AccountMove().Methods().Write().DeclareMethod(
-		`Write`,
-		func(rs pool.AccountMoveSet, args struct {
-			Vals interface{}
-		}) {
+
+	pool.AccountMove().Methods().Write().Extend("",
+		func(rs pool.AccountMoveSet, data *pool.AccountMoveData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 			  if 'line_ids' in vals:
@@ -171,10 +187,12 @@ func init() {
 			  return res
 
 			*/
+			return rs.Super().Write(data, fieldsToReset...)
 		})
+
 	pool.AccountMove().Methods().Post().DeclareMethod(
 		`Post`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) bool {
 			//@api.multi
 			/*def post(self):
 			  invoice = self._context.get('invoice', False)
@@ -205,10 +223,12 @@ func init() {
 			  return self.write({'state': 'posted'})
 
 			*/
+			return true
 		})
+
 	pool.AccountMove().Methods().ButtonCancel().DeclareMethod(
 		`ButtonCancel`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) bool {
 			//@api.multi
 			/*def button_cancel(self):
 			  for move in self:
@@ -224,10 +244,11 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
-	pool.AccountMove().Methods().Unlink().DeclareMethod(
-		`Unlink`,
-		func(rs pool.AccountMoveSet) {
+
+	pool.AccountMove().Methods().Unlink().Extend("",
+		func(rs pool.AccountMoveSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  for move in self:
@@ -237,10 +258,12 @@ func init() {
 			  return super(AccountMove, self).unlink()
 
 			*/
+			return rs.Super().Unlink()
 		})
+
 	pool.AccountMove().Methods().PostValidate().DeclareMethod(
 		`PostValidate`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) bool {
 			//@api.multi
 			/*def _post_validate(self):
 			  for move in self:
@@ -251,10 +274,12 @@ func init() {
 			  return self._check_lock_date()
 
 			*/
+			return true
 		})
+
 	pool.AccountMove().Methods().CheckLockDate().DeclareMethod(
 		`CheckLockDate`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) bool {
 			//@api.multi
 			/*def _check_lock_date(self):
 			  for move in self:
@@ -270,10 +295,12 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountMove().Methods().AssertBalanced().DeclareMethod(
 		`AssertBalanced`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) bool {
 			//@api.multi
 			/*def assert_balanced(self):
 			  if not self.ids:
@@ -292,13 +319,12 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountMove().Methods().ReverseMove().DeclareMethod(
 		`ReverseMove`,
-		func(rs pool.AccountMoveSet, args struct {
-			Date      interface{}
-			JournalId interface{}
-		}) {
+		func(rs pool.AccountMoveSet, date dates.Date, journal pool.AccountJournalSet) pool.AccountMoveSet {
 			//@api.multi
 			/*def _reverse_move(self, date=None, journal_id=None):
 			  self.ensure_one()
@@ -315,29 +341,153 @@ func init() {
 			  return reversed_move
 
 			*/
+			return pool.AccountMove().NewSet(rs.Env())
 		})
+
 	pool.AccountMove().Methods().ReverseMoves().DeclareMethod(
 		`ReverseMoves`,
-		func(rs pool.AccountMoveSet, args struct {
-			Date      interface{}
-			JournalId interface{}
-		}) {
+		func(rs pool.AccountMoveSet, date dates.Date, journal pool.AccountJournalSet) pool.AccountMoveSet {
 			//@api.multi
 			/*def reverse_moves(self, date=None, journal_id=None):
-			  date = date or */
+			date = date or fields.Date.today()
+			reversed_moves = self.env['account.move']
+			for ac_move in self:
+				reversed_move = ac_move._reverse_move(date=date,
+													  journal_id=journal_id)
+				reversed_moves |= reversed_move
+			if reversed_moves:
+				reversed_moves._post_validate()
+				reversed_moves.post()
+				return [x.id for x in reversed_moves]
+			return []
+			*/
+			return pool.AccountMove().NewSet(rs.Env())
 		})
+
 	pool.AccountMove().Methods().OpenReconcileView().DeclareMethod(
 		`OpenReconcileView`,
-		func(rs pool.AccountMoveSet) {
+		func(rs pool.AccountMoveSet) *actions.Action {
 			//@api.multi
 			/*def open_reconcile_view(self):
 			  return self.line_ids.open_reconcile_view()
 
 
 			*/
+			return new(actions.Action)
 		})
 
 	pool.AccountMoveLine().DeclareModel()
+	pool.AccountMoveLine().SetDefaultOrder("Date DESC", "ID DESC")
+
+	pool.AccountMoveLine().AddFields(map[string]models.FieldDefinition{
+		"Name": models.CharField{String: "Label", Required: true},
+		"Quantity": models.FloatField{Digits: decimalPrecision.GetPrecision("Product Unit of Measure"),
+			Help: `The optional quantity expressed by this line, eg: number of product sold.
+The quantity is not a legal requirement but is very useful for some reports.`},
+		"ProductUom": models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom()},
+		"Product":    models.Many2OneField{String: "Product", RelationModel: pool.ProductProduct()},
+		"Debit":      models.FloatField{Default: models.DefaultValue(0.0)},
+		"Credit":     models.FloatField{Default: models.DefaultValue(0.0)},
+		"Balance": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeBalance(), Stored: true,
+			Depends: []string{"Debit", "Credit"},
+			Help:    "Technical field holding the debit - credit in order to open meaningful graph views from reports"},
+		"DebitCashBasis": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(),
+			Depends: []string{"Debit", "Credit", "Move.MatchedPercentage", "Move.Journal"},
+			Stored:  true},
+		"CreditCashBasis": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(),
+			Depends: []string{"Debit", "Credit", "Move.MatchedPercentage", "Move.Journal"},
+			Stored:  true},
+		"BalanceCashBasis": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(),
+			Depends: []string{"Debit", "Credit", "Move.MatchedPercentage", "Move.Journal"},
+			Stored:  true,
+			Help: `Technical field holding the debit_cash_basis - credit_cash_basis in order to open meaningful graph
+views from reports`},
+		"AmountCurrency": models.FloatField{Default: models.DefaultValue(0.0),
+			Constraint: pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
+			Help:       "The amount expressed in an optional other currency if it is a multi-currency entry."},
+		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Company.Currency",
+			/* readonly=true */ Help: "Utility field to express amount currency', store=True"},
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				if env.Context().HasKey("default_journal_id") {
+					return pool.AccountJournal().Browse(env, []int64{env.Context().GetInteger("default_journal_id")}).Currency()
+				}
+				return pool.Currency().NewSet(env)
+			}, Constraint: pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
+			Help: "The optional other currency if it is a multi-currency entry."},
+		"AmountResidual": models.FloatField{String: "Residual Amount",
+			Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual(), Stored: true,
+			Depends: []string{"Debit", "Credit", "AmountCurrency", "Currency", "MatchedDebits", "MatchedCredits",
+				"MatchedDebits.Amount", "MatchedCredits.Amount", "Account.Currency", "Move.State"},
+			Help: "The residual amount on a journal item expressed in the company currency."},
+		"AmountResidualCurrency": models.FloatField{String: "Residual Amount in Currency",
+			Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual(), Stored: true,
+			Depends: []string{"Debit", "Credit", "AmountCurrency", "Currency", "MatchedDebits", "MatchedCredits",
+				"MatchedDebits.Amount", "MatchedCredits.Amount", "Account.Currency", "Move.State"},
+			Help: "The residual amount on a journal item expressed in its currency (possibly not the company currency)."},
+		"Account": models.Many2OneField{RelationModel: pool.AccountAccount(), Required: true, Index: true,
+			OnDelete: models.Cascade, Filter: pool.AccountAccount().Deprecated().Equals(false),
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				if env.Context().HasKey("account_id") {
+					return pool.AccountAccount().Browse(env, []int64{env.Context().GetInteger("account_id")})
+				}
+				return pool.AccountAccount().NewSet(env)
+			}, Constraint: pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount()},
+		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: pool.AccountMove(),
+			OnDelete: models.Cascade, Help: "The move of this entry line.", Index: true, Required: true},
+		"Narration": models.TextField{Related: "Move.Narration"},
+		"Ref":       models.CharField{String: "Reference", Stored: true, NoCopy: true, Index: true},
+		"Payment": models.Many2OneField{String: "Originator Payment", RelationModel: pool.AccountPayment(),
+			Help: "Payment that created this entry"},
+		"Statement": models.Many2OneField{RelationModel: pool.AccountBankStatement(),
+			Help: "The bank statement used for bank reconciliation", Index: true, NoCopy: true},
+		"Reconciled": models.BooleanField{Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual(),
+			Depends: []string{"Debit", "Credit", "AmountCurrency", "Currency", "MatchedDebits", "MatchedCredits",
+				"MatchedDebits.Amount", "MatchedCredits.Amount", "Account.Currency", "Move.State"},
+			Stored: true},
+		"FullReconcile": models.Many2OneField{String: "Matching Number", RelationModel: pool.AccountFullReconcile(),
+			NoCopy: true},
+		"MatchedDebits": models.One2ManyField{RelationModel: pool.AccountPartialReconcile(), ReverseFK: "CreditMove",
+			JSON: "matched_debit_ids", Help: "Debit journal items that are matched with this journal item."},
+		"MatchedCredits": models.One2ManyField{RelationModel: pool.AccountPartialReconcile(), ReverseFK: "DebitMove",
+			JSON: "matched_credit_ids", Help: "Credit journal items that are matched with this journal item."},
+		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Related: "Move.Journal", Index: true,
+			NoCopy: true},
+		"Blocked": models.BooleanField{String: "No Follow-up", Default: models.DefaultValue(false),
+			Help: "You can check this box to mark this journal item as a litigation with the associated partner"},
+		"DateMaturity": models.DateField{String: "Due date", Index: true, Required: true,
+			Help: `This field is used for payable and receivable journal entries.
+You can put the limit date for the payment of this line.`},
+		"Date": models.DateField{Related: "Move.Date", Index: true, NoCopy: true},
+		"AnalyticLines": models.One2ManyField{RelationModel: pool.AccountAnalyticLine(), ReverseFK: "Move",
+			JSON: "analytic_line_ids"},
+		"Taxes": models.Many2ManyField{RelationModel: pool.AccountTax()},
+		"TaxLine": models.Many2OneField{String: "Originator tax", RelationModel: pool.AccountTax(),
+			OnDelete: models.Restrict},
+		"AnalyticAccount": models.Many2OneField{String: "Analytic Account",
+			RelationModel: pool.AccountAnalyticAccount()},
+		"AnalyticTags": models.Many2ManyField{String: "Analytic tags", RelationModel: pool.AccountAnalyticTag(),
+			JSON: "analytic_tag_ids"},
+		"Company": models.Many2OneField{RelationModel: pool.Company(),
+			Related: "Account.Company"},
+		"Counterpart": models.CharField{Compute: pool.AccountMoveLine().Methods().ComputeCounterpart(),
+			Help: `Compute the counter part accounts of this journal item for this journal entry.
+This can be needed in reports.`},
+		"Invoice": models.Many2OneField{RelationModel: pool.AccountInvoice()},
+		"Partner": models.Many2OneField{RelationModel: pool.Partner(), OnDelete: models.Restrict},
+		"UserType": models.Many2OneField{RelationModel: pool.AccountAccountType(), Related: "Account.UserType",
+			Index: true},
+		"TaxExigible": models.BooleanField{String: "Appears in VAT report", Default: models.DefaultValue(true),
+			Help: `Technical field used to mark a tax line as exigible in the vat report or not
+(only exigible journal items are displayed). By default all new journal items are directly exigible,
+but with the module account_tax_cash_basis, some will become exigible only when the payment is recorded`},
+	})
+
+	pool.AccountMoveLine().AddSQLConstraint("credit_debit1", "CHECK (credit*debit=0)",
+		"Wrong credit or debit value in accounting entry !")
+	pool.AccountMoveLine().AddSQLConstraint("credit_debit2", "CHECK (credit+debit>=0)",
+		"Wrong credit or debit value in accounting entry !")
+
 	pool.AccountMoveLine().Methods().Init().DeclareMethod(
 		`Init`,
 		func(rs pool.AccountMoveLineSet) {
@@ -355,9 +505,10 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountMoveLine().Methods().ComputeAmountResidual().DeclareMethod(
 		`ComputeAmountResidual`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('debit','credit','amount_currency','currency_id','matched_debit_ids','matched_credit_ids','matched_debit_ids.amount','matched_credit_ids.amount','account_id.currency_id','move_id.state')
 			/*def _amount_residual(self):
 			  """ Computes the residual amount of a move line from a reconciliable account in the company currency and the line's currency.
@@ -414,33 +565,24 @@ func init() {
 			      line.amount_residual_currency = line.currency_id and line.currency_id.round(amount_residual_currency * sign) or 0.0
 
 			*/
+			return new(pool.AccountMoveLineData), []models.FieldNamer{}
 		})
-	pool.AccountMoveLine().Methods().StoreBalance().DeclareMethod(
-		`StoreBalance`,
-		func(rs pool.AccountMoveLineSet) {
+
+	pool.AccountMoveLine().Methods().ComputeBalance().DeclareMethod(
+		`ComputeBalance`,
+		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('debit','credit')
 			/*def _store_balance(self):
 			  for line in self:
 			      line.balance = line.debit - line.credit
 
 			*/
+			return new(pool.AccountMoveLineData), []models.FieldNamer{}
 		})
-	pool.AccountMoveLine().Methods().GetCurrency().DeclareMethod(
-		`GetCurrency`,
-		func(rs pool.AccountMoveLineSet) {
-			//@api.model
-			/*def _get_currency(self):
-			  currency = False
-			  context = self._context or {}
-			  if context.get('default_journal_id', False):
-			      currency = self.env['account.journal'].browse(context['default_journal_id']).currency_id
-			  return currency
 
-			*/
-		})
 	pool.AccountMoveLine().Methods().ComputeCashBasis().DeclareMethod(
 		`ComputeCashBasis`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('debit','credit','move_id.matched_percentage','move_id.journal_id')
 			/*def _compute_cash_basis(self):
 			  for move_line in self:
@@ -453,83 +595,26 @@ func init() {
 			      move_line.balance_cash_basis = move_line.debit_cash_basis - move_line.credit_cash_basis
 
 			*/
+			return new(pool.AccountMoveLineData), []models.FieldNamer{}
 		})
-	pool.AccountMoveLine().Methods().GetCounterpart().DeclareMethod(
-		`GetCounterpart`,
-		func(rs pool.AccountMoveLineSet) {
+
+	pool.AccountMoveLine().Methods().ComputeCounterpart().DeclareMethod(
+		`ComputeCounterpart`,
+		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('move_id.line_ids')
 			/*def _get_counterpart(self):
-			    counterpart = set()
-			    for line in self.move_id.line_ids:
-			        if (line.account_id.code != self.account_id.code):
-			            counterpart.add(line.account_id.code)
-			    if len(counterpart) > 2:
-			        counterpart = list(counterpart)[0:2] + ["..."]
-			    self.counterpart = ",".join(counterpart)
-
-			name = */
-		})
-	pool.AccountMoveLine().AddFields(map[string]models.FieldDefinition{
-		"Name":             models.CharField{String: "Name", Required: true /*[ string "Label"]*/},
-		"Quantity":         models.FloatField{String: "Quantity" /*,  Digits:dp.get_precision('Product Unit of Measure'*/, Help: "The optional quantity expressed by this line, eg: number of product sold. The quantity is not a legal requirement but is very useful for some reports." /*[ eg: number of product sold. The quantity is not a legal requirement but is very useful for some reports."]*/},
-		"ProductUom":       models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom(), JSON: "product_uom_id" /*['product.uom']*/},
-		"Product":          models.Many2OneField{String: "Product", RelationModel: pool.ProductProduct(), JSON: "product_id" /*['product.product']*/},
-		"Debit":            models.FloatField{String: "Debit", Default: models.DefaultValue(0.0) /*[ currency_field 'company_currency_id']*/},
-		"Credit":           models.FloatField{String: "Credit", Default: models.DefaultValue(0.0) /*[ currency_field 'company_currency_id']*/},
-		"Balance":          models.FloatField{String: "Balance", Compute: pool.AccountMoveLine().Methods().StoreBalance(), Stored: true /*[ currency_field 'company_currency_id']*/, Help: "Technical field holding the debit - credit in order to open meaningful graph views from reports"},
-		"DebitCashBasis":   models.FloatField{String: "DebitCashBasis" /*[currency_field 'company_currency_id']*/, Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(), Stored: true},
-		"CreditCashBasis":  models.FloatField{String: "CreditCashBasis" /*[currency_field 'company_currency_id']*/, Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(), Stored: true},
-		"BalanceCashBasis": models.FloatField{String: "BalanceCashBasis", Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(), Stored: true /*[ currency_field 'company_currency_id']*/, Help: "Technical field holding the debit_cash_basis - credit_cash_basis in order to open meaningful graph views from reports"},
-		"AmountCurrency":   models.FloatField{String: "AmountCurrency", Default: models.DefaultValue(0.0), Help: "The amount expressed in an optional other currency if it is a multi-currency entry."},
-		"CompanyCurrency":  models.Many2OneField{String: "Company Currency", RelationModel: pool.Currency(), JSON: "company_currency_id" /*['res.currency']*/, Related: "Company.Currency" /* readonly=true */, Help: "Utility field to express amount currency', store=True", Stored: true},
-		"Currency": models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*_get_currency(self):
-			  currency = False
-			  context = self._context or {}
-			  if context.get('default_journal_id', False):
-			      currency = self.env['account.journal'].browse(context['default_journal_id']).currency_id
-			  return currency
-
+			  counterpart = set()
+			  for line in self.move_id.line_ids:
+			      if (line.account_id.code != self.account_id.code):
+			          counterpart.add(line.account_id.code)
+			  if len(counterpart) > 2:
+			      counterpart = list(counterpart)[0:2] + ["..."]
+			  self.counterpart = ",".join(counterpart)
 			*/
-			return 0
-		}, Help: "The optional other currency if it is a multi-currency entry."},
-		"AmountResidual":         models.FloatField{String: "AmountResidual", Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual() /*[ string 'Residual Amount']*/, Stored: true /*[ currency_field 'company_currency_id']*/, Help: "The residual amount on a journal item expressed in the company currency."},
-		"AmountResidualCurrency": models.FloatField{String: "AmountResidualCurrency", Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual() /*[ string 'Residual Amount in Currency']*/, Stored: true, Help: "The residual amount on a journal item expressed in its currency (possibly not the company currency)."},
-		"Account": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(), JSON: "account_id" /*['account.account']*/, Required: true, Index: true, OnDelete: models.Cascade /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*lambda self: self._context.get('account_id'*/
-			return 0
-		} /*[ False]*/},
-		"Move":           models.Many2OneField{String: "Journal Entry", RelationModel: pool.AccountMove(), JSON: "move_id" /*['account.move']*/, OnDelete: models.Cascade, Help: "The move of this entry line.", Index: true, Required: true /*[ auto_join True]*/},
-		"Narration":      models.TextField{String: "Narration" /*[related 'move_id.narration']*/ /*[ string 'Narration']*/},
-		"Ref":            models.CharField{String: "Ref" /*[ string 'Reference']*/, Stored: true, NoCopy: true, Index: true},
-		"Payment":        models.Many2OneField{String: "Originator Payment", RelationModel: pool.AccountPayment(), JSON: "payment_id" /*['account.payment']*/, Help: "Payment that created this entry"},
-		"Statement":      models.Many2OneField{String: "Statement", RelationModel: pool.AccountBankStatement(), JSON: "statement_id" /*['account.bank.statement']*/, Help: "The bank statement used for bank reconciliation", Index: true /*[ copy False]*/},
-		"Reconciled":     models.BooleanField{String: "Reconciled" /*[compute '_amount_residual']*/ /*[ store True]*/},
-		"FullReconcile":  models.Many2OneField{String: "Matching Number", RelationModel: pool.AccountFullReconcile(), JSON: "full_reconcile_id" /*['account.full.reconcile']*/ /*[ copy False]*/},
-		"MatchedDebits":  models.One2ManyField{String: "MatchedDebitIds", RelationModel: pool.AccountPartialReconcile(), ReverseFK: "CreditMove", JSON: "matched_debit_ids" /*['account.partial.reconcile']*/ /*[ 'credit_move_id']*/ /*[String 'Matched Debits']*/, Help: "Debit journal items that are matched with this journal item."},
-		"MatchedCredits": models.One2ManyField{String: "MatchedCreditIds", RelationModel: pool.AccountPartialReconcile(), ReverseFK: "DebitMove", JSON: "matched_credit_ids" /*['account.partial.reconcile']*/ /*[ 'debit_move_id']*/ /*[String 'Matched Credits']*/, Help: "Credit journal items that are matched with this journal item."},
-		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Related: "Move.Journal", Index: true, Stored: true /*[ copy False)  # related is required blocked   fields.Boolean(string 'No Follow-up']*/, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*False*/
-			return 0
-		}, Help: "You can check this box to mark this journal item as a litigation with the associated partner"},
-		"Blocked":         models.BooleanField{String: "Blocked" /*[string 'No Follow-up']*/, Default: models.DefaultValue(false), Help: "You can check this box to mark this journal item as a litigation with the associated partner"},
-		"DateMaturity":    models.DateField{String: "DateMaturity" /*[string 'Due date']*/ /*[ index True]*/ /*[ required True]*/, Help: "This field is used for payable and receivable journal entries. You can put the limit date for the payment of this line."},
-		"Date":            models.DateField{String: "Date" /*[related 'move_id.date']*/ /*[ string 'Date']*/ /*[ index True]*/ /*[ store True]*/ /*[ copy False)  # related is required analytic_line_ids   fields.One2many('account.analytic.line']*/ /*[ 'move_id']*/ /*[ string 'Analytic lines']*/ /*[ oldname "analytic_lines"]*/},
-		"AnalyticLines":   models.One2ManyField{String: "AnalyticLineIds", RelationModel: pool.AccountAnalyticLine(), ReverseFK: "Move", JSON: "analytic_line_ids" /*['account.analytic.line']*/ /*[ 'move_id']*/ /*[string 'Analytic lines']*/ /*[ oldname "analytic_lines"]*/},
-		"Taxs":            models.Many2ManyField{String: "Taxes", RelationModel: pool.AccountTax(), JSON: "tax_ids" /*['account.tax']*/},
-		"TaxLine":         models.Many2OneField{String: "Originator tax", RelationModel: pool.AccountTax(), JSON: "tax_line_id" /*['account.tax']*/, OnDelete: models.Restrict},
-		"AnalyticAccount": models.Many2OneField{String: "Analytic Account", RelationModel: pool.AccountAnalyticAccount(), JSON: "analytic_account_id" /*['account.analytic.account']*/},
-		"AnalyticTags":    models.Many2ManyField{String: "Analytic tags", RelationModel: pool.AccountAnalyticTag(), JSON: "analytic_tag_ids" /*['account.analytic.tag']*/},
-		"Company":         models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Related: "Account.Company", Stored: true},
-		"Counterpart":     models.CharField{String: "Counterpart" /*["Counterpart"]*/, Compute: pool.AccountMoveLine().Methods().GetCounterpart(), Help: "Compute the counter part accounts of this journal item for this journal entry. This can be needed in reports."},
-		"Invoice":         models.Many2OneField{String: "InvoiceId", RelationModel: pool.AccountInvoice(), JSON: "invoice_id" /*['account.invoice']*/ /*[oldname "invoice"]*/},
-		"Partner":         models.Many2OneField{String: "Partner", RelationModel: pool.Partner(), JSON: "partner_id" /*['res.partner']*/, OnDelete: models.Restrict},
-		"UserType":        models.Many2OneField{String: "UserTypeId", RelationModel: pool.AccountAccountType(), JSON: "user_type_id" /*['account.account.type']*/, Related: "Account.UserType", Index: true, Stored: true /*[ oldname "user_type"]*/},
-		"TaxExigible":     models.BooleanField{String: "TaxExigible" /*[string 'Appears in VAT report']*/, Default: models.DefaultValue(true), Help: "Technical field used to mark a tax line as exigible in the vat report or not (only exigible journal items are displayed). By default all new journal items are directly exigible, but with the module account_tax_cash_basis, some will become exigible only when the payment is recorded." /*[ but with the module account_tax_cash_basis]*/ /*[ some will become exigible only when the payment is recorded."]*/},
-	})
-	pool.AccountMoveLine().AddSQLConstraint( /* [('credit_debit1'  'CHECK (credit*debit=0)'  'Wrong credit or debit value in accounting entry !')  ] */ )
-	pool.AccountMoveLine().AddSQLConstraint( /* [('credit_debit2'  'CHECK (credit+debit>=0)'  'Wrong credit or debit value in accounting entry !')  ] */ )
-	pool.AccountMoveLine().Methods().CheckCurrency().DeclareMethod(
+			return new(pool.AccountMoveLineData), []models.FieldNamer{}
+		})
+
+	pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount().DeclareMethod(
 		`CheckCurrency`,
 		func(rs pool.AccountMoveLineSet) {
 			//@api.constrains('currency_id','account_id')
@@ -540,10 +625,6 @@ func init() {
 			              raise ValidationError(_('The selected account of your Journal Entry forces to provide a secondary currency. You should remove the secondary currency on the account.'))
 
 			*/
-		})
-	pool.AccountMoveLine().Methods().CheckCurrencyAndAmount().DeclareMethod(
-		`CheckCurrencyAndAmount`,
-		func(rs pool.AccountMoveLineSet) {
 			//@api.constrains('currency_id','amount_currency')
 			/*def _check_currency_and_amount(self):
 			  for line in self:
@@ -551,29 +632,18 @@ func init() {
 			          raise ValidationError(_("You cannot create journal items with a secondary currency without filling both 'currency' and 'amount currency' field."))
 
 			*/
-		})
-	pool.AccountMoveLine().Methods().CheckCurrencyAmount().DeclareMethod(
-		`CheckCurrencyAmount`,
-		func(rs pool.AccountMoveLineSet) {
 			//@api.constrains('amount_currency')
 			/*def _check_currency_amount(self):
-			      for line in self:
-			          if line.amount_currency:
-			              if (line.amount_currency > 0.0 and line.credit > 0.0) or (line.amount_currency < 0.0 and line.debit > 0.0):
-			                  raise ValidationError(_('The amount expressed in the secondary currency must be positive when account is debited and negative when account is credited.'))
-
-			  ####################################################
-			  # Reconciliation interface methods
-			  ####################################################
-
+			  for line in self:
+			      if line.amount_currency:
+			          if (line.amount_currency > 0.0 and line.credit > 0.0) or (line.amount_currency < 0.0 and line.debit > 0.0):
+			              raise ValidationError(_('The amount expressed in the secondary currency must be positive when account is debited and negative when account is credited.'))
 			*/
 		})
+
 	pool.AccountMoveLine().Methods().GetDataForManualReconciliationWidget().DeclareMethod(
 		`GetDataForManualReconciliationWidget`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			PartnerIds interface{}
-			AccountIds interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, partners pool.PartnerSet, accounts pool.AccountAccountSet) *accounttypes.DataForReconciliationWidget {
 			//@api.model
 			/*def get_data_for_manual_reconciliation_widget(self, partner_ids, account_ids):
 			  """ Returns the data required for the invoices & payments matching of partners/accounts.
@@ -586,14 +656,12 @@ func init() {
 			  }
 
 			*/
+			return new(accounttypes.DataForReconciliationWidget)
 		})
+
 	pool.AccountMoveLine().Methods().GetDataForManualReconciliation().DeclareMethod(
 		`GetDataForManualReconciliation`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			ResType     interface{}
-			ResIds      interface{}
-			AccountType interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, resType string, resIds []int64, accountType string) []map[string]interface{} {
 			//@api.model
 			/*def get_data_for_manual_reconciliation(self, res_type, res_ids=None, account_type=None):
 			  """ Returns the data required for the invoices & payments matching of partners/accounts (list of dicts).
@@ -689,13 +757,12 @@ func init() {
 			  return rows
 
 			*/
+			return []map[string]interface{}{}
 		})
+
 	pool.AccountMoveLine().Methods().GetReconciliationProposition().DeclareMethod(
 		`GetReconciliationProposition`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			AccountId interface{}
-			PartnerId interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, account pool.AccountAccountSet, partner pool.PartnerSet) []map[string]interface{} {
 			//@api.model
 			/*def get_reconciliation_proposition(self, account_id, partner_id=False):
 			  """ Returns two lines whose amount are opposite """
@@ -728,13 +795,12 @@ func init() {
 			  return []
 
 			*/
+			return []map[string]interface{}{}
 		})
+
 	pool.AccountMoveLine().Methods().DomainMoveLinesForReconciliation().DeclareMethod(
 		`DomainMoveLinesForReconciliation`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			ExcludedIds interface{}
-			Str         interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, excludedIds []int64, str string) pool.AccountMoveLineCondition {
 			//@api.model
 			/*def domain_move_lines_for_reconciliation(self, excluded_ids=None, str=False):
 			  """ Returns the domain which is common to both manual and bank statement reconciliation.
@@ -779,15 +845,12 @@ func init() {
 			  return domain
 
 			*/
+			return pool.AccountMoveLineCondition{}
 		})
+
 	pool.AccountMoveLine().Methods().DomainMoveLinesForManualReconciliation().DeclareMethod(
 		`DomainMoveLinesForManualReconciliation`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			AccountId   interface{}
-			PartnerId   interface{}
-			ExcludedIds interface{}
-			Str         interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, account pool.AccountAccountSet, partner pool.PartnerSet, excludedIds []int64, str string) pool.AccountMoveLineCondition {
 			/*def _domain_move_lines_for_manual_reconciliation(self, account_id, partner_id=False, excluded_ids=None, str=False):
 			  """ Create domain criteria that are relevant to manual reconciliation. """
 			  domain = ['&', ('reconciled', '=', False), ('account_id', '=', account_id)]
@@ -798,18 +861,13 @@ func init() {
 			  return expression.AND([generic_domain, domain])
 
 			*/
+			return pool.AccountMoveLineCondition{}
 		})
+
 	pool.AccountMoveLine().Methods().GetMoveLinesForManualReconciliation().DeclareMethod(
 		`GetMoveLinesForManualReconciliation`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			AccountId        interface{}
-			PartnerId        interface{}
-			ExcludedIds      interface{}
-			Str              interface{}
-			Offset           interface{}
-			Limit            interface{}
-			TargetCurrencyId interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, account pool.AccountAccountSet, partner pool.PartnerSet, excludedIds []int64,
+			str string, offset, limit int, targetCurrency pool.CurrencySet) []map[string]interface{} {
 			//@api.model
 			/*def get_move_lines_for_manual_reconciliation(self, account_id, partner_id=False, excluded_ids=None, str=False, offset=0, limit=None, target_currency_id=False):
 			  """ Returns unreconciled move lines for an account or a partner+account, formatted for the manual reconciliation widget """
@@ -823,13 +881,12 @@ func init() {
 			  return lines.prepare_move_lines_for_reconciliation_widget(target_currency=target_currency)
 
 			*/
+			return []map[string]interface{}{}
 		})
+
 	pool.AccountMoveLine().Methods().PrepareMoveLinesForReconciliationWidget().DeclareMethod(
 		`PrepareMoveLinesForReconciliationWidget`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			TargetCurrency interface{}
-			TargetDate     interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, targetCurrency pool.CurrencySet, targetDate dates.Date) []map[string]interface{} {
 			//@api.multi
 			/*def prepare_move_lines_for_reconciliation_widget(self, target_currency=False, target_date=False):
 			  """ Returns move lines formatted for the manual/bank reconciliation widget
@@ -923,11 +980,16 @@ func init() {
 			  return ret
 
 			*/
+			return []map[string]interface{}{}
 		})
+
 	pool.AccountMoveLine().Methods().ProcessReconciliations().DeclareMethod(
 		`ProcessReconciliations`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			Data interface{}
+		func(rs pool.AccountMoveLineSet, data []struct {
+			Type        string  `json:"type"`
+			ID          int64   `json:"id"`
+			MoveLineIds []int64 `json:"mv_line_ids"`
+			//NewMoveLinesData []*pool.AccountMoveLineData `json:"new_mv_line_dicts"`
 		}) {
 			//@api.model
 			/*def process_reconciliations(self, data):
@@ -951,44 +1013,40 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountMoveLine().Methods().ProcessReconciliation().DeclareMethod(
 		`ProcessReconciliation`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			NewMvLineDicts interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, newMoveLinesData []*pool.AccountMoveLineData) {
 			//@api.multi
 			/*def process_reconciliation(self, new_mv_line_dicts):
-			      """ Create new move lines from new_mv_line_dicts (if not empty) then call reconcile_partial on self and new move lines
+			  """ Create new move lines from new_mv_line_dicts (if not empty) then call reconcile_partial on self and new move lines
 
-			          :param new_mv_line_dicts: list of dicts containing values suitable fot account_move_line.create()
-			      """
-			      if len(self) < 1 or len(self) + len(new_mv_line_dicts) < 2:
-			          raise UserError(_('A reconciliation must involve at least 2 move lines.'))
+			      :param new_mv_line_dicts: list of dicts containing values suitable fot account_move_line.create()
+			  """
+			  if len(self) < 1 or len(self) + len(new_mv_line_dicts) < 2:
+			      raise UserError(_('A reconciliation must involve at least 2 move lines.'))
 
-			      # Create writeoff move lines
-			      if len(new_mv_line_dicts) > 0:
-			          writeoff_lines = self.env['account.move.line']
-			          company_currency = self[0].account_id.company_id.currency_id
-			          writeoff_currency = self[0].currency_id or company_currency
-			          for mv_line_dict in new_mv_line_dicts:
-			              if writeoff_currency != company_currency:
-			                  mv_line_dict['debit'] = writeoff_currency.compute(mv_line_dict['debit'], company_currency)
-			                  mv_line_dict['credit'] = writeoff_currency.compute(mv_line_dict['credit'], company_currency)
-			              writeoff_lines += self._create_writeoff(mv_line_dict)
+			  # Create writeoff move lines
+			  if len(new_mv_line_dicts) > 0:
+			      writeoff_lines = self.env['account.move.line']
+			      company_currency = self[0].account_id.company_id.currency_id
+			      writeoff_currency = self[0].currency_id or company_currency
+			      for mv_line_dict in new_mv_line_dicts:
+			          if writeoff_currency != company_currency:
+			              mv_line_dict['debit'] = writeoff_currency.compute(mv_line_dict['debit'], company_currency)
+			              mv_line_dict['credit'] = writeoff_currency.compute(mv_line_dict['credit'], company_currency)
+			          writeoff_lines += self._create_writeoff(mv_line_dict)
 
-			          (self + writeoff_lines).reconcile()
-			      else:
-			          self.reconcile()
-
-			  ####################################################
-			  # Reconciliation methods
-			  ####################################################
+			      (self + writeoff_lines).reconcile()
+			  else:
+			      self.reconcile()
 
 			*/
 		})
+
 	pool.AccountMoveLine().Methods().GetPairToReconcile().DeclareMethod(
 		`GetPairToReconcile`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) (float64, float64) {
 			/*def _get_pair_to_reconcile(self):
 			  #field is either 'amount_residual' or 'amount_residual_currency' (if the reconciled account has a secondary currency set)
 			  field = self[0].account_id.currency_id and 'amount_residual_currency' or 'amount_residual'
@@ -1014,10 +1072,12 @@ func init() {
 			  return debit, credit
 
 			*/
+			return 0, 0
 		})
+
 	pool.AccountMoveLine().Methods().AutoReconcileLines().DeclareMethod(
 		`AutoReconcileLines`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) pool.AccountMoveLineSet {
 			/*def auto_reconcile_lines(self):
 			  """ This function iterates recursively on the recordset given as parameter as long as it
 			      can find a debit and a credit to reconcile together. It returns the recordset of the
@@ -1076,13 +1136,12 @@ func init() {
 			  return self.auto_reconcile_lines()
 
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env())
 		})
+
 	pool.AccountMoveLine().Methods().Reconcile().DeclareMethod(
 		`Reconcile`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			WriteoffAccId     interface{}
-			WriteoffJournalId interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, writeoffAccount pool.AccountAccountSet, writeoffJournal pool.AccountJournalSet) bool {
 			//@api.multi
 			/*def reconcile(self, writeoff_acc_id=False, writeoff_journal_id=False):
 			  # Empty self can happen if the user tries to reconcile entries which are already reconciled.
@@ -1129,12 +1188,12 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountMoveLine().Methods().CreateWriteoff().DeclareMethod(
 		`CreateWriteoff`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			Vals interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, data *pool.AccountMoveLineData) pool.AccountMoveLineSet {
 			/*def _create_writeoff(self, vals):
 			  """ Create a writeoff move for the account.move.lines in self. If debit/credit is not specified in vals,
 			      the writeoff amount will be computed as the sum of amount_residual of the given recordset.
@@ -1201,7 +1260,9 @@ func init() {
 			  return writeoff_move.line_ids.filtered(lambda r: r.account_id == self[0].account_id)
 
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env())
 		})
+
 	pool.AccountMoveLine().Methods().ComputeFullAfterBatchReconcile().DeclareMethod(
 		`ComputeFullAfterBatchReconcile`,
 		func(rs pool.AccountMoveLineSet) {
@@ -1256,76 +1317,201 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountMoveLine().Methods().RemoveMoveReconcile().DeclareMethod(
 		`RemoveMoveReconcile`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) int64 {
 			//@api.multi
 			/*def remove_move_reconcile(self):
-			      """ Undo a reconciliation """
-			      if not self:
-			          return True
-			      rec_move_ids = self.env['account.partial.reconcile']
-			      for account_move_line in self:
-			          for invoice in account_move_line.payment_id.invoice_ids:
-			              if invoice.id == self.env.context.get('invoice_id') and account_move_line in invoice.payment_move_line_ids:
-			                  account_move_line.payment_id.write({'invoice_ids': [(3, invoice.id, None)]})
-			          rec_move_ids += account_move_line.matched_debit_ids
-			          rec_move_ids += account_move_line.matched_credit_ids
-			      return rec_move_ids.unlink()
-
-			  ####################################################
-			  # CRUD methods
-			  ####################################################
-
-			  #TODO: to check/refactor
-			*/
-		})
-	pool.AccountMoveLine().Methods().Create().DeclareMethod(
-		`Create`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			Vals interface{}
-		}) {
-			//@api.model
-			/*def create(self, vals):
-			  move = super(AccountMove, self.with_context(check_move_validity=False, partner_id=vals.get('partner_id'))).create(vals)
-			  move.assert_balanced()
-			  return move
+			  """ Undo a reconciliation """
+			  if not self:
+			      return True
+			  rec_move_ids = self.env['account.partial.reconcile']
+			  for account_move_line in self:
+			      for invoice in account_move_line.payment_id.invoice_ids:
+			          if invoice.id == self.env.context.get('invoice_id') and account_move_line in invoice.payment_move_line_ids:
+			              account_move_line.payment_id.write({'invoice_ids': [(3, invoice.id, None)]})
+			      rec_move_ids += account_move_line.matched_debit_ids
+			      rec_move_ids += account_move_line.matched_credit_ids
+			  return rec_move_ids.unlink()
 
 			*/
+			return 0
 		})
-	pool.AccountMoveLine().AddFields(map[string]models.FieldDefinition{})
-	pool.AccountMoveLine().Methods().Unlink().DeclareMethod(
-		`Unlink`,
-		func(rs pool.AccountMoveLineSet) {
+
+	pool.AccountMoveLine().Methods().Create().Extend("",
+		func(rs pool.AccountMoveLineSet, data *pool.AccountMoveLineData) pool.AccountMoveLineSet {
+			/*
+				@api.model
+				def create(self, vals):
+					""" :context's key apply_taxes: set to True if you want vals['tax_ids'] to result in the creation of move lines for taxes and eventual
+							adjustment of the line amount (in case of a tax included in price).
+
+						:context's key `check_move_validity`: check data consistency after move line creation. Eg. set to false to disable verification that the move
+							debit-credit == 0 while creating the move lines composing the move.
+
+					"""
+					context = dict(self._context or {})
+					amount = vals.get('debit', 0.0) - vals.get('credit', 0.0)
+					if not vals.get('partner_id') and context.get('partner_id'):
+						vals['partner_id'] = context.get('partner_id')
+					move = self.env['account.move'].browse(vals['move_id'])
+					account = self.env['account.account'].browse(vals['account_id'])
+					if account.deprecated:
+						raise UserError(_('You cannot use deprecated account.'))
+					if 'journal_id' in vals and vals['journal_id']:
+						context['journal_id'] = vals['journal_id']
+					if 'date' in vals and vals['date']:
+						context['date'] = vals['date']
+					if 'journal_id' not in context:
+						context['journal_id'] = move.journal_id.id
+						context['date'] = move.date
+					#we need to treat the case where a value is given in the context for period_id as a string
+					if not context.get('journal_id', False) and context.get('search_default_journal_id', False):
+						context['journal_id'] = context.get('search_default_journal_id')
+					if 'date' not in context:
+						context['date'] = fields.Date.context_today(self)
+					journal = vals.get('journal_id') and self.env['account.journal'].browse(vals['journal_id']) or move.journal_id
+					vals['date_maturity'] = vals.get('date_maturity') or vals.get('date') or move.date
+					ok = not (journal.type_control_ids or journal.account_control_ids)
+
+					if journal.type_control_ids:
+						type = account.user_type_id
+						for t in journal.type_control_ids:
+							if type == t:
+								ok = True
+								break
+					if journal.account_control_ids and not ok:
+						for a in journal.account_control_ids:
+							if a.id == vals['account_id']:
+								ok = True
+								break
+					# Automatically convert in the account's secondary currency if there is one and
+					# the provided values were not already multi-currency
+					if account.currency_id and 'amount_currency' not in vals and account.currency_id.id != account.company_id.currency_id.id:
+						vals['currency_id'] = account.currency_id.id
+						if self._context.get('skip_full_reconcile_check') == 'amount_currency_excluded':
+							vals['amount_currency'] = 0.0
+						else:
+							ctx = {}
+							if 'date' in vals:
+								ctx['date'] = vals['date']
+							vals['amount_currency'] = account.company_id.currency_id.with_context(ctx).compute(amount, account.currency_id)
+
+					if not ok:
+						raise UserError(_('You cannot use this general account in this journal, check the tab \'Entry Controls\' on the related journal.'))
+
+					# Create tax lines
+					tax_lines_vals = []
+					if context.get('apply_taxes') and vals.get('tax_ids'):
+						# Get ids from triplets : https://www.odoo.com/documentation/master/reference/orm.html#openerp.models.Model.write
+						tax_ids = [tax['id'] for tax in self.resolve_2many_commands('tax_ids', vals['tax_ids']) if tax.get('id')]
+						# Since create() receives ids instead of recordset, let's just use the old-api bridge
+						taxes = self.env['account.tax'].browse(tax_ids)
+						currency = self.env['res.currency'].browse(vals.get('currency_id'))
+						partner = self.env['res.partner'].browse(vals.get('partner_id'))
+						res = taxes.with_context(round=True).compute_all(amount,
+							currency, 1, vals.get('product_id'), partner)
+						# Adjust line amount if any tax is price_include
+						if abs(res['total_excluded']) < abs(amount):
+							if vals['debit'] != 0.0: vals['debit'] = res['total_excluded']
+							if vals['credit'] != 0.0: vals['credit'] = -res['total_excluded']
+							if vals.get('amount_currency'):
+								vals['amount_currency'] = self.env['res.currency'].browse(vals['currency_id']).round(vals['amount_currency'] * (res['total_excluded']/amount))
+						# Create tax lines
+						for tax_vals in res['taxes']:
+							if tax_vals['amount']:
+								tax = self.env['account.tax'].browse([tax_vals['id']])
+								account_id = (amount > 0 and tax_vals['account_id'] or tax_vals['refund_account_id'])
+								if not account_id: account_id = vals['account_id']
+								temp = {
+									'account_id': account_id,
+									'name': vals['name'] + ' ' + tax_vals['name'],
+									'tax_line_id': tax_vals['id'],
+									'move_id': vals['move_id'],
+									'partner_id': vals.get('partner_id'),
+									'statement_id': vals.get('statement_id'),
+									'debit': tax_vals['amount'] > 0 and tax_vals['amount'] or 0.0,
+									'credit': tax_vals['amount'] < 0 and -tax_vals['amount'] or 0.0,
+									'analytic_account_id': vals.get('analytic_account_id') if tax.analytic else False,
+								}
+								bank = self.env["account.bank.statement"].browse(vals.get('statement_id'))
+								if bank.currency_id != bank.company_id.currency_id:
+									ctx = {}
+									if 'date' in vals:
+										ctx['date'] = vals['date']
+									temp['currency_id'] = bank.currency_id.id
+									temp['amount_currency'] = bank.company_id.currency_id.with_context(ctx).compute(tax_vals['amount'], bank.currency_id, round=True)
+								tax_lines_vals.append(temp)
+
+					new_line = super(AccountMoveLine, self).create(vals)
+					for tax_line_vals in tax_lines_vals:
+						# TODO: remove .with_context(context) once this context nonsense is solved
+						self.with_context(context).create(tax_line_vals)
+
+					if self._context.get('check_move_validity', True):
+						move.with_context(context)._post_validate()
+
+					return new_line
+			*/
+			return rs.Super().Create(data)
+		})
+
+	pool.AccountMoveLine().Methods().Unlink().Extend("",
+		func(rs pool.AccountMoveLineSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  for move in self:
-			      #check the lock date + check if some entries are reconciled
-			      move.line_ids._update_check()
-			      move.line_ids.unlink()
-			  return super(AccountMove, self).unlink()
-
+			self._update_check()
+			move_ids = set()
+			for line in self:
+				if line.move_id.id not in move_ids:
+					move_ids.add(line.move_id.id)
+			result = super(AccountMoveLine, self).unlink()
+			if self._context.get('check_move_validity', True) and move_ids:
+				self.env['account.move'].browse(list(move_ids))._post_validate()
+			return result
 			*/
+			return rs.Super().Unlink()
 		})
-	pool.AccountMoveLine().Methods().Write().DeclareMethod(
-		`Write`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			Vals interface{}
-		}) {
+
+	pool.AccountMoveLine().Methods().Write().Extend("",
+		func(rs pool.AccountMoveLineSet, data *pool.AccountMoveLineData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
-			  if 'line_ids' in vals:
-			      res = super(AccountMove, self.with_context(check_move_validity=False)).write(vals)
-			      self.assert_balanced()
-			  else:
-			      res = super(AccountMove, self).write(vals)
-			  return res
+				if ('account_id' in vals) and self.env['account.account'].browse(vals['account_id']).deprecated:
+					raise UserError(_('You cannot use deprecated account.'))
+				if any(key in vals for key in ('account_id', 'journal_id', 'date', 'move_id', 'debit', 'credit')):
+					self._update_check()
+				if not self._context.get('allow_amount_currency') and any(key in vals for key in ('amount_currency', 'currency_id')):
+					#hackish workaround to write the amount_currency when assigning a payment to an invoice through the 'add' button
+					#this is needed to compute the correct amount_residual_currency and potentially create an exchange difference entry
+					self._update_check()
+				#when we set the expected payment date, log a note on the invoice_id related (if any)
+				if vals.get('expected_pay_date') and self.invoice_id:
+					msg = _('New expected payment date: ') + vals['expected_pay_date'] + '.\n' + vals.get('internal_note', '')
+					self.invoice_id.message_post(body=msg) #TODO: check it is an internal note (not a regular email)!
+				#when making a reconciliation on an existing liquidity journal item, mark the payment as reconciled
+				for record in self:
+					if 'statement_id' in vals and record.payment_id:
+						# In case of an internal transfer, there are 2 liquidity move lines to match with a bank statement
+						if all(line.statement_id for line in record.payment_id.move_line_ids.filtered(lambda r: r.id != record.id and r.account_id.internal_type=='liquidity')):
+							record.payment_id.state = 'reconciled'
 
+				result = super(AccountMoveLine, self).write(vals)
+				if self._context.get('check_move_validity', True):
+					move_ids = set()
+					for line in self:
+						if line.move_id.id not in move_ids:
+							move_ids.add(line.move_id.id)
+					self.env['account.move'].browse(list(move_ids))._post_validate()
+			return result
 			*/
+			return rs.Super().Write(data, fieldsToReset...)
 		})
+
 	pool.AccountMoveLine().Methods().UpdateCheck().DeclareMethod(
 		`UpdateCheck`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) bool {
 			//@api.multi
 			/*def _update_check(self):
 			  """ Raise Warning to cause rollback if the move is posted, some entries are reconciled or the move is older than the lock date"""
@@ -1333,32 +1519,35 @@ func init() {
 			  for line in self:
 			      err_msg = _('Move name (id): %s (%s)') % (line.move_id.name, str(line.move_id.id))
 			      if line.move_id.state != 'draft':
-			          raise UserError(_('You cannot do this modification on a posted journal entry, you can just change some non legal */
+			          raise UserError(_('You cannot do this modification on a posted journal entry, you can just change some non legal
+										'You must revert the journal entry to cancel it.\n%s.') % err_msg)
+				  if line.reconciled and not (line.debit == 0 and line.credit == 0):
+					  raise UserError(_('You cannot do this modification on a reconciled entry. You can just change some non legal fields or you must unreconcile first.\n%s.') % err_msg)
+			      if line.move_id.id not in move_ids:
+				      move_ids.add(line.move_id.id)
+				  self.env['account.move'].browse(list(move_ids))._check_lock_date()
+			  return True
+			*/
+			return true
 		})
-	pool.AccountMoveLine().Methods().NameGet().DeclareMethod(
-		`NameGet`,
-		func(rs pool.AccountMoveLineSet) {
+
+	pool.AccountMoveLine().Methods().NameGet().Extend("",
+		func(rs pool.AccountMoveLineSet) string {
 			//@api.depends('ref','move_id')
 			/*def name_get(self):
-			  result = []
-			  for move in self:
-			      if move.state == 'draft':
-			          name = '* ' + str(move.id)
-			      else:
-			          name = move.name
-			      result.append((move.id, name))
-			  return result
-
+			for line in self:
+				if line.ref:
+					result.append((line.id, (line.move_id.name or '') + '(' + line.ref + ')'))
+				else:
+					result.append((line.id, line.move_id.name))
+			return result
 			*/
+			return rs.Super().NameGet()
 		})
+
 	pool.AccountMoveLine().Methods().ComputeAmountFields().DeclareMethod(
 		`ComputeAmountFields`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			Amount          interface{}
-			SrcCurrency     interface{}
-			CompanyCurrency interface{}
-			InvoiceCurrency interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, amount float64, srcCurrency, companyCurrency, invoiceCurrenct pool.CurrencySet) (float64, float64, float64, pool.CurrencySet) {
 			//@api.model
 			/*def compute_amount_fields(self, amount, src_currency, company_currency, invoice_currency=False):
 			  """ Helper function to compute value for fields debit/credit/amount_currency based on an amount and the currencies given in parameter"""
@@ -1376,10 +1565,12 @@ func init() {
 			  return debit, credit, amount_currency, currency_id
 
 			*/
+			return 0, 0, 0, pool.Currency().NewSet(rs.Env())
 		})
+
 	pool.AccountMoveLine().Methods().CreateAnalyticLines().DeclareMethod(
 		`CreateAnalyticLines`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) pool.AccountAnalyticLineSet {
 			//@api.multi
 			/*def create_analytic_lines(self):
 			  """ Create analytic items upon validation of an account.move.line having an analytic account. This
@@ -1392,10 +1583,12 @@ func init() {
 			          self.env['account.analytic.line'].create(vals_line)
 
 			*/
+			return pool.AccountAnalyticLine().NewSet(rs.Env())
 		})
+
 	pool.AccountMoveLine().Methods().PrepareAnalyticLine().DeclareMethod(
 		`PrepareAnalyticLine`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) *pool.AccountAnalyticLineData {
 			//@api.one
 			/*def _prepare_analytic_line(self):
 			  """ Prepare the values used to create() an account.analytic.line upon validation of an account.move.line having
@@ -1410,13 +1603,18 @@ func init() {
 			      'unit_amount': self.quantity,
 			      'product_id': self.product_id and self.product_id.id or False,
 			      'product_uom_id': self.product_uom_id and self.product_uom_id.id or False,
-			      'amount': self.company_currency_id.with_context(date=self.date or */
+			      'amount': self.company_currency_id.with_context(date=self.date or fields.Date.context_today(self)).compute(amount, self.analytic_account_id.currency_id) if self.analytic_account_id.currency_id else amount,
+				  'general_account_id': self.account_id.id,
+				  'ref': self.ref,
+				  'move_id': self.id,
+				  'user_id': self.invoice_id.user_id.id or self._uid,
+			  }*/
+			return new(pool.AccountAnalyticLineData)
 		})
+
 	pool.AccountMoveLine().Methods().QueryGet().DeclareMethod(
 		`QueryGet`,
-		func(rs pool.AccountMoveLineSet, args struct {
-			Domain interface{}
-		}) {
+		func(rs pool.AccountMoveLineSet, condition pool.AccountMoveLineCondition) pool.AccountMoveLineCondition {
 			//@api.model
 			/*def _query_get(self, domain=None):
 			  context = dict(self._context or {})
@@ -1469,274 +1667,312 @@ func init() {
 			  return tables, where_clause, where_clause_params
 
 			*/
+			return pool.AccountMoveLineCondition{}
 		})
+
 	pool.AccountMoveLine().Methods().OpenReconcileView().DeclareMethod(
 		`OpenReconcileView`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs pool.AccountMoveLineSet) *actions.Action {
 			//@api.multi
 			/*def open_reconcile_view(self):
-			  return self.line_ids.open_reconcile_view()
-
-
+			[action] = self.env.ref('account.action_account_moves_all_a').read()
+			ids = []
+			for aml in self:
+				if aml.account_id.reconcile:
+					ids.extend([r.debit_move_id.id for r in aml.matched_debit_ids] if aml.credit > 0 else [r.credit_move_id.id for r in aml.matched_credit_ids])
+					ids.append(aml.id)
+			action['domain'] = [('id', 'in', ids)]
+			return action
 			*/
+			return new(actions.Action)
 		})
 
 	pool.AccountPartialReconcile().DeclareModel()
+
 	pool.AccountPartialReconcile().AddFields(map[string]models.FieldDefinition{
-		"DebitMove":       models.Many2OneField{String: "DebitMoveId", RelationModel: pool.AccountMoveLine(), JSON: "debit_move_id" /*['account.move.line']*/, Index: true, Required: true},
-		"CreditMove":      models.Many2OneField{String: "CreditMoveId", RelationModel: pool.AccountMoveLine(), JSON: "credit_move_id" /*['account.move.line']*/, Index: true, Required: true},
-		"Amount":          models.FloatField{String: "Amount" /*[currency_field 'company_currency_id']*/, Help: "Amount concerned by this matching. Assumed to be always positive"},
-		"AmountCurrency":  models.FloatField{String: "AmountCurrency" /*[string "Amount in Currency"]*/},
-		"Currency":        models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/},
-		"CompanyCurrency": models.Many2OneField{String: "CompanyCurrencyId", RelationModel: pool.Currency(), JSON: "company_currency_id" /*['res.currency']*/, Related: "Company.Currency" /* readonly=true */, Help: "Utility field to express amount currency"},
-		"Company":         models.Many2OneField{String: "Currency", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Related: "DebitMove.Company", Stored: true},
-		"FullReconcile":   models.Many2OneField{String: "Full Reconcile", RelationModel: pool.AccountFullReconcile(), JSON: "full_reconcile_id" /*['account.full.reconcile']*/ /*[ copy False]*/},
+		"DebitMove":      models.Many2OneField{RelationModel: pool.AccountMoveLine(), Index: true, Required: true},
+		"CreditMove":     models.Many2OneField{RelationModel: pool.AccountMoveLine(), Index: true, Required: true},
+		"Amount":         models.FloatField{Help: "Amount concerned by this matching. Assumed to be always positive"},
+		"AmountCurrency": models.FloatField{String: "Amount in Currency"},
+		"Currency":       models.Many2OneField{RelationModel: pool.Currency()},
+		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Company.Currency", /* readonly=true */
+			Help: "Utility field to express amount currency"},
+		"Company":       models.Many2OneField{RelationModel: pool.Company(), Related: "DebitMove.Company"},
+		"FullReconcile": models.Many2OneField{RelationModel: pool.AccountFullReconcile(), NoCopy: true},
 	})
+
 	pool.AccountPartialReconcile().Methods().CreateExchangeRateEntry().DeclareMethod(
 		`CreateExchangeRateEntry`,
-		func(rs pool.AccountPartialReconcileSet, args struct {
-			AmlToFix       interface{}
-			AmountDiff     interface{}
-			DiffInCurrency interface{}
-			Currency       interface{}
-			MoveDate       interface{}
-		}) {
+		func(rs pool.AccountPartialReconcileSet, amlToFix pool.AccountMoveLineSet, amountDiff float64, diffInCurrency float64,
+			currenct pool.CurrencySet, moveDate dates.Date) (pool.AccountMoveLineSet, pool.AccountPartialReconcileSet) {
 			/*def create_exchange_rate_entry(self, aml_to_fix, amount_diff, diff_in_currency, currency, move_date):
-			      """ Automatically create a journal entry to book the exchange rate difference.
-			          That new journal entry is made in the company `currency_exchange_journal_id` and one of its journal
-			          items is matched with the other lines to balance the full reconciliation.
-			      """
-			      for rec in self:
-			          if not rec.company_id.currency_exchange_journal_id:
-			              raise UserError(_("You should configure the 'Exchange Rate Journal' in the accounting settings, to manage automatically the booking of accounting entries related to differences between exchange rates."))
-			          if not rec.company_id.income_currency_exchange_account_id.id:
-			              raise UserError(_("You should configure the 'Gain Exchange Rate Account' in the accounting settings, to manage automatically the booking of accounting entries related to differences between exchange rates."))
-			          if not rec.company_id.expense_currency_exchange_account_id.id:
-			              raise UserError(_("You should configure the 'Loss Exchange Rate Account' in the accounting settings, to manage automatically the booking of accounting entries related to differences between exchange rates."))
-			          move_vals = {'journal_id': rec.company_id.currency_exchange_journal_id.id}
+			  """ Automatically create a journal entry to book the exchange rate difference.
+			      That new journal entry is made in the company `currency_exchange_journal_id` and one of its journal
+			      items is matched with the other lines to balance the full reconciliation.
+			  """
+			  for rec in self:
+			      if not rec.company_id.currency_exchange_journal_id:
+			          raise UserError(_("You should configure the 'Exchange Rate Journal' in the accounting settings, to manage automatically the booking of accounting entries related to differences between exchange rates."))
+			      if not rec.company_id.income_currency_exchange_account_id.id:
+			          raise UserError(_("You should configure the 'Gain Exchange Rate Account' in the accounting settings, to manage automatically the booking of accounting entries related to differences between exchange rates."))
+			      if not rec.company_id.expense_currency_exchange_account_id.id:
+			          raise UserError(_("You should configure the 'Loss Exchange Rate Account' in the accounting settings, to manage automatically the booking of accounting entries related to differences between exchange rates."))
+			      move_vals = {'journal_id': rec.company_id.currency_exchange_journal_id.id}
 
-			          # The move date should be the maximum date between payment and invoice (in case
-			          # of payment in advance). However, we should make sure the move date is not
-			          # recorded after the end of year closing.
-			          if move_date > rec.company_id.fiscalyear_lock_date:
-			              move_vals['date'] = move_date
-			          move = rec.env['account.move'].create(move_vals)
-			          amount_diff = rec.company_id.currency_id.round(amount_diff)
-			          diff_in_currency = currency.round(diff_in_currency)
-			          line_to_reconcile = rec.env['account.move.line'].with_context(check_move_validity=False).create({
-			              'name': _('Currency exchange rate difference'),
-			              'debit': amount_diff < 0 and -amount_diff or 0.0,
-			              'credit': amount_diff > 0 and amount_diff or 0.0,
-			              'account_id': rec.debit_move_id.account_id.id,
-			              'move_id': move.id,
+			      # The move date should be the maximum date between payment and invoice (in case
+			      # of payment in advance). However, we should make sure the move date is not
+			      # recorded after the end of year closing.
+			      if move_date > rec.company_id.fiscalyear_lock_date:
+			          move_vals['date'] = move_date
+			      move = rec.env['account.move'].create(move_vals)
+			      amount_diff = rec.company_id.currency_id.round(amount_diff)
+			      diff_in_currency = currency.round(diff_in_currency)
+			      line_to_reconcile = rec.env['account.move.line'].with_context(check_move_validity=False).create({
+			          'name': _('Currency exchange rate difference'),
+			          'debit': amount_diff < 0 and -amount_diff or 0.0,
+			          'credit': amount_diff > 0 and amount_diff or 0.0,
+			          'account_id': rec.debit_move_id.account_id.id,
+			          'move_id': move.id,
+			          'currency_id': currency.id,
+			          'amount_currency': -diff_in_currency,
+			          'partner_id': rec.debit_move_id.partner_id.id,
+			      })
+			      rec.env['account.move.line'].create({
+			          'name': _('Currency exchange rate difference'),
+			          'debit': amount_diff > 0 and amount_diff or 0.0,
+			          'credit': amount_diff < 0 and -amount_diff or 0.0,
+			          'account_id': amount_diff > 0 and rec.company_id.currency_exchange_journal_id.default_debit_account_id.id or rec.company_id.currency_exchange_journal_id.default_credit_account_id.id,
+			          'move_id': move.id,
+			          'currency_id': currency.id,
+			          'amount_currency': diff_in_currency,
+			          'partner_id': rec.debit_move_id.partner_id.id,
+			      })
+			      for aml in aml_to_fix:
+			          partial_rec = rec.env['account.partial.reconcile'].create({
+			              'debit_move_id': aml.credit and line_to_reconcile.id or aml.id,
+			              'credit_move_id': aml.debit and line_to_reconcile.id or aml.id,
+			              'amount': abs(aml.amount_residual),
+			              'amount_currency': abs(aml.amount_residual_currency),
 			              'currency_id': currency.id,
-			              'amount_currency': -diff_in_currency,
-			              'partner_id': rec.debit_move_id.partner_id.id,
 			          })
-			          rec.env['account.move.line'].create({
-			              'name': _('Currency exchange rate difference'),
-			              'debit': amount_diff > 0 and amount_diff or 0.0,
-			              'credit': amount_diff < 0 and -amount_diff or 0.0,
-			              'account_id': amount_diff > 0 and rec.company_id.currency_exchange_journal_id.default_debit_account_id.id or rec.company_id.currency_exchange_journal_id.default_credit_account_id.id,
-			              'move_id': move.id,
-			              'currency_id': currency.id,
-			              'amount_currency': diff_in_currency,
-			              'partner_id': rec.debit_move_id.partner_id.id,
-			          })
-			          for aml in aml_to_fix:
-			              partial_rec = rec.env['account.partial.reconcile'].create({
-			                  'debit_move_id': aml.credit and line_to_reconcile.id or aml.id,
-			                  'credit_move_id': aml.debit and line_to_reconcile.id or aml.id,
-			                  'amount': abs(aml.amount_residual),
-			                  'amount_currency': abs(aml.amount_residual_currency),
-			                  'currency_id': currency.id,
-			              })
-			          move.post()
-			      return line_to_reconcile, partial_rec
-
-			  # Do not forwardport in master as of 2017-07-20
+			      move.post()
+			  return line_to_reconcile, partial_rec
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env()), pool.AccountPartialReconcile().NewSet(rs.Env())
 		})
+
 	pool.AccountPartialReconcile().Methods().FixMultipleExchangeRatesDiff().DeclareMethod(
 		`FixMultipleExchangeRatesDiff`,
-		func(rs pool.AccountPartialReconcileSet, args struct {
-			AmlsToFix      interface{}
-			AmountDiff     interface{}
-			DiffInCurrency interface{}
-			Currency       interface{}
-			Move           interface{}
-		}) {
+		func(rs pool.AccountPartialReconcileSet, amlsToFix pool.AccountMoveLineSet, amountDiff float64, diffInCurrency float64,
+			currenct pool.CurrencySet, move pool.AccountMoveSet) (pool.AccountMoveLineSet, pool.AccountPartialReconcileSet) {
 			/*def _fix_multiple_exchange_rates_diff(self, amls_to_fix, amount_diff, diff_in_currency, currency, move):
-			      self.ensure_one()
-			      move_lines = self.env['account.move.line'].with_context(check_move_validity=False)
-			      partial_reconciles = self.with_context(skip_full_reconcile_check=True)
-			      amount_diff = self.company_id.currency_id.round(amount_diff)
-			      diff_in_currency = currency.round(diff_in_currency)
+			  self.ensure_one()
+			  move_lines = self.env['account.move.line'].with_context(check_move_validity=False)
+			  partial_reconciles = self.with_context(skip_full_reconcile_check=True)
+			  amount_diff = self.company_id.currency_id.round(amount_diff)
+			  diff_in_currency = currency.round(diff_in_currency)
 
-			      for aml in amls_to_fix:
-			          account_payable_line = move_lines.create({
-			              'name': _('Currency exchange rate difference'),
-			              'debit': amount_diff < 0 and -aml.amount_residual or 0.0,
-			              'credit': amount_diff > 0 and aml.amount_residual or 0.0,
-			              'account_id': self.debit_move_id.account_id.id,
-			              'move_id': move.id,
+			  for aml in amls_to_fix:
+			      account_payable_line = move_lines.create({
+			          'name': _('Currency exchange rate difference'),
+			          'debit': amount_diff < 0 and -aml.amount_residual or 0.0,
+			          'credit': amount_diff > 0 and aml.amount_residual or 0.0,
+			          'account_id': self.debit_move_id.account_id.id,
+			          'move_id': move.id,
+			          'currency_id': currency.id,
+			          'amount_currency': -aml.amount_residual_currency,
+			          'partner_id': self.debit_move_id.partner_id.id,
+			      })
+
+			      move_lines.create({
+			          'name': _('Currency exchange rate difference'),
+			          'debit': amount_diff > 0 and aml.amount_residual or 0.0,
+			          'credit': amount_diff < 0 and -aml.amount_residual or 0.0,
+			          'account_id': amount_diff > 0 and self.company_id.currency_exchange_journal_id.default_debit_account_id.id or self.company_id.currency_exchange_journal_id.default_credit_account_id.id,
+			          'move_id': move.id,
+			          'currency_id': currency.id,
+			          'amount_currency': aml.amount_residual_currency,
+			          'partner_id': self.debit_move_id.partner_id.id})
+
+			      partial_rec = super(AccountPartialReconcile, partial_reconciles).create({
+			              'debit_move_id': aml.credit and account_payable_line.id or aml.id,
+			              'credit_move_id': aml.debit and account_payable_line.id or aml.id,
+			              'amount': abs(aml.amount_residual),
+			              'amount_currency': abs(aml.amount_residual_currency),
 			              'currency_id': currency.id,
-			              'amount_currency': -aml.amount_residual_currency,
-			              'partner_id': self.debit_move_id.partner_id.id,
-			          })
+			      })
 
-			          move_lines.create({
-			              'name': _('Currency exchange rate difference'),
-			              'debit': amount_diff > 0 and aml.amount_residual or 0.0,
-			              'credit': amount_diff < 0 and -aml.amount_residual or 0.0,
-			              'account_id': amount_diff > 0 and self.company_id.currency_exchange_journal_id.default_debit_account_id.id or self.company_id.currency_exchange_journal_id.default_credit_account_id.id,
-			              'move_id': move.id,
-			              'currency_id': currency.id,
-			              'amount_currency': aml.amount_residual_currency,
-			              'partner_id': self.debit_move_id.partner_id.id})
+			      move_lines |= account_payable_line
+			      partial_reconciles |= partial_rec
 
-			          partial_rec = super(AccountPartialReconcile, partial_reconciles).create({
-			                  'debit_move_id': aml.credit and account_payable_line.id or aml.id,
-			                  'credit_move_id': aml.debit and account_payable_line.id or aml.id,
-			                  'amount': abs(aml.amount_residual),
-			                  'amount_currency': abs(aml.amount_residual_currency),
-			                  'currency_id': currency.id,
-			          })
-
-			          move_lines |= account_payable_line
-			          partial_reconciles |= partial_rec
-
-			      partial_reconciles._compute_partial_lines()
-			      return move_lines, partial_reconciles
-
-			  # Do not forwardport in master as of 2017-07-20
+			  partial_reconciles._compute_partial_lines()
+			  return move_lines, partial_reconciles
 			*/
+			return pool.AccountMoveLine().NewSet(rs.Env()), pool.AccountPartialReconcile().NewSet(rs.Env())
 		})
+
 	pool.AccountPartialReconcile().Methods().ComputePartialLines().DeclareMethod(
 		`ComputePartialLines`,
-		func(rs pool.AccountPartialReconcileSet) {
+		func(rs pool.AccountPartialReconcileSet) pool.AccountFullReconcileSet {
 			/*def _compute_partial_lines(self):
-			      if self._context.get('skip_full_reconcile_check'):
-			          #when running the manual reconciliation wizard, don't check the partials separately for full
-			          #reconciliation or exchange rate because it is handled manually after the whole processing
-			          return self
-			      #check if the reconcilation is full
-			      #first, gather all journal items involved in the reconciliation just created
-			      partial_rec_set = OrderedDict.fromkeys([x for x in self])
-			      aml_set = aml_to_balance = self.env['account.move.line']
-			      total_debit = 0
-			      total_credit = 0
-			      total_amount_currency = 0
-			      #make sure that all partial reconciliations share the same secondary currency otherwise it's not
-			      #possible to compute the exchange difference entry and it has to be done manually.
-			      currency = list(partial_rec_set)[0].currency_id
-			      maxdate = None
+			  if self._context.get('skip_full_reconcile_check'):
+			      #when running the manual reconciliation wizard, don't check the partials separately for full
+			      #reconciliation or exchange rate because it is handled manually after the whole processing
+			      return self
+			  #check if the reconcilation is full
+			  #first, gather all journal items involved in the reconciliation just created
+			  partial_rec_set = OrderedDict.fromkeys([x for x in self])
+			  aml_set = aml_to_balance = self.env['account.move.line']
+			  total_debit = 0
+			  total_credit = 0
+			  total_amount_currency = 0
+			  #make sure that all partial reconciliations share the same secondary currency otherwise it's not
+			  #possible to compute the exchange difference entry and it has to be done manually.
+			  currency = list(partial_rec_set)[0].currency_id
+			  maxdate = None
 
-			      for partial_rec in partial_rec_set:
-			          if partial_rec.currency_id != currency:
-			              #no exchange rate entry will be created
-			              currency = None
-			          for aml in [partial_rec.debit_move_id, partial_rec.credit_move_id]:
-			              if aml not in aml_set:
-			                  if aml.amount_residual or aml.amount_residual_currency:
-			                      aml_to_balance |= aml
-			                  maxdate = max(aml.date, maxdate)
-			                  total_debit += aml.debit
-			                  total_credit += aml.credit
-			                  aml_set |= aml
-			                  if aml.currency_id and aml.currency_id == currency:
-			                      total_amount_currency += aml.amount_currency
-			                  elif partial_rec.currency_id and partial_rec.currency_id == currency:
-			                      #if the aml has no secondary currency but is reconciled with other journal item(s) in secondary currency, the amount
-			                      #currency is recorded on the partial rec and in order to check if the reconciliation is total, we need to convert the
-			                      #aml.balance in that foreign currency
-			                      total_amount_currency += aml.company_id.currency_id.with_context(date=aml.date).compute(aml.balance, partial_rec.currency_id)
-			              for x in aml.matched_debit_ids | aml.matched_credit_ids:
-			                  partial_rec_set[x] = None
-			      partial_rec_ids = [x.id for x in partial_rec_set.keys()]
-			      aml_ids = aml_set.ids
-			      #then, if the total debit and credit are equal, or the total amount in currency is 0, the reconciliation is full
-			      digits_rounding_precision = aml_set[0].company_id.currency_id.rounding
+			  for partial_rec in partial_rec_set:
+			      if partial_rec.currency_id != currency:
+			          #no exchange rate entry will be created
+			          currency = None
+			      for aml in [partial_rec.debit_move_id, partial_rec.credit_move_id]:
+			          if aml not in aml_set:
+			              if aml.amount_residual or aml.amount_residual_currency:
+			                  aml_to_balance |= aml
+			              maxdate = max(aml.date, maxdate)
+			              total_debit += aml.debit
+			              total_credit += aml.credit
+			              aml_set |= aml
+			              if aml.currency_id and aml.currency_id == currency:
+			                  total_amount_currency += aml.amount_currency
+			              elif partial_rec.currency_id and partial_rec.currency_id == currency:
+			                  #if the aml has no secondary currency but is reconciled with other journal item(s) in secondary currency, the amount
+			                  #currency is recorded on the partial rec and in order to check if the reconciliation is total, we need to convert the
+			                  #aml.balance in that foreign currency
+			                  total_amount_currency += aml.company_id.currency_id.with_context(date=aml.date).compute(aml.balance, partial_rec.currency_id)
+			          for x in aml.matched_debit_ids | aml.matched_credit_ids:
+			              partial_rec_set[x] = None
+			  partial_rec_ids = [x.id for x in partial_rec_set.keys()]
+			  aml_ids = aml_set.ids
+			  #then, if the total debit and credit are equal, or the total amount in currency is 0, the reconciliation is full
+			  digits_rounding_precision = aml_set[0].company_id.currency_id.rounding
 
-			      if (currency and float_is_zero(total_amount_currency, precision_rounding=currency.rounding)) or float_compare(total_debit, total_credit, precision_rounding=digits_rounding_precision) == 0:
-			          exchange_move_id = False
-			          exchange_partial_rec_id = False
-			          if currency and aml_to_balance:
-			              exchange_move = (self.env['account.move']
-			                               .create(self.env['account.full.reconcile']
-			                                       ._prepare_exchange_diff_move(move_date=maxdate, company=aml_to_balance[0].company_id)))
-			              #eventually create a journal entry to book the difference due to foreign currency's exchange rate that fluctuates
-			              rate_diff_amls, rate_diff_partial_recs = partial_rec._fix_multiple_exchange_rates_diff(aml_to_balance, total_debit - total_credit, total_amount_currency, currency, exchange_move)
-			              aml_ids += rate_diff_amls.ids
-			              partial_rec_ids += rate_diff_partial_recs.ids
-			              exchange_move.post()
-			              exchange_move_id = exchange_move.id
-			              exchange_partial_rec_id = rate_diff_partial_recs[-1:].id
-			          #mark the reference of the full reconciliation on the partial ones and on the entries
-			          self.env['account.full.reconcile'].with_context(check_move_validity=False).create({
-			              'partial_reconcile_ids': [(4, p_id) for p_id in partial_rec_ids],
-			              'reconciled_line_ids': [(4, a_id) for a_id in aml_ids],
-			              'exchange_move_id': exchange_move_id,
-			              'exchange_partial_rec_id': exchange_partial_rec_id,
-			          })
-
-			  # Do not forwardport in master as of 2017-07-20
+			  if (currency and float_is_zero(total_amount_currency, precision_rounding=currency.rounding)) or float_compare(total_debit, total_credit, precision_rounding=digits_rounding_precision) == 0:
+			      exchange_move_id = False
+			      exchange_partial_rec_id = False
+			      if currency and aml_to_balance:
+			          exchange_move = (self.env['account.move']
+			                           .create(self.env['account.full.reconcile']
+			                                   ._prepare_exchange_diff_move(move_date=maxdate, company=aml_to_balance[0].company_id)))
+			          #eventually create a journal entry to book the difference due to foreign currency's exchange rate that fluctuates
+			          rate_diff_amls, rate_diff_partial_recs = partial_rec._fix_multiple_exchange_rates_diff(aml_to_balance, total_debit - total_credit, total_amount_currency, currency, exchange_move)
+			          aml_ids += rate_diff_amls.ids
+			          partial_rec_ids += rate_diff_partial_recs.ids
+			          exchange_move.post()
+			          exchange_move_id = exchange_move.id
+			          exchange_partial_rec_id = rate_diff_partial_recs[-1:].id
+			      #mark the reference of the full reconciliation on the partial ones and on the entries
+			      self.env['account.full.reconcile'].with_context(check_move_validity=False).create({
+			          'partial_reconcile_ids': [(4, p_id) for p_id in partial_rec_ids],
+			          'reconciled_line_ids': [(4, a_id) for a_id in aml_ids],
+			          'exchange_move_id': exchange_move_id,
+			          'exchange_partial_rec_id': exchange_partial_rec_id,
+			      })
 			*/
+			return pool.AccountFullReconcile().NewSet(rs.Env())
 		})
-	pool.AccountPartialReconcile().Methods().Create().DeclareMethod(
-		`Create`,
-		func(rs pool.AccountPartialReconcileSet, args struct {
-			Vals interface{}
-		}) {
+
+	pool.AccountPartialReconcile().Methods().Create().Extend("",
+		func(rs pool.AccountPartialReconcileSet, data *pool.AccountPartialReconcileData) pool.AccountPartialReconcileSet {
 			//@api.model
 			/*def create(self, vals):
-			  move = super(AccountMove, self.with_context(check_move_validity=False, partner_id=vals.get('partner_id'))).create(vals)
-			  move.assert_balanced()
-			  return move
-
+							res = super(AccountPartialReconcile, self).create(vals)
+			       		res._compute_partial_lines()
+			       		return res
 			*/
+			return rs.Super().Create(data)
 		})
-	pool.AccountPartialReconcile().Methods().Unlink().DeclareMethod(
-		`Unlink`,
-		func(rs pool.AccountPartialReconcileSet) {
+
+	pool.AccountPartialReconcile().Methods().Unlink().Extend("",
+		func(rs pool.AccountPartialReconcileSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  for move in self:
-			      #check the lock date + check if some entries are reconciled
-			      move.line_ids._update_check()
-			      move.line_ids.unlink()
-			  return super(AccountMove, self).unlink()
-
+			 """ When removing a partial reconciliation, also unlink its full reconciliation if it exists """
+				to_unlink = self
+				full_to_unlink = self.env['account.full.reconcile']
+				res = True
+				if self._context.get('full_rec_lookup', True):
+					for rec in self:
+						#exclude partial reconciliations related to an exchange rate entry, because the unlink of the full reconciliation will already do it
+						if self.env['account.full.reconcile'].search([('exchange_partial_rec_id', '=', rec.id)]):
+							to_unlink = to_unlink - rec
+						#without the deleted partial reconciliations, the full reconciliation won't be full anymore
+						if rec.full_reconcile_id:
+							full_to_unlink |= rec.full_reconcile_id
+				if to_unlink:
+					res = super(AccountPartialReconcile, to_unlink).unlink()
+				if full_to_unlink:
+					full_to_unlink.unlink()
+				return res
 			*/
+			return rs.Super().Unlink()
 		})
 
 	pool.AccountFullReconcile().DeclareModel()
+
 	pool.AccountFullReconcile().AddFields(map[string]models.FieldDefinition{
-		"Name":                 models.CharField{String: "Name" /*[string 'Number']*/, Required: true, NoCopy: true /*[ default lambda self: self.env['ir.sequence'].next_by_code('account.reconcile']*/},
-		"PartialReconciles":    models.One2ManyField{String: "PartialReconcileIds", RelationModel: pool.AccountPartialReconcile(), ReverseFK: "FullReconcile", JSON: "partial_reconcile_ids" /*['account.partial.reconcile']*/ /*[ 'full_reconcile_id']*/ /*[string 'Reconciliation Parts']*/},
-		"ReconciledLines":      models.One2ManyField{String: "ReconciledLineIds", RelationModel: pool.AccountMoveLine(), ReverseFK: "FullReconcile", JSON: "reconciled_line_ids" /*['account.move.line']*/ /*[ 'full_reconcile_id']*/ /*[string 'Matched Journal Items']*/},
-		"ExchangeMoveId":       models.Many2OneField{ /* ['account.move')] */ },
-		"ExchangePartialRecId": models.Many2OneField{ /* ['account.partial.reconcile')] */ },
+		"Name": models.CharField{String: "Number", Required: true, NoCopy: true,
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.Sequence().NewSet(env).NextByCode("account.reconcile")
+			},
+			/*[ default lambda self: self.env['ir.sequence'].next_by_code('account.reconcile']*/},
+		"PartialReconciles": models.One2ManyField{String: "Reconciliation Parts",
+			RelationModel: pool.AccountPartialReconcile(),
+			ReverseFK:     "FullReconcile", JSON: "partial_reconcile_ids"},
+		"ReconciledLines": models.One2ManyField{String: "Matched Journal Items", RelationModel: pool.AccountMoveLine(),
+			ReverseFK: "FullReconcile", JSON: "reconciled_line_ids"},
+		"ExchangeMove":       models.Many2OneField{RelationModel: pool.AccountMove()},
+		"ExchangePartialRec": models.Many2OneField{RelationModel: pool.AccountPartialReconcile()},
 	})
-	pool.AccountFullReconcile().Methods().Unlink().DeclareMethod(
-		`Unlink`,
-		func(rs pool.AccountFullReconcileSet) {
+
+	pool.AccountFullReconcile().Methods().Unlink().Extend("",
+		func(rs pool.AccountFullReconcileSet) int64 {
 			//@api.multi
 			/*def unlink(self):
-			  for move in self:
-			      #check the lock date + check if some entries are reconciled
-			      move.line_ids._update_check()
-			      move.line_ids.unlink()
-			  return super(AccountMove, self).unlink()
-
+			""" When removing a full reconciliation, we need to revert the eventual journal entries we created to book the
+				fluctuation of the foreign currency's exchange rate.
+				We need also to reconcile together the origin currency difference line and its reversal in order to completly
+				cancel the currency difference entry on the partner account (otherwise it will still appear on the aged balance
+				for example).
+			"""
+			for rec in self:
+				if not rec.exchange_move_id or not rec.exchange_partial_rec_id:
+					continue
+				#reverse the exchange rate entry
+				reversed_move_id = rec.exchange_move_id.reverse_moves()[0]
+				reversed_move = self.env['account.move'].browse(reversed_move_id)
+				#search the original line and its newly created reversal
+				for aml in reversed_move.line_ids:
+					if aml.account_id.reconcile:
+						break
+				if aml:
+					precision = aml.currency_id and aml.currency_id.rounding or aml.company_id.currency_id.rounding
+					if aml.debit or float_compare(aml.amount_currency, 0, precision_rounding=precision) == 1:
+						pair_to_rec = aml | rec.exchange_partial_rec_id.credit_move_id
+					else:
+						pair_to_rec = aml | rec.exchange_partial_rec_id.debit_move_id
+					#remove the partial reconciliation of the exchange rate entry as well
+					rec.exchange_partial_rec_id.with_context(full_rec_lookup=False).unlink()
+					#reconcile together the original exchange rate line and its reversal
+					pair_to_rec.reconcile()
+			return super(AccountFullReconcile, self).unlink()
 			*/
+			return rs.Super().Unlink()
 		})
+
 	pool.AccountFullReconcile().Methods().PrepareExchangeDiffMove().DeclareMethod(
 		`PrepareExchangeDiffMove`,
-		func(rs pool.AccountFullReconcileSet, args struct {
-			MoveDate interface{}
-			Company  interface{}
-		}) {
+		func(rs pool.AccountFullReconcileSet, moveDate dates.Date, company pool.CompanySet) *pool.AccountMoveData {
 			//@api.model
 			/*def _prepare_exchange_diff_move(self, move_date, company):
 			  if not company.currency_exchange_journal_id:
@@ -1753,6 +1989,7 @@ func init() {
 			      res['date'] = move_date
 			  return res
 			*/
+			return new(pool.AccountMoveData)
 		})
 
 }
