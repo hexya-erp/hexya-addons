@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-
+	pool.ReportAccountReportJournal().DeclareTransientModel()
 	pool.ReportAccountReportJournal().Methods().Lines().DeclareMethod(
 		`Lines`,
 		func(rs pool.ReportAccountReportJournalSet, args struct {

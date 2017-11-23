@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-
+	pool.ReportAccountReportGeneralledger().DeclareTransientModel()
 	pool.ReportAccountReportGeneralledger().Methods().GetAccountMoveEntry().DeclareMethod(
 		`GetAccountMoveEntry`,
 		func(rs pool.ReportAccountReportGeneralledgerSet, args struct {

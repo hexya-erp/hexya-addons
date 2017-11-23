@@ -12,8 +12,8 @@ import (
 func init() {
 
 	pool.AccountConfigSettings().DeclareTransientModel()
-	pool.AccountConfigSettings().Methods().GetCurrencyId().DeclareMethod(
-		`GetCurrencyId`,
+	pool.AccountConfigSettings().Methods().GetCurrency().DeclareMethod(
+		`GetCurrency`,
 		func(rs pool.AccountConfigSettingsSet) {
 			//@api.depends('company_id')
 			/*def _get_currency_id(self):
@@ -21,8 +21,8 @@ func init() {
 
 			*/
 		})
-	pool.AccountConfigSettings().Methods().InverseCurrencyId().DeclareMethod(
-		`InverseCurrencyId`,
+	pool.AccountConfigSettings().Methods().InverseCurrency().DeclareMethod(
+		`InverseCurrency`,
 		func(rs pool.AccountConfigSettingsSet) {
 			//@api.one
 			/*def _set_currency_id(self):
@@ -38,7 +38,7 @@ func init() {
 		}},
 		"HasDefaultCompany":      models.BooleanField{String: "HasDefaultCompany" /*[readonly True]*/, Default: models.DefaultValue( /*lambda self: self._default_has_default_company()*/ 0)},
 		"ExpectsChartOfAccounts": models.BooleanField{String: "ExpectsChartOfAccounts" /*[related 'company_id.expects_chart_of_accounts']*/ /*[ string 'This company has its own chart of accounts']*/, Help: "Check this box if this company is a legal entity."},
-		"Currency":               models.Many2OneField{String: "Default company currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: pool.AccountConfigSettings().Methods().GetCurrencyId(), Inverse: pool.AccountConfigSettings().Methods().InverseCurrency(), Required: true, Help: "Main currency of the company."},
+		"Currency":               models.Many2OneField{String: "Default company currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: pool.AccountConfigSettings().Methods().GetCurrency(), Inverse: pool.AccountConfigSettings().Methods().InverseCurrency(), Required: true, Help: "Main currency of the company."},
 		"CompanyFooter":          models.TextField{String: "CompanyFooter" /*[related 'company_id.rml_footer']*/ /*[ string 'Bank accounts footer preview']*/ /*[ readonly True]*/, Help: "Bank accounts as printed in the footer of each printed document"},
 		"HasChartOfAccounts":     models.BooleanField{String: "HasChartOfAccounts" /*[string 'Company has a chart of accounts']*/},
 		"ChartTemplate":          models.Many2OneField{String: "Template", RelationModel: pool.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/ /*, Filter: "[('visible'*/ /*[' ']*/ /*[ True)]"]*/},
@@ -182,8 +182,8 @@ func init() {
 
 			*/
 		})
-	pool.AccountConfigSettings().Methods().SetGroupMultiCurrency().DeclareMethod(
-		`SetGroupMultiCurrency`,
+	pool.AccountConfigSettings().Methods().DeclareGroupMultiCurrency().DeclareMethod(
+		`DeclareGroupMultiCurrency`,
 		func(rs pool.AccountConfigSettingsSet) {
 			//@api.multi
 			/*def set_group_multi_currency(self):
@@ -206,8 +206,8 @@ func init() {
 
 			*/
 		})
-	pool.AccountConfigSettings().Methods().SetTransferAccount().DeclareMethod(
-		`SetTransferAccount`,
+	pool.AccountConfigSettings().Methods().DeclareTransferAccount().DeclareMethod(
+		`DeclareTransferAccount`,
 		func(rs pool.AccountConfigSettingsSet) {
 			//@api.multi
 			/*def set_transfer_account(self):
@@ -216,8 +216,8 @@ func init() {
 
 			*/
 		})
-	pool.AccountConfigSettings().Methods().SetProductTaxes().DeclareMethod(
-		`SetProductTaxes`,
+	pool.AccountConfigSettings().Methods().DeclareProductTaxes().DeclareMethod(
+		`DeclareProductTaxes`,
 		func(rs pool.AccountConfigSettingsSet) {
 			//@api.multi
 			/*def set_product_taxes(self):
@@ -230,8 +230,8 @@ func init() {
 
 			*/
 		})
-	pool.AccountConfigSettings().Methods().SetChartOfAccounts().DeclareMethod(
-		`SetChartOfAccounts`,
+	pool.AccountConfigSettings().Methods().DeclareChartOfAccounts().DeclareMethod(
+		`DeclareChartOfAccounts`,
 		func(rs pool.AccountConfigSettingsSet) {
 			//@api.multi
 			/*def set_chart_of_accounts(self):

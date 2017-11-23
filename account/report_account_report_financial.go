@@ -9,6 +9,7 @@ import (
 
 func init() {
 
+	pool.ReportAccountReportFinancial().DeclareTransientModel()
 	pool.ReportAccountReportFinancial().Methods().ComputeAccountBalance().DeclareMethod(
 		`ComputeAccountBalance`,
 		func(rs pool.ReportAccountReportFinancialSet, args struct {

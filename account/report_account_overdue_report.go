@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-
+	pool.ReportAccountReportOverdue().DeclareTransientModel()
 	pool.ReportAccountReportOverdue().Methods().GetAccountMoveLines().DeclareMethod(
 		`GetAccountMoveLines`,
 		func(rs pool.ReportAccountReportOverdueSet, args struct {

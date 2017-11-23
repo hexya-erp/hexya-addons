@@ -11,20 +11,33 @@ import (
 func init() {
 
 	pool.ProductCategory().AddFields(map[string]models.FieldDefinition{
-		"PropertyAccountIncomeCateg":  models.Many2OneField{String: "Income Account", RelationModel: pool.AccountAccount(), JSON: "property_account_income_categ_id" /*['account.account']*/ /*, CompanyDependent : true*/ /*[ oldname "property_account_income_categ"]*/ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Help: "This account will be used for invoices to value sales."},
-		"PropertyAccountExpenseCateg": models.Many2OneField{String: "Expense Account", RelationModel: pool.AccountAccount(), JSON: "property_account_expense_categ_id" /*['account.account']*/ /*, CompanyDependent : true*/ /*[ oldname "property_account_expense_categ"]*/ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Help: "This account will be used for invoices to value expenses."},
+		"PropertyAccountIncomeCateg": models.Many2OneField{String: "Income Account",
+			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
+			Filter:        pool.AccountAccount().Deprecated().Equals(false),
+			Help:          "This account will be used for invoices to value sales."},
+		"PropertyAccountExpenseCateg": models.Many2OneField{String: "Expense Account",
+			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
+			Filter:        pool.AccountAccount().Deprecated().Equals(false),
+			Help:          "This account will be used for invoices to value expenses."},
 	})
+
 	pool.ProductTemplate().AddFields(map[string]models.FieldDefinition{
-		"Taxes":                  models.Many2ManyField{String: "Customer Taxes", RelationModel: pool.AccountTax(), JSON: "taxes_id" /*['account.tax']*/ /*['product_taxes_rel']*/ /*[ 'prod_id']*/ /*[ 'tax_id']*/ /*[ domain [('type_tax_use']*/ /*[ ' ']*/ /*[ 'sale')]]*/},
-		"SupplierTaxes":          models.Many2ManyField{String: "Vendor Taxes", RelationModel: pool.AccountTax(), JSON: "supplier_taxes_id" /*['account.tax']*/ /*['product_supplier_taxes_rel']*/ /*[ 'prod_id']*/ /*[ 'tax_id']*/ /*[ domain [('type_tax_use']*/ /*[ ' ']*/ /*[ 'purchase')]]*/},
-		"PropertyAccountIncome":  models.Many2OneField{String: "Income Account", RelationModel: pool.AccountAccount(), JSON: "property_account_income_id" /*['account.account']*/ /*, CompanyDependent : true*/ /*[ oldname "property_account_income"]*/ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Help: "This account will be used for invoices instead of the default one to value sales for the current product."},
-		"PropertyAccountExpense": models.Many2OneField{String: "Expense Account", RelationModel: pool.AccountAccount(), JSON: "property_account_expense_id" /*['account.account']*/ /*, CompanyDependent : true*/ /*[ oldname "property_account_expense"]*/ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/, Help: "This account will be used for invoices instead of the default one to value expenses for the current product."},
+		"Taxes": models.Many2ManyField{String: "Customer Taxes", RelationModel: pool.AccountTax(),
+			JSON: "taxes_id", Filter: pool.AccountTax().TypeTaxUse().Equals("sale")},
+		"SupplierTaxes": models.Many2ManyField{String: "Vendor Taxes", RelationModel: pool.AccountTax(),
+			JSON: "supplier_taxes_id", Filter: pool.AccountTax().TypeTaxUse().Equals("purchase")},
+		"PropertyAccountIncome": models.Many2OneField{String: "Income Account", RelationModel: pool.AccountAccount(),
+			/*, CompanyDependent : true*/ Filter: pool.AccountAccount().Deprecated().Equals(false),
+			Help: `This account will be used for invoices instead of the default one
+to value sales for the current product.`},
+		"PropertyAccountExpense": models.Many2OneField{String: "Expense Account", RelationModel: pool.AccountAccount(),
+			/*, CompanyDependent : true*/ Filter: pool.AccountAccount().Deprecated().Equals(false),
+			Help: `This account will be used for invoices instead of the default one
+to value expenses for the current product.`},
 	})
-	pool.ProductTemplate().Methods().Write().DeclareMethod(
-		`Write`,
-		func(rs pool.ProductTemplateSet, args struct {
-			Vals interface{}
-		}) {
+
+	pool.ProductTemplate().Methods().Write().Extend("",
+		func(rs pool.ProductTemplateSet, data *pool.ProductTemplateData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 			  #TODO: really? i don't see the reason we'd need that constraint..
@@ -42,10 +55,12 @@ func init() {
 			  return res
 
 			*/
+			return rs.Super().Write(data, fieldsToReset...)
 		})
+
 	pool.ProductTemplate().Methods().GetProductAccounts().DeclareMethod(
-		`GetProductAccounts`,
-		func(rs pool.ProductTemplateSet) {
+		`GetProductDirectAccounts`,
+		func(rs pool.ProductTemplateSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
 			//@api.multi
 			/*def _get_product_accounts(self):
 			  return {
@@ -54,10 +69,12 @@ func init() {
 			  }
 
 			*/
+			return pool.AccountAccount().NewSet(rs.Env()), pool.AccountAccount().NewSet(rs.Env())
 		})
+
 	pool.ProductTemplate().Methods().GetAssetAccounts().DeclareMethod(
 		`GetAssetAccounts`,
-		func(rs pool.ProductTemplateSet) {
+		func(rs pool.ProductTemplateSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
 			//@api.multi
 			/*def _get_asset_accounts(self):
 			  res = {}
@@ -66,12 +83,12 @@ func init() {
 			  return res
 
 			*/
+			return pool.AccountAccount().NewSet(rs.Env()), pool.AccountAccount().NewSet(rs.Env())
 		})
+
 	pool.ProductTemplate().Methods().GetProductAccounts().DeclareMethod(
 		`GetProductAccounts`,
-		func(rs pool.ProductTemplateSet, args struct {
-			FiscalPos interface{}
-		}) {
+		func(rs pool.ProductTemplateSet, fiscalPos pool.AccountFiscalPositionSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
 			//@api.multi
 			/*def get_product_accounts(self, fiscal_pos=None):
 			  accounts = self._get_product_accounts()
@@ -79,6 +96,7 @@ func init() {
 			      fiscal_pos = self.env['account.fiscal.position']
 			  return fiscal_pos.map_accounts(accounts)
 			*/
+			return pool.AccountAccount().NewSet(rs.Env()), pool.AccountAccount().NewSet(rs.Env())
 		})
 
 }

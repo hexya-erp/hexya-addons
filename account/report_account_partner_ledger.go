@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-
+	pool.ReportAccountReportPartnerledger().DeclareTransientModel()
 	pool.ReportAccountReportPartnerledger().Methods().Lines().DeclareMethod(
 		`Lines`,
 		func(rs pool.ReportAccountReportPartnerledgerSet, args struct {

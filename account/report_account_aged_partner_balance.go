@@ -9,6 +9,7 @@ import (
 
 func init() {
 
+	pool.ReportAccountReportAgedpartnerbalance().DeclareTransientModel()
 	pool.ReportAccountReportAgedpartnerbalance().Methods().GetPartnerMoveLines().DeclareMethod(
 		`GetPartnerMoveLines`,
 		func(rs pool.ReportAccountReportAgedpartnerbalanceSet, args struct {

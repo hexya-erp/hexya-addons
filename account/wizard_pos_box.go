@@ -18,7 +18,7 @@ func init() {
 	})
 	pool.CashBox().Methods().Run().DeclareMethod(
 		`Run`,
-		func(rs pool.Set) {
+		func(rs pool.CashBoxSet) {
 			//@api.multi
 			/*def run(self):
 			  context = dict(self._context or {})
@@ -33,7 +33,7 @@ func init() {
 		})
 	pool.CashBox().Methods().Run().DeclareMethod(
 		`Run`,
-		func(rs pool.Set, args struct {
+		func(rs pool.CashBoxSet, args struct {
 			Records interface{}
 		}) {
 			//@api.multi
@@ -51,7 +51,7 @@ func init() {
 		})
 	pool.CashBox().Methods().CreateBankStatementLine().DeclareMethod(
 		`CreateBankStatementLine`,
-		func(rs pool.Set, args struct {
+		func(rs pool.CashBoxSet, args struct {
 			Record interface{}
 		}) {
 			//@api.one

@@ -4,6 +4,8 @@
 package account
 
 import (
+	"github.com/hexya-erp/hexya-base/web/webdata"
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
@@ -13,21 +15,38 @@ import (
 func init() {
 
 	pool.AccountAccountTemplate().DeclareModel()
+	pool.AccountAccountTemplate().SetDefaultOrder("code")
+
 	pool.AccountAccountTemplate().AddFields(map[string]models.FieldDefinition{
-		"Name":          models.CharField{String: "Name", Required: true, Index: true},
-		"Currency":      models.Many2OneField{String: "Account Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Help: "Forces all moves for this account to have this secondary currency."},
-		"Code":          models.CharField{String: "Code" /*[size 64]*/, Required: true, Index: true},
-		"UserType":      models.Many2OneField{String: "Type", RelationModel: pool.AccountAccountType(), JSON: "user_type_id" /*['account.account.type']*/, Required: true /*[ oldname 'user_type']*/, Help: "These types are defined according to your country. The type contains more information about the account and its specificities."},
-		"Reconcile":     models.BooleanField{String: "Reconcile" /*[string 'Allow Invoices & payments Matching']*/, Default: models.DefaultValue(false), Help: "Check this option if you want the user to reconcile entries in this account."},
-		"Note":          models.TextField{String: "Note" /*[]*/},
-		"Taxs":          models.Many2ManyField{String: "Default Taxes", RelationModel: pool.AccountTaxTemplate(), JSON: "tax_ids" /*['account.tax.template']*/ /*['account_account_template_tax_rel']*/ /*[ 'account_id']*/ /*[ 'tax_id']*/},
-		"Nocreate":      models.BooleanField{String: "Nocreate" /*[string 'Optional Create']*/, Default: models.DefaultValue(false), Help: "If checked, the new chart of accounts will not contain this by default." /*[ the new chart of accounts will not contain this by default."]*/},
-		"ChartTemplate": models.Many2OneField{String: "Chart Template", RelationModel: pool.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/, Help: "This optional field allow you to link an account template to a specific chart template that may differ from the one its root parent belongs to. This allow you  to define chart templates that extend another and complete it with few new accounts (You don't need to define the whole structure that is common to both several times)."},
-		"Tags":          models.Many2ManyField{String: "Account tag", RelationModel: pool.AccountAccountTag(), JSON: "tag_ids" /*['account.account.tag']*/ /*['account_account_template_account_tag']*/ /*[ help "Optional tags you may want to assign for custom reporting"]*/},
+		"Name": models.CharField{Required: true, Index: true},
+		"Currency": models.Many2OneField{String: "Account Currency", RelationModel: pool.Currency(),
+			Help: "Forces all moves for this account to have this secondary currency."},
+		"Code": models.CharField{String: "Code", Size: 64, Required: true, Index: true},
+		"UserType": models.Many2OneField{String: "Type", RelationModel: pool.AccountAccountType(), Required: true,
+			Help: `These types are defined according to your country.
+The type contains more information about the account and its specificities.`},
+		"Reconcile": models.BooleanField{String: "Allow Invoices & payments Matching",
+			Default: models.DefaultValue(false),
+			Help:    "Check this option if you want the user to reconcile entries in this account."},
+		"Note": models.TextField{},
+		"Taxes": models.Many2ManyField{String: "Default Taxes", RelationModel: pool.AccountTaxTemplate(),
+			JSON: "tax_ids"},
+		"Nocreate": models.BooleanField{String: "Optional Create", Default: models.DefaultValue(false),
+			Help: "If checked, the new chart of accounts will not contain this by default."},
+		"ChartTemplate": models.Many2OneField{RelationModel: pool.AccountChartTemplate(),
+			Help: `This optional field allow you to link an account template to a specific chart template that may
+differ from the one its root parent belongs to. This allow you
+to define chart templates that extend another and complete it with
+few new accounts (You don't need to define the whole structure that
+is common to both several times).`},
+		"Tags": models.Many2ManyField{String: "Account tag", RelationModel: pool.AccountAccountTag(), JSON: "tag_ids",
+			Help: "Optional tags you may want to assign for custom reporting"},
 	})
-	pool.AccountAccountTemplate().Methods().NameGet().DeclareMethod(
-		`NameGet`,
-		func(rs pool.AccountAccountTemplateSet) {
+
+	//pool.AccountChartTemplate().Fields().DisplayName().SetDepends([]string{"Name", "Code"})
+
+	pool.AccountAccountTemplate().Methods().NameGet().Extend("",
+		func(rs pool.AccountAccountTemplateSet) string {
 			//@api.depends('name','code')
 			/*def name_get(self):
 			  res = []
@@ -40,38 +59,70 @@ func init() {
 
 
 			*/
+			return rs.Super().NameGet()
 		})
 
 	pool.AccountChartTemplate().DeclareModel()
+
 	pool.AccountChartTemplate().AddFields(map[string]models.FieldDefinition{
-		"Name":                            models.CharField{String: "Name", Required: true},
-		"Company":                         models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/},
-		"Parent":                          models.Many2OneField{String: "Parent Chart Template", RelationModel: pool.AccountChartTemplate(), JSON: "parent_id" /*['account.chart.template']*/},
-		"CodeDigits":                      models.IntegerField{String: "CodeDigits" /*[string '# of Digits']*/, Required: true, Default: models.DefaultValue(6), Help: "No. of Digits to use for account code"},
-		"Visible":                         models.BooleanField{String: "Visible" /*[string 'Can be Visible?']*/, Default: models.DefaultValue(true), Help: "Set this to False if you don't want this template to be used actively in the wizard that generate Chart of Accounts from  templates, this is useful when you want to generate accounts of this template only when loading its child template." /*[ this is useful when you want to generate accounts of this template only when loading its child template."]*/},
-		"Currency":                        models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Required: true},
-		"UseAngloSaxon":                   models.BooleanField{String: "UseAngloSaxon" /*[string "Use Anglo-Saxon accounting"]*/, Default: models.DefaultValue(false)},
-		"CompleteTaxSet":                  models.BooleanField{String: "CompleteTaxSet" /*[string 'Complete Set of Taxes']*/, Default: models.DefaultValue(true), Help: "This boolean helps you to choose if you want to propose to the user to encode the sale and purchase rates or choose from list  of taxes. This last choice assumes that the set of tax defined on this template is complete"},
-		"Accounts":                        models.One2ManyField{String: "AccountIds", RelationModel: pool.AccountAccountTemplate(), ReverseFK: "ChartTemplate", JSON: "account_ids" /*['account.account.template']*/ /*[ 'chart_template_id']*/ /*[string 'Associated Account Templates']*/},
-		"TaxTemplates":                    models.One2ManyField{String: "TaxTemplateIds", RelationModel: pool.AccountTaxTemplate(), ReverseFK: "ChartTemplate", JSON: "tax_template_ids" /*['account.tax.template']*/ /*[ 'chart_template_id']*/ /*[string 'Tax Template List']*/, Help: "List of all the taxes that have to be installed by the wizard"},
-		"BankAccountCodePrefix":           models.CharField{String: "BankAccountCodePrefix" /*[string 'Prefix of the bank accounts']*/ /*[ oldname "bank_account_code_char"]*/},
-		"CashAccountCodePrefix":           models.CharField{String: "CashAccountCodePrefix" /*[string 'Prefix of the main cash accounts']*/},
-		"TransferAccount":                 models.Many2OneField{String: "Transfer Account", RelationModel: pool.AccountAccountTemplate(), JSON: "transfer_account_id" /*['account.account.template']*/, Required: true /*, Filter: lambda self: [('reconcile'*/ /*[ ' ']*/ /*[ True]*/ /*[ ('user_type_id.id']*/ /*[ ' ']*/ /*[ self.env.ref('account.data_account_type_current_assets').id)]]*/, Help: "Intermediary account used when moving money from a liquidity account to another"},
-		"IncomeCurrencyExchangeAccount":   models.Many2OneField{String: "Gain Exchange Rate Account", RelationModel: pool.AccountAccountTemplate(), JSON: "income_currency_exchange_account_id" /*['account.account.template']*/ /*, Filter: [('internal_type'*/ /*[ ' ']*/ /*[ 'other']*/ /*[ ('deprecated']*/ /*[ ' ']*/ /*[ False)]]*/},
-		"ExpenseCurrencyExchangeAccount":  models.Many2OneField{String: "Loss Exchange Rate Account", RelationModel: pool.AccountAccountTemplate(), JSON: "expense_currency_exchange_account_id" /*['account.account.template']*/ /*, Filter: [('internal_type'*/ /*[ ' ']*/ /*[ 'other']*/ /*[ ('deprecated']*/ /*[ ' ']*/ /*[ False)]]*/},
-		"PropertyAccountReceivable":       models.Many2OneField{String: "Receivable Account", RelationModel: pool.AccountAccountTemplate(), JSON: "property_account_receivable_id" /*['account.account.template']*/ /*[ oldname "property_account_receivable"]*/},
-		"PropertyAccountPayable":          models.Many2OneField{String: "Payable Account", RelationModel: pool.AccountAccountTemplate(), JSON: "property_account_payable_id" /*['account.account.template']*/ /*[ oldname "property_account_payable"]*/},
-		"PropertyAccountExpenseCateg":     models.Many2OneField{String: "Category of Expense Account", RelationModel: pool.AccountAccountTemplate(), JSON: "property_account_expense_categ_id" /*['account.account.template']*/ /*[ oldname "property_account_expense_categ"]*/},
-		"PropertyAccountIncomeCateg":      models.Many2OneField{String: "Category of Income Account", RelationModel: pool.AccountAccountTemplate(), JSON: "property_account_income_categ_id" /*['account.account.template']*/ /*[ oldname "property_account_income_categ"]*/},
-		"PropertyAccountExpense":          models.Many2OneField{String: "Expense Account on Product Template", RelationModel: pool.AccountAccountTemplate(), JSON: "property_account_expense_id" /*['account.account.template']*/ /*[ oldname "property_account_expense"]*/},
-		"PropertyAccountIncome":           models.Many2OneField{String: "Income Account on Product Template", RelationModel: pool.AccountAccountTemplate(), JSON: "property_account_income_id" /*['account.account.template']*/ /*[ oldname "property_account_income"]*/},
-		"PropertyStockAccountInputCateg":  models.Many2OneField{String: "Input Account for Stock Valuation", RelationModel: pool.AccountAccountTemplate(), JSON: "property_stock_account_input_categ_id" /*['account.account.template']*/ /*[ oldname "property_stock_account_input_categ"]*/},
-		"PropertyStockAccountOutputCateg": models.Many2OneField{String: "Output Account for Stock Valuation", RelationModel: pool.AccountAccountTemplate(), JSON: "property_stock_account_output_categ_id" /*['account.account.template']*/ /*[ oldname "property_stock_account_output_categ"]*/},
-		"PropertyStockValuationAccount":   models.Many2OneField{String: "Account Template for Stock Valuation", RelationModel: pool.AccountAccountTemplate(), JSON: "property_stock_valuation_account_id" /*['account.account.template']*/},
+		"Name":    models.CharField{Required: true},
+		"Company": models.Many2OneField{RelationModel: pool.Company()},
+		"Parent": models.Many2OneField{String: "Parent Chart Template",
+			RelationModel: pool.AccountChartTemplate()},
+		"CodeDigits": models.IntegerField{String: "# of Digits", Required: true,
+			Default: models.DefaultValue(6), Help: "No. of Digits to use for account code"},
+		"Visible": models.BooleanField{String: "Can be Visible?",
+			Default: models.DefaultValue(true),
+			Help: `Set this to False if you don't want this template to be used actively in the wizard that
+generate Chart of Accounts from templates, this is useful when you want to generate
+accounts of this template only when loading its child template.`},
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(), Required: true},
+		"UseAngloSaxon": models.BooleanField{String: "Use Anglo-Saxon accounting",
+			Default: models.DefaultValue(false)},
+		"CompleteTaxSet": models.BooleanField{String: "Complete Set of Taxes",
+			Default: models.DefaultValue(true),
+			Help: `This boolean helps you to choose if you want to propose to the user to encode the sale and
+purchase rates or choose from list  of taxes. This last choice assumes that the set of tax
+defined on this template is complete`},
+		"Accounts": models.One2ManyField{String: "Associated Account Templates",
+			RelationModel: pool.AccountAccountTemplate(), ReverseFK: "ChartTemplate", JSON: "account_ids"},
+		"TaxTemplates": models.One2ManyField{String: "Tax Template List",
+			RelationModel: pool.AccountTaxTemplate(), ReverseFK: "ChartTemplate", JSON: "tax_template_ids",
+			Help: "List of all the taxes that have to be installed by the wizard"},
+		"BankAccountCodePrefix": models.CharField{String: "Prefix of the bank accounts"},
+		"CashAccountCodePrefix": models.CharField{String: "Prefix of the main cash accounts"},
+		"TransferAccount": models.Many2OneField{RelationModel: pool.AccountAccountTemplate(),
+			Required: true, Filter: pool.AccountAccountTemplate().Reconcile().Equals(true).
+					And().UserTypeFilteredOn(
+				pool.AccountAccountType().HexyaExternalID().Equals("account_data_account_type_current_assets")),
+			Help: "Intermediary account used when moving money from a liquidity account to another"},
+		"IncomeCurrencyExchangeAccount": models.Many2OneField{String: "Gain Exchange Rate Account",
+			RelationModel: pool.AccountAccountTemplate()},
+		"ExpenseCurrencyExchangeAccount": models.Many2OneField{String: "Loss Exchange Rate Account",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyAccountReceivable": models.Many2OneField{String: "Receivable Account",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyAccountPayable": models.Many2OneField{String: "Payable Account",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyAccountExpenseCateg": models.Many2OneField{String: "Category of Expense Account",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyAccountIncomeCateg": models.Many2OneField{String: "Category of Income Account",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyAccountExpense": models.Many2OneField{String: "Expense Account on Product Template",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyAccountIncome": models.Many2OneField{String: "Income Account on Product Template",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyStockAccountInputCateg": models.Many2OneField{String: "Input Account for Stock Valuation",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyStockAccountOutputCateg": models.Many2OneField{String: "Output Account for Stock Valuation",
+			RelationModel: pool.AccountAccountTemplate()},
+		"PropertyStockValuationAccount": models.Many2OneField{String: "Account Template for Stock Valuation",
+			RelationModel: pool.AccountAccountTemplate()},
 	})
+
 	pool.AccountChartTemplate().Methods().TryLoadingForCurrentCompany().DeclareMethod(
 		`TryLoadingForCurrentCompany`,
-		func(rs pool.AccountChartTemplateSet) {
+		func(rs pool.AccountChartTemplateSet) *actions.Action {
 			//@api.one
 			/*def try_loading_for_current_company(self):
 			  self.ensure_one()
@@ -91,10 +142,14 @@ func init() {
 			      wizard.execute()
 
 			*/
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
 		})
+
 	pool.AccountChartTemplate().Methods().OpenSelectTemplateWizard().DeclareMethod(
 		`OpenSelectTemplateWizard`,
-		func(rs pool.AccountChartTemplateSet) {
+		func(rs pool.AccountChartTemplateSet) bool {
 			//@api.multi
 			/*def open_select_template_wizard(self):
 			  # Add action to open wizard to select between several templates
@@ -106,14 +161,13 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountChartTemplate().Methods().GenerateJournals().DeclareMethod(
 		`GenerateJournals`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			AccTemplateRef interface{}
-			Company        interface{}
-			JournalsDict   interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, accTemplateRef map[int64]int64, company pool.CompanySet,
+			journalsData []*pool.AccountJournalData) bool {
 			//@api.model
 			/*def generate_journals(self, acc_template_ref, company, journals_dict=None):
 			  """
@@ -132,24 +186,16 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountChartTemplate().Methods().PrepareAllJournals().DeclareMethod(
 		`PrepareAllJournals`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			AccTemplateRef interface{}
-			Company        interface{}
-			JournalsDict   interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, accTemplateRef map[int64]int64, company pool.CompanySet,
+			journalsData []*pool.AccountJournalData) []*pool.AccountJournalData {
 			//@api.multi
 			/*def _prepare_all_journals(self, acc_template_ref, company, journals_dict=None):
 			 */
-		})
-	pool.AccountChartTemplate().Methods().GetDefaultAccount().DeclareMethod(
-		`GetDefaultAccount`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			JournalVals interface{}
-			Type        interface{}
-		}) {
 			/*def _get_default_account(journal_vals, type='debit'):
 			      # Get the default accounts
 			      default_account = False
@@ -188,13 +234,12 @@ func init() {
 			  return journal_data
 
 			*/
+			return []*pool.AccountJournalData{}
 		})
+
 	pool.AccountChartTemplate().Methods().GenerateProperties().DeclareMethod(
 		`GenerateProperties`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			AccTemplateRef interface{}
-			Company        interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, accTemplateRef map[int64]int64, company pool.CompanySet) bool {
 			//@api.multi
 			/*def generate_properties(self, acc_template_ref, company):
 			  """
@@ -246,17 +291,13 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountChartTemplate().Methods().InstallTemplate().DeclareMethod(
 		`InstallTemplate`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			Company           interface{}
-			CodeDigits        interface{}
-			TransferAccountId interface{}
-			ObjWizard         interface{}
-			AccRef            interface{}
-			TaxesRef          interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, company pool.CompanySet, codeDigits int64, transferAccount pool.AccountAccountSet,
+			objWizard pool.WizardMultiChartsAccountsSet, accRef, taxesRef map[int64]int64) (map[int64]int64, map[int64]int64) {
 			//@api.multi
 			/*def _install_template(self, company, code_digits=None, transfer_account_id=None, obj_wizard=None, acc_ref=None, taxes_ref=None):
 			  """ Recursively load the template objects and create the real objects from them.
@@ -288,16 +329,13 @@ func init() {
 			  return acc_ref, taxes_ref
 
 			*/
+			return accRef, taxesRef
 		})
+
 	pool.AccountChartTemplate().Methods().LoadTemplate().DeclareMethod(
 		`LoadTemplate`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			Company           interface{}
-			CodeDigits        interface{}
-			TransferAccountId interface{}
-			AccountRef        interface{}
-			TaxesRef          interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, company pool.CompanySet, codeDigits int64, transferAccount pool.AccountAccountSet,
+			accountRef, taxesRef map[int64]int64) (map[int64]int64, map[int64]int64) {
 			//@api.multi
 			/*def _load_template(self, company, code_digits=None, transfer_account_id=None, account_ref=None, taxes_ref=None):
 			  """ Generate all the objects from the templates
@@ -357,35 +395,13 @@ func init() {
 			  return account_ref, taxes_ref
 
 			*/
+			return accountRef, taxesRef
 		})
-	pool.AccountChartTemplate().Methods().CreateRecordWithXmlid().DeclareMethod(
-		`CreateRecordWithXmlid`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			Company  interface{}
-			Template interface{}
-			Model    interface{}
-			Vals     interface{}
-		}) {
-			//@api.multi
-			/*def create_record_with_xmlid(self, company, template, model, vals):
-			  # Create a record for the given model with the given vals and
-			  # also create an entry in ir_model_data to have an xmlid for the newly created record
-			  # xmlid is the concatenation of company_id and template_xml_id
-			  ir_model_data = self.env['ir.model.data']
-			  template_xmlid = ir_model_data.search([('model', '=', template._name), ('res_id', '=', template.id)])
-			  new_xml_id = str(company.id)+'_'+template_xmlid.name
-			  return ir_model_data._update(model, template_xmlid.module, vals, xml_id=new_xml_id, store=True, noupdate=True, mode='init', res_id=False)
 
-			*/
-		})
 	pool.AccountChartTemplate().Methods().GetAccountVals().DeclareMethod(
 		`GetAccountVals`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			Company         interface{}
-			AccountTemplate interface{}
-			CodeAcc         interface{}
-			TaxTemplateRef  interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, company pool.CompanySet, accountTemplate pool.AccountAccountSet,
+			codeAcc string, taxTemplateRef map[int64]int64) *pool.AccountAccountData {
 			/*def _get_account_vals(self, company, account_template, code_acc, tax_template_ref):
 			  """ This method generates a dictionnary of all the values for the account that will be created.
 			  """
@@ -407,15 +423,13 @@ func init() {
 			  return val
 
 			*/
+			return &pool.AccountAccountData{}
 		})
+
 	pool.AccountChartTemplate().Methods().GenerateAccount().DeclareMethod(
 		`GenerateAccount`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			TaxTemplateRef interface{}
-			AccTemplateRef interface{}
-			CodeDigits     interface{}
-			Company        interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, taxTemplateRef, accTemplateRef map[int64]int64, codeDigits int,
+			company pool.CompanySet) map[int64]int64 {
 			//@api.multi
 			/*def generate_account(self, tax_template_ref, acc_template_ref, code_digits, company):
 			  """ This method for generating accounts from templates.
@@ -441,15 +455,13 @@ func init() {
 			  return acc_template_ref
 
 			*/
+			return accTemplateRef
 		})
+
 	pool.AccountChartTemplate().Methods().PrepareReconcileModelVals().DeclareMethod(
 		`PrepareReconcileModelVals`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			Company               interface{}
-			AccountReconcileModel interface{}
-			AccTemplateRef        interface{}
-			TaxTemplateRef        interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, company pool.CompanySet, accountReconcileModel pool.AccountReconcileModelTemplateSet,
+			taxTemplateRef, accTemplateRef map[int64]int64) *pool.AccountReconcileModelData {
 			/*def _prepare_reconcile_model_vals(self, company, account_reconcile_model, acc_template_ref, tax_template_ref):
 			  """ This method generates a dictionnary of all the values for the account.reconcile.model that will be created.
 			  """
@@ -472,14 +484,12 @@ func init() {
 			      }
 
 			*/
+			return &pool.AccountReconcileModelData{}
 		})
+
 	pool.AccountChartTemplate().Methods().GenerateAccountReconcileModel().DeclareMethod(
 		`GenerateAccountReconcileModel`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			TaxTemplateRef interface{}
-			AccTemplateRef interface{}
-			Company        interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, taxTemplateRef, accTemplateRef map[int64]int64, company pool.CompanySet) bool {
 			//@api.multi
 			/*def generate_account_reconcile_model(self, tax_template_ref, acc_template_ref, company):
 			  """ This method for generating accounts from templates.
@@ -500,14 +510,12 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.AccountChartTemplate().Methods().GenerateFiscalPosition().DeclareMethod(
 		`GenerateFiscalPosition`,
-		func(rs pool.AccountChartTemplateSet, args struct {
-			TaxTemplateRef interface{}
-			AccTemplateRef interface{}
-			Company        interface{}
-		}) {
+		func(rs pool.AccountChartTemplateSet, taxTemplateRef, accTemplateRef map[int64]int64, company pool.CompanySet) bool {
 			//@api.multi
 			/*def generate_fiscal_position(self, tax_template_ref, acc_template_ref, company):
 			  """ This method generate Fiscal Position, Fiscal Position Accounts and Fiscal Position Taxes from templates.
@@ -538,58 +546,81 @@ func init() {
 
 
 			*/
+			return true
 		})
 
 	pool.AccountTaxTemplate().DeclareModel()
+
 	pool.AccountTaxTemplate().AddFields(map[string]models.FieldDefinition{
-		"ChartTemplate": models.Many2OneField{String: "Chart Template", RelationModel: pool.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/, Required: true},
-		"Name":          models.CharField{String: "Name" /*[string 'Tax Name']*/, Required: true},
+		"ChartTemplate": models.Many2OneField{RelationModel: pool.AccountChartTemplate(), Required: true},
+		"Name":          models.CharField{String: "Tax Name", Required: true},
 		"TypeTaxUse": models.SelectionField{String: "Tax Scope", Selection: types.Selection{
 			"sale":     "Sales",
 			"purchase": "Purchases",
 			"none":     "None",
-		}, /*[]*/ Required: true, Default: models.DefaultValue("sale"), Help: "Determines where the tax is selectable. Note : 'None' means a tax can't be used by itself" /*[ however it can still be used in a group."]*/},
-		"AmountType": models.SelectionField{ /*amount_type = fields.Selection(default='percent', string="Tax Computation", required=True, selection=[('group', 'Group of Taxes'), ('fixed', 'Fixed'), ('percent', 'Percentage of Price'), ('division', 'Percentage of Price Tax Included')])*/ },
-		"Active":     models.BooleanField{String: "Active", Default: models.DefaultValue(true), Help: "Set active to false to hide the tax without removing it."},
-		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*lambda self: self.env.user.company_id*/
-			return 0
-		}},
-		"ChildrenTaxs":      models.Many2ManyField{String: "Children Taxes", RelationModel: pool.AccountTaxTemplate(), JSON: "children_tax_ids" /*['account.tax.template']*/ /*['account_tax_template_filiation_rel']*/ /*[ 'parent_tax']*/ /*[ 'child_tax']*/},
-		"Sequence":          models.IntegerField{String: "Sequence", Required: true, Default: models.DefaultValue(1), Help: "The sequence field is used to define order in which the tax lines are applied."},
-		"Amount":            models.FloatField{String: "Amount", Required: true /*,  Digits:(16*/ /*[ 4]*/},
-		"Account":           models.Many2OneField{String: "Tax Account", RelationModel: pool.AccountAccountTemplate(), JSON: "account_id" /*['account.account.template']*/, OnDelete: models.Restrict, Help: "Account that will be set on invoice tax lines for invoices. Leave empty to use the expense account." /*[ oldname 'account_collected_id']*/},
-		"RefundAccount":     models.Many2OneField{String: "Tax Account on Refunds", RelationModel: pool.AccountAccountTemplate(), JSON: "refund_account_id" /*['account.account.template']*/, OnDelete: models.Restrict, Help: "Account that will be set on invoice tax lines for refunds. Leave empty to use the expense account." /*[ oldname 'account_paid_id']*/},
-		"Description":       models.CharField{String: "Description" /*[string 'Display on Invoices']*/},
-		"PriceInclude":      models.BooleanField{String: "PriceInclude" /*[string 'Included in Price']*/, Default: models.DefaultValue(false), Help: "Check this if the price you use on the product and invoices includes this tax."},
-		"IncludeBaseAmount": models.BooleanField{String: "IncludeBaseAmount" /*[string 'Affect Subsequent Taxes']*/, Default: models.DefaultValue(false), Help: "If set, taxes which are computed after this one will be computed based on the price tax included." /*[ taxes which are computed after this one will be computed based on the price tax included."]*/},
-		"Analytic":          models.BooleanField{String: "Analytic" /*[string "Analytic Cost"]*/, Help: "If set, the amount computed by this tax will be assigned to the same analytic account as the invoice line (if any)" /*[ the amount computed by this tax will be assigned to the same analytic account as the invoice line (if any)"]*/},
-		"Tags":              models.Many2ManyField{String: "Account tag", RelationModel: pool.AccountAccountTag(), JSON: "tag_ids" /*['account.account.tag']*/ /*[ help "Optional tags you may want to assign for custom reporting"]*/},
-		"TaxGroup":          models.Many2OneField{String: "Tax Group", RelationModel: pool.AccountTaxGroup(), JSON: "tax_group_id" /*['account.tax.group']*/},
-		"TaxAdjustment":     models.BooleanField{String: "TaxAdjustment", Default: models.DefaultValue(false)},
+		}, Required: true, Default: models.DefaultValue("sale"),
+			Help: `Determines where the tax is selectable.
+Note : 'None' means a tax can't be used by itself however it can still be used in a group.`},
+		"AmountType": models.SelectionField{String: "Tax Computation",
+			Selection: types.Selection{
+				"group":    "Group of Taxes",
+				"fixed":    "Fixed",
+				"percent":  "Percentage of Price",
+				"division": "Percentage of Price Tax Included",
+			}, Default: models.DefaultValue("percent"), Required: true},
+		"Active": models.BooleanField{Default: models.DefaultValue(true),
+			Help: "Set active to false to hide the tax without removing it."},
+		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.User().NewSet(env).CurrentUser().Company()
+			}},
+		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTaxTemplate(), JSON: "children_tax_ids"},
+		"Sequence": models.IntegerField{Required: true, Default: models.DefaultValue(1),
+			Help: "The sequence field is used to define order in which the tax lines are applied."},
+		"Amount": models.FloatField{Required: true, Digits: nbutils.Digits{Precision: 16, Scale: 4}},
+		"Account": models.Many2OneField{String: "Tax Account", RelationModel: pool.AccountAccountTemplate(),
+			OnDelete: models.Restrict,
+			Help:     "Account that will be set on invoice tax lines for invoices. Leave empty to use the expense account."},
+		"RefundAccount": models.Many2OneField{String: "Tax Account on Refunds",
+			RelationModel: pool.AccountAccountTemplate(), OnDelete: models.Restrict,
+			Help: "Account that will be set on invoice tax lines for refunds. Leave empty to use the expense account."},
+		"Description": models.CharField{String: "Display on Invoices"},
+		"PriceInclude": models.BooleanField{String: "Included in Price", Default: models.DefaultValue(false),
+			Help: "Check this if the price you use on the product and invoices includes this tax."},
+		"IncludeBaseAmount": models.BooleanField{String: "Affect Subsequent Taxes",
+			Default: models.DefaultValue(false),
+			Help:    "If set, taxes which are computed after this one will be computed based on the price tax included."},
+		"Analytic": models.BooleanField{String: "Analytic Cost",
+			Help: `If set, the amount computed by this tax will be assigned to
+the same analytic account as the invoice line (if any)`},
+		"Tags": models.Many2ManyField{String: "Account tag", RelationModel: pool.AccountAccountTag(),
+			JSON: "tag_ids", Help: "Optional tags you may want to assign for custom reporting"},
+		"TaxGroup":      models.Many2OneField{RelationModel: pool.AccountTaxGroup()},
+		"TaxAdjustment": models.BooleanField{Default: models.DefaultValue(false)},
 	})
-	pool.AccountTaxTemplate().AddSQLConstraint( /* [('name_company_uniq'  'unique(name, company_id, type_tax_use)'    type_tax_use)'  'Tax names must be unique !')  ] */ )
-	pool.AccountTaxTemplate().Methods().NameGet().DeclareMethod(
-		`NameGet`,
-		func(rs pool.AccountTaxTemplateSet) {
-			//@api.depends('name','description')
-			/*def name_get(self):
-			  res = []
-			  for record in self:
-			      name = record.name
-			      if record.code:
-			          name = record.code + ' ' + name
-			      res.append((record.id, name))
-			  return res
 
+	pool.AccountTaxTemplate().AddSQLConstraint("name_company_uniq",
+		"unique(name, company_id, type_tax_use)",
+		"Tax names must be unique !")
+
+	pool.AccountTaxTemplate().Methods().NameGet().Extend("",
+		func(rs pool.AccountTaxTemplateSet) string {
+			//@api.depends('name','description')
+			/*
+				def name_get(self):
+					res = []
+					for record in self:
+						name = record.description and record.description or record.name
+						res.append((record.id, name))
+					return res
 
 			*/
+			return rs.Super().NameGet()
 		})
+
 	pool.AccountTaxTemplate().Methods().GetTaxVals().DeclareMethod(
 		`GetTaxVals`,
-		func(rs pool.AccountTaxTemplateSet, args struct {
-			Company interface{}
-		}) {
+		func(rs pool.AccountTaxTemplateSet, company pool.CompanySet) *pool.AccountTaxData {
 			/*def _get_tax_vals(self, company):
 			  """ This method generates a dictionnary of all the values for the tax that will be created.
 			  """
@@ -614,97 +645,138 @@ func init() {
 			  return val
 
 			*/
+			return &pool.AccountTaxData{}
 		})
+
 	pool.AccountTaxTemplate().Methods().GenerateTax().DeclareMethod(
 		`GenerateTax`,
-		func(rs pool.AccountTaxTemplateSet, args struct {
-			Company interface{}
+		func(rs pool.AccountTaxTemplateSet, company pool.CompanySet) (map[int64]int64, map[int64]struct {
+			AccountID       int64
+			RefundAccountID int64
 		}) {
 			//@api.multi
 			/*def _generate_tax(self, company):
-			        """ This method generate taxes from templates.
+			  """ This method generate taxes from templates.
 
-			            :param company: the company for which the taxes should be created from templates in self
-			            :returns: {
-			                'tax_template_to_tax': mapping between tax template and the newly generated taxes corresponding,
-			                'account_dict': dictionary containing a to-do list with all the accounts to assign on new taxes
-			            }
-			        """
-			        todo_dict = {}
-			        tax_template_to_tax = {}
-			        for tax in self:
-			            # Compute children tax ids
-			            children_ids = []
-			            for child_tax in tax.children_tax_ids:
-			                if tax_template_to_tax.get(child_tax.id):
-			                    children_ids.append(tax_template_to_tax[child_tax.id])
-			            vals_tax = tax._get_tax_vals(company)
-			            vals_tax['children_tax_ids'] = children_ids and [(6, 0, children_ids)] or []
-			            new_tax = self.env['account.chart.template'].create_record_with_xmlid(company, tax, 'account.tax', vals_tax)
-			            tax_template_to_tax[tax.id] = new_tax
-			            # Since the accounts have not been created yet, we have to wait before filling these fields
-			            todo_dict[new_tax] = {
-			                'account_id': tax.account_id.id,
-			                'refund_account_id': tax.refund_account_id.id,
-			            }
+			      :param company: the company for which the taxes should be created from templates in self
+			      :returns: {
+			          'tax_template_to_tax': mapping between tax template and the newly generated taxes corresponding,
+			          'account_dict': dictionary containing a to-do list with all the accounts to assign on new taxes
+			      }
+			  """
+			  todo_dict = {}
+			  tax_template_to_tax = {}
+			  for tax in self:
+			      # Compute children tax ids
+			      children_ids = []
+			      for child_tax in tax.children_tax_ids:
+			          if tax_template_to_tax.get(child_tax.id):
+			              children_ids.append(tax_template_to_tax[child_tax.id])
+			      vals_tax = tax._get_tax_vals(company)
+			      vals_tax['children_tax_ids'] = children_ids and [(6, 0, children_ids)] or []
+			      new_tax = self.env['account.chart.template'].create_record_with_xmlid(company, tax, 'account.tax', vals_tax)
+			      tax_template_to_tax[tax.id] = new_tax
+			      # Since the accounts have not been created yet, we have to wait before filling these fields
+			      todo_dict[new_tax] = {
+			          'account_id': tax.account_id.id,
+			          'refund_account_id': tax.refund_account_id.id,
+			      }
 
-			        return {
-			            'tax_template_to_tax': tax_template_to_tax,
-			            'account_dict': todo_dict
-			        }
-
-
-			# Fiscal Position Templates
+			  return {
+			      'tax_template_to_tax': tax_template_to_tax,
+			      'account_dict': todo_dict
+			  }
 
 			*/
+			return make(map[int64]int64), make(map[int64]struct {
+				AccountID       int64
+				RefundAccountID int64
+			})
 		})
 
 	pool.AccountFiscalPositionTemplate().DeclareModel()
+
 	pool.AccountFiscalPositionTemplate().AddFields(map[string]models.FieldDefinition{
-		"Name":          models.CharField{String: "Name" /*[string 'Fiscal Position Template']*/, Required: true},
-		"ChartTemplate": models.Many2OneField{String: "Chart Template", RelationModel: pool.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/, Required: true},
-		"Accounts":      models.One2ManyField{String: "AccountIds", RelationModel: pool.AccountFiscalPositionAccountTemplate(), ReverseFK: "Position", JSON: "account_ids" /*['account.fiscal.position.account.template']*/ /*[ 'position_id']*/ /*[string 'Account Mapping']*/},
-		"Taxs":          models.One2ManyField{String: "TaxIds", RelationModel: pool.AccountFiscalPositionTaxTemplate(), ReverseFK: "Position", JSON: "tax_ids" /*['account.fiscal.position.tax.template']*/ /*[ 'position_id']*/ /*[string 'Tax Mapping']*/},
-		"Note":          models.TextField{String: "Note" /*[string 'Notes']*/},
+		"Name":          models.CharField{String: "Fiscal Position Template", Required: true},
+		"ChartTemplate": models.Many2OneField{RelationModel: pool.AccountChartTemplate(), Required: true},
+		"Accounts": models.One2ManyField{String: "Account Mapping",
+			RelationModel: pool.AccountFiscalPositionAccountTemplate(), ReverseFK: "Position", JSON: "account_ids"},
+		"Taxes": models.One2ManyField{String: "Tax Mapping", RelationModel: pool.AccountFiscalPositionTaxTemplate(),
+			ReverseFK: "Position", JSON: "tax_ids"},
+		"Note": models.TextField{String: "Notes"},
 	})
 
 	pool.AccountFiscalPositionTaxTemplate().DeclareModel()
+
 	pool.AccountFiscalPositionTaxTemplate().AddFields(map[string]models.FieldDefinition{
-		"Position": models.Many2OneField{String: "Fiscal Position", RelationModel: pool.AccountFiscalPositionTemplate(), JSON: "position_id" /*['account.fiscal.position.template']*/, Required: true, OnDelete: models.Cascade},
-		"TaxSrc":   models.Many2OneField{String: "Tax Source", RelationModel: pool.AccountTaxTemplate(), JSON: "tax_src_id" /*['account.tax.template']*/, Required: true},
-		"TaxDest":  models.Many2OneField{String: "Replacement Tax", RelationModel: pool.AccountTaxTemplate(), JSON: "tax_dest_id" /*['account.tax.template']*/},
+		"Position": models.Many2OneField{String: "Fiscal Position", RelationModel: pool.AccountFiscalPositionTemplate(),
+			Required: true, OnDelete: models.Cascade},
+		"TaxSrc":  models.Many2OneField{String: "Tax Source", RelationModel: pool.AccountTaxTemplate(), Required: true},
+		"TaxDest": models.Many2OneField{String: "Replacement Tax", RelationModel: pool.AccountTaxTemplate()},
 	})
+
+	pool.AccountFiscalPositionTaxTemplate().Methods().NameGet().Extend("",
+		func(rs pool.AccountFiscalPositionTaxTemplateSet) string {
+			return rs.Position().NameGet()
+		})
 
 	pool.AccountFiscalPositionAccountTemplate().DeclareModel()
+
 	pool.AccountFiscalPositionAccountTemplate().AddFields(map[string]models.FieldDefinition{
-		"Position":    models.Many2OneField{String: "Fiscal Mapping", RelationModel: pool.AccountFiscalPositionTemplate(), JSON: "position_id" /*['account.fiscal.position.template']*/, Required: true, OnDelete: models.Cascade},
-		"AccountSrc":  models.Many2OneField{String: "Account Source", RelationModel: pool.AccountAccountTemplate(), JSON: "account_src_id" /*['account.account.template']*/, Required: true},
-		"AccountDest": models.Many2OneField{String: "Account Destination", RelationModel: pool.AccountAccountTemplate(), JSON: "account_dest_id" /*['account.account.template']*/, Required: true},
+		"Position": models.Many2OneField{String: "Fiscal Mapping",
+			RelationModel: pool.AccountFiscalPositionTemplate(), Required: true, OnDelete: models.Cascade},
+		"AccountSrc": models.Many2OneField{String: "Account Source", RelationModel: pool.AccountAccountTemplate(),
+			Required: true},
+		"AccountDest": models.Many2OneField{String: "Account Destination", RelationModel: pool.AccountAccountTemplate(),
+			Required: true},
 	})
 
+	pool.AccountFiscalPositionAccountTemplate().Methods().NameGet().Extend("",
+		func(rs pool.AccountFiscalPositionAccountTemplateSet) string {
+			return rs.Position().NameGet()
+		})
+
 	pool.WizardMultiChartsAccounts().DeclareTransientModel()
+	//pool.WizardMultiChartsAccounts().InheritModel(ResConfig)
+
 	pool.WizardMultiChartsAccounts().AddFields(map[string]models.FieldDefinition{
-		"Company":               models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Required: true},
-		"Currency":              models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Help: "Currency as per company's country.", Required: true},
-		"OnlyOneChartTemplate":  models.BooleanField{String: "OnlyOneChartTemplate" /*[string 'Only One Chart Template Available']*/},
-		"ChartTemplate":         models.Many2OneField{String: "Chart Template", RelationModel: pool.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/, Required: true},
-		"BankAccounts":          models.One2ManyField{String: "BankAccountIds", RelationModel: pool.AccountBankAccountsWizard(), ReverseFK: "BankAccount", JSON: "bank_account_ids" /*['account.bank.accounts.wizard']*/ /*[ 'bank_account_id']*/ /*[string 'Cash and Banks']*/, Required: true /*[ oldname "bank_accounts_id"]*/},
-		"BankAccountCodePrefix": models.CharField{String: "Bank Accounts Prefix" /*['Bank Accounts Prefix']*/ /*[ oldname "bank_account_code_char"]*/},
-		"CashAccountCodePrefix": models.CharField{String: "Cash Accounts Prefix')" /*['Cash Accounts Prefix']*/},
-		"CodeDigits":            models.IntegerField{String: "CodeDigits" /*[string '# of Digits']*/, Required: true, Help: "No. of Digits to use for account code"},
-		"SaleTax":               models.Many2OneField{String: "Default Sales Tax", RelationModel: pool.AccountTaxTemplate(), JSON: "sale_tax_id" /*['account.tax.template']*/ /*[ oldname "sale_tax"]*/},
-		"PurchaseTax":           models.Many2OneField{String: "Default Purchase Tax", RelationModel: pool.AccountTaxTemplate(), JSON: "purchase_tax_id" /*['account.tax.template']*/ /*[ oldname "purchase_tax"]*/},
-		"SaleTaxRate":           models.FloatField{String: "SaleTaxRate" /*[string 'Sales Tax(%)']*/},
-		"UseAngloSaxon":         models.BooleanField{String: "UseAngloSaxon" /*[string 'Use Anglo-Saxon Accounting']*/ /*[ related 'chart_template_id.use_anglo_saxon']*/},
-		"TransferAccount":       models.Many2OneField{String: "Transfer Account", RelationModel: pool.AccountAccountTemplate(), JSON: "transfer_account_id" /*['account.account.template']*/, Required: true /*, Filter: lambda self: [('reconcile'*/ /*[ ' ']*/ /*[ True]*/ /*[ ('user_type_id.id']*/ /*[ ' ']*/ /*[ self.env.ref('account.data_account_type_current_assets').id)]]*/, Help: "Intermediary account used when moving money from a liquidity account to another"},
-		"PurchaseTaxRate":       models.FloatField{String: "PurchaseTaxRate" /*[string 'Purchase Tax(%)']*/},
-		"CompleteTaxSet":        models.BooleanField{String: "Complete Set of Taxes" /*['Complete Set of Taxes']*/, Help: "This boolean helps you to choose if you want to propose to the user to encode the sales and purchase rates or use  the usual m2o fields. This last choice assumes that the set of tax defined for the chosen template is complete"},
+		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true},
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+			Help: "Currency as per company's country.", Required: true},
+		"OnlyOneChartTemplate": models.BooleanField{String: "Only One Chart Template Available"},
+		"ChartTemplate": models.Many2OneField{String: "Chart Template",
+			RelationModel: pool.AccountChartTemplate(), Required: true,
+			OnChange: pool.WizardMultiChartsAccounts().Methods().OnchangeChartTemplate()},
+		"BankAccounts": models.One2ManyField{String: "Cash and Banks",
+			RelationModel: pool.AccountBankAccountsWizard(), ReverseFK: "BankAccount", JSON: "bank_account_ids",
+			Required: true},
+		"BankAccountCodePrefix": models.CharField{String: "Bank Accounts Prefix"},
+		"CashAccountCodePrefix": models.CharField{String: "Cash Accounts Prefix"},
+		"CodeDigits": models.IntegerField{String: "# of Digits", Required: true,
+			Help: "No. of Digits to use for account code"},
+		"SaleTax": models.Many2OneField{String: "Default Sales Tax",
+			RelationModel: pool.AccountTaxTemplate()},
+		"PurchaseTax": models.Many2OneField{String: "Default Purchase Tax",
+			RelationModel: pool.AccountTaxTemplate()},
+		"SaleTaxRate": models.FloatField{String: "Sales Tax(%)",
+			OnChange: pool.WizardMultiChartsAccounts().Methods().OnchangeTaxRate()},
+		"UseAngloSaxon": models.BooleanField{String: "Use Anglo-Saxon Accounting",
+			Related: "ChartTemplate.UseAngloSaxon"},
+		"TransferAccount": models.Many2OneField{RelationModel: pool.AccountAccountTemplate(),
+			Required: true, Filter: pool.AccountAccountTemplate().Reconcile().Equals(true).
+					And().UserTypeFilteredOn(
+				pool.AccountAccountType().HexyaExternalID().Equals("account_data_account_type_current_assets")),
+			Help: "Intermediary account used when moving money from a liquidity account to another"},
+		"PurchaseTaxRate": models.FloatField{String: "Purchase Tax(%)"},
+		"CompleteTaxSet": models.BooleanField{String: "Complete Set of Taxes",
+			Help: `This boolean helps you to choose if you want to propose to the user to encode the sales and
+purchase rates or use the usual m2o fields. This last choice assumes that the
+set of tax defined for the chosen template is complete`},
 	})
+
 	pool.WizardMultiChartsAccounts().Methods().GetChartParentIds().DeclareMethod(
 		`GetChartParentIds`,
-		func(rs pool.WizardMultiChartsAccountsSet, args struct {
-			ChartTemplate interface{}
-		}) {
+		func(rs pool.WizardMultiChartsAccountsSet, chartTemplate pool.AccountChartTemplateSet) pool.AccountChartTemplateSet {
 			//@api.model
 			/*def _get_chart_parent_ids(self, chart_template):
 			  """ Returns the IDs of all ancestor charts, including the chart itself.
@@ -720,19 +792,23 @@ func init() {
 			  return result
 
 			*/
+			return pool.AccountChartTemplate().NewSet(rs.Env())
 		})
+
 	pool.WizardMultiChartsAccounts().Methods().OnchangeTaxRate().DeclareMethod(
 		`OnchangeTaxRate`,
-		func(rs pool.WizardMultiChartsAccountsSet) {
+		func(rs pool.WizardMultiChartsAccountsSet) (*pool.WizardMultiChartsAccountsData, []models.FieldNamer) {
 			//@api.onchange('sale_tax_rate')
 			/*def onchange_tax_rate(self):
 			  self.purchase_tax_rate = self.sale_tax_rate or False
 
 			*/
+			return &pool.WizardMultiChartsAccountsData{}, []models.FieldNamer{}
 		})
-	pool.WizardMultiChartsAccounts().Methods().OnchangeChartTemplateId().DeclareMethod(
+
+	pool.WizardMultiChartsAccounts().Methods().OnchangeChartTemplate().DeclareMethod(
 		`OnchangeChartTemplateId`,
-		func(rs pool.WizardMultiChartsAccountsSet) {
+		func(rs pool.WizardMultiChartsAccountsSet) (*pool.WizardMultiChartsAccountsData, []models.FieldNamer) {
 			//@api.onchange('chart_template_id')
 			/*def onchange_chart_template_id(self):
 			  res = {}
@@ -765,21 +841,22 @@ func init() {
 			  return res
 
 			*/
+			return &pool.WizardMultiChartsAccountsData{}, []models.FieldNamer{}
 		})
+
 	pool.WizardMultiChartsAccounts().Methods().GetDefaultBankAccountIds().DeclareMethod(
 		`GetDefaultBankAccountIds`,
-		func(rs pool.WizardMultiChartsAccountsSet) {
+		func(rs pool.WizardMultiChartsAccountsSet) pool.AccountBankAccountsWizardSet {
 			//@api.model
 			/*def _get_default_bank_account_ids(self):
 			  return [{'acc_name': _('Cash'), 'account_type': 'cash'}, {'acc_name': _('Bank'), 'account_type': 'bank'}]
 
 			*/
+			return pool.AccountBankAccountsWizard().NewSet(rs.Env())
 		})
-	pool.WizardMultiChartsAccounts().Methods().DefaultGet().DeclareMethod(
-		`DefaultGet`,
-		func(rs pool.WizardMultiChartsAccountsSet, args struct {
-			Fields interface{}
-		}) {
+
+	pool.WizardMultiChartsAccounts().Methods().DefaultGet().Extend("",
+		func(rs pool.WizardMultiChartsAccountsSet) models.FieldMap {
 			//@api.model
 			/*def default_get(self, fields):
 			  context = self._context or {}
@@ -826,15 +903,11 @@ func init() {
 			  return res
 
 			*/
+			return rs.Super().DefaultGet()
 		})
-	pool.WizardMultiChartsAccounts().Methods().FieldsViewGet().DeclareMethod(
-		`FieldsViewGet`,
-		func(rs pool.WizardMultiChartsAccountsSet, args struct {
-			ViewId   interface{}
-			ViewType interface{}
-			Toolbar  interface{}
-			Submenu  interface{}
-		}) {
+
+	pool.WizardMultiChartsAccounts().Methods().FieldsViewGet().Extend("",
+		func(rs pool.WizardMultiChartsAccountsSet, args webdata.FieldsViewGetParams) *webdata.FieldsViewData {
 			//@api.model
 			/*def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
 			  context = self._context or {}
@@ -857,12 +930,12 @@ func init() {
 			  return res
 
 			*/
+			return rs.Super().FieldsViewGet(args)
 		})
+
 	pool.WizardMultiChartsAccounts().Methods().CreateTaxTemplatesFromRates().DeclareMethod(
 		`CreateTaxTemplatesFromRates`,
-		func(rs pool.WizardMultiChartsAccountsSet, args struct {
-			CompanyId interface{}
-		}) {
+		func(rs pool.WizardMultiChartsAccountsSet, company pool.CompanySet) bool {
 			//@api.one
 			/*def _create_tax_templates_from_rates(self, company_id):
 			  '''
@@ -886,10 +959,12 @@ func init() {
 			  return True
 
 			*/
+			return true
 		})
+
 	pool.WizardMultiChartsAccounts().Methods().Execute().DeclareMethod(
 		`Execute`,
-		func(rs pool.WizardMultiChartsAccountsSet) {
+		func(rs pool.WizardMultiChartsAccountsSet) bool {
 			//@api.multi
 			/*def execute(self):
 			  '''
@@ -951,13 +1026,12 @@ func init() {
 			  return {}
 
 			*/
+			return true
 		})
+
 	pool.WizardMultiChartsAccounts().Methods().CreateBankJournalsFromO2m().DeclareMethod(
 		`CreateBankJournalsFromO2m`,
-		func(rs pool.WizardMultiChartsAccountsSet, args struct {
-			Company        interface{}
-			AccTemplateRef interface{}
-		}) {
+		func(rs pool.WizardMultiChartsAccountsSet, company pool.CompanySet, accTemplateRef map[int64]int64) {
 			//@api.multi
 			/*def _create_bank_journals_from_o2m(self, company, acc_template_ref):
 			  '''
@@ -984,28 +1058,47 @@ func init() {
 		})
 
 	pool.AccountBankAccountsWizard().DeclareTransientModel()
+
 	pool.AccountBankAccountsWizard().AddFields(map[string]models.FieldDefinition{
-		"AccName":     models.CharField{String: "AccName" /*[string 'Account Name.']*/, Required: true},
-		"BankAccount": models.Many2OneField{String: "Bank Account", RelationModel: pool.WizardMultiChartsAccounts(), JSON: "bank_account_id" /*['wizard.multi.charts.accounts']*/, Required: true, OnDelete: models.Cascade},
-		"Currency":    models.Many2OneField{String: "Account Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Help: "Forces all moves for this account to have this secondary currency."},
-		"AccountType": models.SelectionField{ /*account_type = fields.Selection([('cash', 'Cash'), ('bank', 'Bank')])*/ },
+		"AccName": models.CharField{String: "Account Name", Required: true},
+		"BankAccount": models.Many2OneField{RelationModel: pool.WizardMultiChartsAccounts(),
+			Required: true, OnDelete: models.Cascade},
+		"Currency": models.Many2OneField{String: "Account Currency", RelationModel: pool.Currency(),
+			Help: "Forces all moves for this account to have this secondary currency."},
+		"AccountType": models.SelectionField{Selection: types.Selection{
+			"cash": "Cash",
+			"bank": "Bank",
+		}},
 	})
 
 	pool.AccountReconcileModelTemplate().DeclareModel()
+
 	pool.AccountReconcileModelTemplate().AddFields(map[string]models.FieldDefinition{
-		"Name":             models.CharField{String: "Name" /*[string 'Button Label']*/, Required: true},
-		"Sequence":         models.IntegerField{String: "Sequence", Required: true, Default: models.DefaultValue(10)},
-		"HasSecondLine":    models.BooleanField{String: "HasSecondLine" /*[string 'Add a second line']*/, Default: models.DefaultValue(false)},
-		"Account":          models.Many2OneField{String: "Account", RelationModel: pool.AccountAccountTemplate(), JSON: "account_id" /*['account.account.template']*/, OnDelete: models.Cascade /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
-		"Label":            models.CharField{String: "Label" /*[string 'Journal Item Label']*/},
-		"AmountType":       models.SelectionField{ /*amount_type = fields.Selection([ ('fixed', 'Fixed'), ('percentage', 'Percentage of balance')*/ },
-		"Amount":           models.FloatField{String: "Amount", Digits: nbutils.Digits{0, 0}, Required: true, Default: models.DefaultValue(100.0), Help: "Fixed amount will count as a debit if it is negative, as a credit if it is positive." /*[ as a credit if it is positive."]*/},
-		"Tax":              models.Many2OneField{String: "Tax", RelationModel: pool.AccountTaxTemplate(), JSON: "tax_id" /*['account.tax.template']*/, OnDelete: models.Restrict /*, Filter: [('type_tax_use'*/ /*[ ' ']*/ /*[ 'purchase')]]*/},
-		"SecondAccount":    models.Many2OneField{String: "Second Account", RelationModel: pool.AccountAccountTemplate(), JSON: "second_account_id" /*['account.account.template']*/, OnDelete: models.Cascade /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
-		"SecondLabel":      models.CharField{String: "SecondLabel" /*[string 'Second Journal Item Label']*/},
-		"SecondAmountType": models.SelectionField{ /*second_amount_type = fields.Selection([ ('fixed', 'Fixed'), ('percentage', 'Percentage of amount')*/ },
-		"SecondAmount":     models.FloatField{String: "SecondAmount" /*[string 'Second Amount']*/, Digits: nbutils.Digits{0, 0}, Required: true, Default: models.DefaultValue(100.0), Help: "Fixed amount will count as a debit if it is negative, as a credit if it is positive." /*[ as a credit if it is positive."]*/},
-		"SecondTax":        models.Many2OneField{String: "Second Tax", RelationModel: pool.AccountTaxTemplate(), JSON: "second_tax_id" /*['account.tax.template']*/, OnDelete: models.Restrict /*, Filter: [('type_tax_use'*/ /*[ ' ']*/ /*[ 'purchase')]]*/},
+		"Name":          models.CharField{String: "Button Label", Required: true},
+		"Sequence":      models.IntegerField{String: "Sequence", Required: true, Default: models.DefaultValue(10)},
+		"HasSecondLine": models.BooleanField{String: "Add a second line", Default: models.DefaultValue(false)},
+		"Account": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccountTemplate(),
+			OnDelete: models.Cascade},
+		"Label": models.CharField{String: "Journal Item Label"},
+		"AmountType": models.SelectionField{Selection: types.Selection{
+			"fixed":      "Fixed",
+			"percentage": "Percentage of balance",
+		}},
+		"Amount": models.FloatField{Required: true, Default: models.DefaultValue(100.0),
+			Help: "Fixed amount will count as a debit if it is negative, as a credit if it is positive."},
+		"Tax": models.Many2OneField{RelationModel: pool.AccountTaxTemplate(),
+			OnDelete: models.Restrict, Filter: pool.AccountTaxTemplate().TypeTaxUse().Equals("purchase")},
+		"SecondAccount": models.Many2OneField{RelationModel: pool.AccountAccountTemplate(),
+			OnDelete: models.Cascade},
+		"SecondLabel": models.CharField{String: "Second Journal Item Label"},
+		"SecondAmountType": models.SelectionField{Selection: types.Selection{
+			"fixed":      "Fixed",
+			"percentage": "Percentage of amount",
+		}},
+		"SecondAmount": models.FloatField{Required: true, Default: models.DefaultValue(100.0),
+			Help: "Fixed amount will count as a debit if it is negative, as a credit if it is positive."},
+		"SecondTax": models.Many2OneField{String: "Second Tax", RelationModel: pool.AccountTaxTemplate(),
+			OnDelete: models.Restrict, Filter: pool.AccountTaxTemplate().TypeTaxUse().Equals("purchase")},
 	})
 
 }
