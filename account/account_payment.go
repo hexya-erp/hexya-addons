@@ -141,7 +141,7 @@ has only one available which is 'manual'`},
 	pool.AccountRegisterPayments().DeclareTransientModel()
 	pool.AccountRegisterPayments().InheritModel(pool.AccountAbstractPayment())
 
-	pool.AccountRegisterPayments().Fields().PaymentType().SetOnchange(pool.AccountRegisterPayments().Methods().OnchangePaymentType())
+	// pool.AccountRegisterPayments().Fields().PaymentType().SetOnchange(pool.AccountRegisterPayments().Methods().OnchangePaymentType())
 
 	pool.AccountRegisterPayments().Methods().OnchangePaymentType().DeclareMethod(
 		`OnchangePaymentType`,
@@ -281,11 +281,11 @@ set to draft and re-processed again." `},
 			JSON: "move_line_ids" /* readonly */, NoCopy: true},
 	})
 
-	pool.AccountPayment().Fields().PaymentType().
-		UpdateSelection(types.Selection{"transfer": "Internal Transfer"}).
-		SetOnchange(pool.AccountPayment().Methods().OnchangePaymentType())
-
-	pool.AccountPayment().Fields().PartnerType().SetOnchange(pool.AccountPayment().Methods().OnchangePartnerType())
+	//pool.AccountPayment().Fields().PaymentType().
+	//	UpdateSelection(types.Selection{"transfer": "Internal Transfer"}).
+	//	SetOnchange(pool.AccountPayment().Methods().OnchangePaymentType())
+	//
+	//pool.AccountPayment().Fields().PartnerType().SetOnchange(pool.AccountPayment().Methods().OnchangePartnerType())
 
 	pool.AccountPayment().Methods().ComputeHasInvoices().DeclareMethod(
 		`ComputeHasInvoices`,

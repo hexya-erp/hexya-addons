@@ -248,7 +248,7 @@ func init() {
 	})
 
 	pool.AccountFiscalPositionTax().AddSQLConstraint("tax_src_dest_uniq",
-		"unique (position_id tax_src_id tax_dest_id)",
+		"unique (position_id, tax_src_id, tax_dest_id)",
 		"A tax fiscal position could be defined only once time on same taxes.")
 
 	pool.AccountFiscalPositionTax().Methods().NameGet().Extend("",
@@ -267,7 +267,7 @@ func init() {
 	})
 
 	pool.AccountFiscalPositionAccount().AddSQLConstraint("account_src_dest_uniq",
-		"unique (position_id account_src_id account_dest_id)",
+		"unique (position_id, account_src_id, account_dest_id)",
 		"An account fiscal position could be defined only once time on same accounts.")
 
 	pool.AccountFiscalPositionAccount().Methods().NameGet().Extend("",
@@ -297,12 +297,14 @@ func init() {
 			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
 			Filter:        pool.AccountAccount().InternalType().Equals("payable").And().Deprecated().Equals(false),
 			Help:          "This account will be used instead of the default one as the payable account for the current partner",
-			Required:      true},
+			//Required:      true,
+		},
 		"PropertyAccountReceivable": models.Many2OneField{String: "Account Receivable",
 			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
 			Filter:        pool.AccountAccount().InternalType().Equals("receivable").And().Deprecated().Equals(false),
 			Help:          "This account will be used instead of the default one as the receivable account for the current partner",
-			Required:      true},
+			//Required:      true,
+		},
 		"PropertyAccountPosition": models.Many2OneField{String: "Fiscal Position",
 			RelationModel: pool.AccountFiscalPosition(), /*, CompanyDependent : true*/
 			Help:          "The fiscal position will determine taxes and accounts used for the partner."},

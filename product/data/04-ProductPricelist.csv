@@ -1,2 +1,2 @@
-ID,Name,Sequence
-product_list0,Public Pricelist,1
+ID,Name,Sequence,Currency
+product_list0,Public Pricelist,1,base_EUR

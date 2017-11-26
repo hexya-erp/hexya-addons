@@ -11,7 +11,6 @@ import (
 func init() {
 
 	pool.AccountAnalyticLine().AddFields(map[string]models.FieldDefinition{
-		"Amount": models.FloatField{},
 		"ProductUom": models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom(),
 			OnChange: pool.AccountAnalyticLine().Methods().OnChangeUnitAmount()},
 		"Product": models.Many2OneField{RelationModel: pool.ProductProduct(),
@@ -25,17 +24,20 @@ func init() {
 		"Ref":  models.CharField{},
 		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(),
 			Related: "Company.Currency" /* readonly=true */, Help: "Utility field to express amount currency"},
-		"Currency": models.Many2OneField{String: "Account Currency", RelationModel: pool.Currency(),
-			Related:  "Move.Currency",
-			OnChange: pool.AccountAnalyticLine().Methods().OnChangeUnitAmount(),
-			Help:     "The related account currency if not equal to the company one." /* readonly=true */},
 		"AmountCurrency": models.FloatField{Related: "Move.AmountCurrency",
 			Help: "The amount expressed in the related account currency if not equal to the company one." /* readonly=True */},
 		"AnalyticAmountCurrency": models.FloatField{String: "Amount Currency",
 			Compute: pool.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency(), /*[ readonly True]*/
 			Help:    "The amount expressed in the related account currency if not equal to the company one."},
-		"Partner": models.Many2OneField{RelationModel: pool.Partner(), Related: "Account.Partner" /* readonly=true */},
 	})
+
+	pool.AccountAnalyticLine().Fields().Currency().
+		SetString("Account Currency").
+		SetRelated("Move.Currency").
+		SetOnchange(pool.AccountAnalyticLine().Methods().OnChangeUnitAmount()).
+		SetHelp("The related account currency if not equal to the company one.")
+
+	pool.AccountAnalyticLine().Fields().Partner().SetRelated("Account.Partner")
 
 	pool.AccountAnalyticLine().Fields().UnitAmount().SetOnchange(pool.AccountAnalyticLine().Methods().OnChangeUnitAmount())
 

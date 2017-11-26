@@ -141,7 +141,7 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(),
 			Related: "Company.Currency" /* readonly=true */},
 		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			Constraint: pool.AccountInvoice().Methods().OnchangeJournal(),
+			OnChange: pool.AccountInvoice().Methods().OnchangeJournal(),
 			Default: func(env models.Environment, vals models.FieldMap) interface{} {
 				return pool.AccountInvoice().NewSet(env).DefaultJournal()
 			} /*Filter: "[('type'*/ /*[ 'in']*/ /*[ {'out_invoice': ['sale']]*/ /*[ 'out_refund': ['sale']]*/ /*[ 'in_refund': ['purchase']] [ 'in_invoice': ['purchase']}.get(type,  ('company_id']*/ /*[ ' ']*/ /*[ company_id)]"]*/},
@@ -189,8 +189,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		"HasOutstanding": models.BooleanField{Compute: pool.AccountInvoice().Methods().GetOutstandingInfoJSON()},
 	})
 
-	pool.AccountInvoice().AddSQLConstraint("number_uniq", "unique(number, company_id, journal_id, type)",
-		"Invoice Number must be unique per Company!")
+	// TODO implement as constraint
+	//pool.AccountInvoice().AddSQLConstraint("number_uniq", "unique(number, company_id, journal_id, type)",
+	//	"Invoice Number must be unique per Company!")
 
 	pool.AccountInvoice().Methods().ComputeAmount().DeclareMethod(
 		`ComputeAmount`,

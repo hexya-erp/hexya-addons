@@ -6,7 +6,7 @@ package product
 import (
 	// product module dependencies
 	_ "github.com/hexya-erp/hexya-addons/decimalPrecision"
-	_ "github.com/hexya-erp/hexya-base/base"
+	_ "github.com/hexya-erp/hexya-base/web"
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/server"
 )

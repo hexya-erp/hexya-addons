@@ -1,7 +1,8 @@
 <hexya>
     <data>
         <view id="account_view_account_payment_tree" model="AccountPayment">
-            <tree decoration-info="state==&apos;draft&apos;" decoration-muted="state==&apos;reconciled&apos;" edit="false">
+            <tree decoration-info="state==&apos;draft&apos;" decoration-muted="state==&apos;reconciled&apos;"
+                  edit="false">
                 <field name="payment_date"/>
                 <field name="name"/>
                 <field name="journal_id"/>
@@ -15,7 +16,8 @@
             </tree>
         </view>
         <view id="account_view_account_supplier_payment_tree" model="AccountPayment">
-            <tree decoration-info="state==&apos;draft&apos;" decoration-muted="state==&apos;reconciled&apos;" edit="false">
+            <tree decoration-info="state==&apos;draft&apos;" decoration-muted="state==&apos;reconciled&apos;"
+                  edit="false">
                 <field name="payment_date"/>
                 <field name="name"/>
                 <field name="journal_id"/>
@@ -30,7 +32,9 @@
         </view>
         <view id="account_view_account_payment_search" model="AccountPayment">
             <search string="Payments">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;communication&apos;,&apos;ilike&apos;,self)]" string="Description"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;communication&apos;,&apos;ilike&apos;,self)]"
+                       string="Description"/>
                 <separator/>
                 <field name="partner_id"/>
                 <field name="journal_id"/>
@@ -39,17 +43,22 @@
                 <filter string="Receivable" domain="[(&apos;payment_type&apos;,&apos;=&apos;,&apos;inbound&apos;)]"/>
                 <filter string="Transfers" domain="[(&apos;payment_type&apos;,&apos;=&apos;,&apos;transfer&apos;)]"/>
                 <separator/>
-                <filter string="Draft" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]" name="state_draft"/>
-                <filter string="Posted" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;posted&apos;)]" name="state_posted"/>
+                <filter string="Draft" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]"
+                        name="state_draft"/>
+                <filter string="Posted" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;posted&apos;)]"
+                        name="state_posted"/>
                 <filter string="Sent" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;sent&apos;)]" name="state_sent"/>
                 <filter string="Reconciled" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;reconciled&apos;)]"/>
                 <separator/>
                 <filter string="Partner" domain="[]" context="{&apos;group_by&apos;: &apos;partner_id&apos;}"/>
                 <filter string="Journal" domain="[]" context="{&apos;group_by&apos;: &apos;journal_id&apos;}"/>
-                <filter string="Payment Method" domain="[]" context="{&apos;group_by&apos;: &apos;payment_method_id&apos;}"/>
+                <filter string="Payment Method" domain="[]"
+                        context="{&apos;group_by&apos;: &apos;payment_method_id&apos;}"/>
                 <filter string="State" domain="[]" context="{&apos;group_by&apos;: &apos;state&apos;}"/>
-                <filter string="Currency" domain="[]" context="{&apos;group_by&apos;: &apos;currency_id&apos;}" groups="base.group_multi_currency"/>
-                <filter string="Company" domain="[]" context="{&apos;group_by&apos;: &apos;company_id&apos;}" groups="base.group_multi_company"/>
+                <filter string="Currency" domain="[]" context="{&apos;group_by&apos;: &apos;currency_id&apos;}"
+                        groups="base.group_multi_currency"/>
+                <filter string="Company" domain="[]" context="{&apos;group_by&apos;: &apos;company_id&apos;}"
+                        groups="base.group_multi_company"/>
             </search>
         </view>
         <view id="account_view_account_payment_form" model="AccountPayment">
@@ -60,36 +69,55 @@
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" name="button_journal_entries" string="Journal Items" type="object" groups="account.group_account_manager" attrs="{&apos;invisible&apos;:[(&apos;move_line_ids&apos;,&apos;=&apos;,[])]}" icon="fa-bars"/>
+                        <button class="oe_stat_button" name="button_journal_entries" string="Journal Items"
+                                type="object" groups="account.group_account_manager"
+                                attrs="{&apos;invisible&apos;:[(&apos;move_line_ids&apos;,&apos;=&apos;,[])]}"
+                                icon="fa-bars"/>
                         <field name="move_line_ids" invisible="1"/>
-                        <button class="oe_stat_button" name="button_invoices" string="Invoices" type="object" attrs="{&apos;invisible&apos;:[(&apos;has_invoices&apos;,&apos;=&apos;,False)]}" icon="fa-bars"/>
+                        <button class="oe_stat_button" name="button_invoices" string="Invoices" type="object"
+                                attrs="{&apos;invisible&apos;:[(&apos;has_invoices&apos;,&apos;=&apos;,False)]}"
+                                icon="fa-bars"/>
                         <field name="has_invoices" invisible="1"/>
                     </div>
                     <field name="id" invisible="1"/>
-                    <div class="oe_title" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}">
+                    <div class="oe_title"
+                         attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}">
                         <h1>
                             <field name="name"/>
                         </h1>
                     </div>
                     <group>
                         <group>
-                            <field name="payment_type" widget="radio" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
-                            <field name="partner_type" nolabel="1" widget="selection" string="" attrs="{&apos;required&apos;: [(&apos;payment_type&apos;, &apos;in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;invisible&apos;: [(&apos;payment_type&apos;, &apos;not in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
-                            <field name="partner_id" nolabel="1" attrs="{&apos;required&apos;: [(&apos;payment_type&apos;, &apos;in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;invisible&apos;: [(&apos;payment_type&apos;, &apos;not in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}" context="{&apos;default_is_company&apos;: True, &apos;default_supplier&apos;: payment_type == &apos;outbound&apos;, &apos;default_customer&apos;: payment_type == &apos;inbound&apos;}"/>
-                            <field name="journal_id" widget="selection" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
-                            <field name="destination_journal_id" widget="selection" attrs="{&apos;required&apos;: [(&apos;payment_type&apos;, &apos;=&apos;, &apos;transfer&apos;)], &apos;invisible&apos;: [(&apos;payment_type&apos;, &apos;!=&apos;, &apos;transfer&apos;)], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="payment_type" widget="radio"
+                                   attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="partner_type" nolabel="1" widget="selection" string=""
+                                   attrs="{&apos;required&apos;: [(&apos;payment_type&apos;, &apos;in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;invisible&apos;: [(&apos;payment_type&apos;, &apos;not in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="partner_id" nolabel="1"
+                                   attrs="{&apos;required&apos;: [(&apos;payment_type&apos;, &apos;in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;invisible&apos;: [(&apos;payment_type&apos;, &apos;not in&apos;, (&apos;inbound&apos;, &apos;outbound&apos;))], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"
+                                   context="{&apos;default_is_company&apos;: True, &apos;default_supplier&apos;: payment_type == &apos;outbound&apos;, &apos;default_customer&apos;: payment_type == &apos;inbound&apos;}"/>
+                            <field name="journal_id" widget="selection"
+                                   attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="destination_journal_id" widget="selection"
+                                   attrs="{&apos;required&apos;: [(&apos;payment_type&apos;, &apos;=&apos;, &apos;transfer&apos;)], &apos;invisible&apos;: [(&apos;payment_type&apos;, &apos;!=&apos;, &apos;transfer&apos;)], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
                             <field name="hide_payment_method" invisible="1"/>
-                            <field name="payment_method_id" string=" " widget="radio" attrs="{&apos;invisible&apos;: [(&apos;hide_payment_method&apos;, &apos;=&apos;, True)], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="payment_method_id" string=" " widget="radio"
+                                   attrs="{&apos;invisible&apos;: [(&apos;hide_payment_method&apos;, &apos;=&apos;, True)], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
                             <field name="payment_method_code" invisible="1"/>
                             <label for="amount"/>
                             <div name="amount_div" class="o_row">
-                                <field name="amount" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
-                                <field name="currency_id" options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}" groups="base.group_multi_currency" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                                <field name="amount"
+                                       attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                                <field name="currency_id"
+                                       options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}"
+                                       groups="base.group_multi_currency"
+                                       attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
                             </div>
                         </group>
                         <group>
-                            <field name="payment_date" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
-                            <field name="communication" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;), (&apos;communication&apos;, &apos;=&apos;, False)], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="payment_date"
+                                   attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="communication"
+                                   attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;), (&apos;communication&apos;, &apos;=&apos;, False)], &apos;readonly&apos;: [(&apos;state&apos;, &apos;!=&apos;, &apos;draft&apos;)]}"/>
                         </group>
                     </group>
                 </sheet>
@@ -102,25 +130,27 @@
                 <field name="amount" type="measure"/>
             </graph>
         </view>
-        <action id="account_action_account_payments" type="ir.actions.act_window" name="Payments" model="AccountPayment" view_mode="tree,form,graph" view_id="account_view_account_payment_tree">
+        <action id="account_action_account_payments" type="ir.actions.act_window" name="Payments" model="AccountPayment"
+                view_mode="tree,form,graph" view_id="account_view_account_payment_tree">
             <help>
                 <p class="oe_view_nocontent_create">
-                  Click to register a payment
+                    Click to register a payment
                 </p>
                 <p>
-                  Payments are used to register liquidity movements (send, collect or transfer money).
-                  You can then process those payments by your own means or by using installed facilities.
+                    Payments are used to register liquidity movements (send, collect or transfer money).
+                    You can then process those payments by your own means or by using installed facilities.
                 </p>
             </help>
         </action>
-        <action id="account_action_account_payments_payable" type="ir.actions.act_window" name="Payments" model="AccountPayment" view_mode="tree,form,graph" view_id="account_view_account_supplier_payment_tree">
+        <action id="account_action_account_payments_payable" type="ir.actions.act_window" name="Payments"
+                model="AccountPayment" view_mode="tree,form,graph" view_id="account_view_account_supplier_payment_tree">
             <help>
                 <p class="oe_view_nocontent_create">
-                  Click to register a payment
+                    Click to register a payment
                 </p>
                 <p>
-                  Payments are used to register liquidity movements (send, collect or transfer money).
-                  You can then process those payments by your own means or by using installed facilities.
+                    Payments are used to register liquidity movements (send, collect or transfer money).
+                    You can then process those payments by your own means or by using installed facilities.
                 </p>
             </help>
         </action>
@@ -136,12 +166,15 @@
                         <group>
                             <field name="journal_id" widget="selection"/>
                             <field name="hide_payment_method" invisible="1"/>
-                            <field name="payment_method_id" widget="radio" attrs="{&apos;invisible&apos;: [(&apos;hide_payment_method&apos;, &apos;=&apos;, True)]}"/>
+                            <field name="payment_method_id" widget="radio"
+                                   attrs="{&apos;invisible&apos;: [(&apos;hide_payment_method&apos;, &apos;=&apos;, True)]}"/>
                             <field name="payment_method_code" invisible="1"/>
                             <label for="amount"/>
                             <div name="amount_div" class="o_row">
                                 <field name="amount"/>
-                                <field name="currency_id" options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}" groups="base.group_multi_currency"/>
+                                <field name="currency_id"
+                                       options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}"
+                                       groups="base.group_multi_currency"/>
                             </div>
                         </group>
                         <group>
@@ -154,7 +187,8 @@
                                 <field name="payment_difference"/>
                                 <field name="payment_difference_handling" widget="radio" nolabel="1"/>
                             </div>
-                            <field name="writeoff_account_id" string="Post Difference In" attrs="{&apos;invisible&apos;: [(&apos;payment_difference_handling&apos;,&apos;=&apos;,&apos;open&apos;)], &apos;required&apos;: [(&apos;payment_difference_handling&apos;, &apos;=&apos;, &apos;reconcile&apos;)]}"/>
+                            <field name="writeoff_account_id" string="Post Difference In"
+                                   attrs="{&apos;invisible&apos;: [(&apos;payment_difference_handling&apos;,&apos;=&apos;,&apos;open&apos;)], &apos;required&apos;: [(&apos;payment_difference_handling&apos;, &apos;=&apos;, &apos;reconcile&apos;)]}"/>
                         </group>
                     </group>
                 </sheet>
@@ -164,7 +198,8 @@
                 </footer>
             </form>
         </view>
-        <action id="account_action_account_invoice_payment" type="ir.actions.act_window" name="Register Payment" model="AccountPayment" view_mode="form" view_id="account_view_account_payment_invoice_form"/>
+        <action id="account_action_account_invoice_payment" type="ir.actions.act_window" name="Register Payment"
+                model="AccountPayment" view_mode="form" view_id="account_view_account_payment_invoice_form"/>
         <view id="account_view_account_payment_from_invoices" model="AccountRegisterPayments">
             <form string="Register Payment" version="7">
                 <field name="payment_type" invisible="1"/>
@@ -174,7 +209,8 @@
                     <group>
                         <field name="journal_id" widget="selection"/>
                         <field name="hide_payment_method" invisible="1"/>
-                        <field name="payment_method_id" widget="radio" attrs="{&apos;invisible&apos;: [(&apos;hide_payment_method&apos;, &apos;=&apos;, True)]}"/>
+                        <field name="payment_method_id" widget="radio"
+                               attrs="{&apos;invisible&apos;: [(&apos;hide_payment_method&apos;, &apos;=&apos;, True)]}"/>
                         <field name="payment_method_code" invisible="1"/>
                         <field name="amount"/>
                         <field name="currency_id" invisible="1"/>
@@ -190,8 +226,13 @@
                 </footer>
             </form>
         </view>
-        <act_window id="account_action_account_payment_from_invoices" name="Register Payment" model="AccountRegisterPayments" src_model="account.invoice" view_mode="form" target="new"/>
-        <menuitem id="account_menu_action_account_payments_receivable" sequence="20" parent="account_menu_finance_receivables" action="account_action_account_payments" groups="group_account_user"/>
-        <menuitem id="account_menu_action_account_payments_payable" sequence="20" parent="account_menu_finance_payables" action="account_action_account_payments_payable" groups="group_account_user"/>
+        <action id="account_action_account_payment_from_invoices" name="Register Payment"
+                model="AccountRegisterPayments"
+                src_model="AccountInvoice" view_mode="form" target="new"/>
+        <menuitem id="account_menu_action_account_payments_receivable" sequence="20"
+                  parent="account_menu_finance_receivables" action="account_action_account_payments"
+                  groups="group_account_user"/>
+        <menuitem id="account_menu_action_account_payments_payable" sequence="20" parent="account_menu_finance_payables"
+                  action="account_action_account_payments_payable" groups="group_account_user"/>
     </data>
 </hexya>

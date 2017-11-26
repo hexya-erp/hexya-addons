@@ -35,7 +35,7 @@ func init() {
 				return pool.AccountJournal().NewSet(env)
 			}},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
-			Compute: pool.AccountMove().Methods().ComputeCurrency(), Stored: true, Depends: []string{"Comoany"}},
+			Compute: pool.AccountMove().Methods().ComputeCurrency(), Stored: true, Depends: []string{"Company"}},
 		"State": models.SelectionField{String: "Status", Selection: types.Selection{
 			"draft":  "Unposted",
 			"posted": "Posted",

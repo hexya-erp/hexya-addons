@@ -31,8 +31,8 @@ func init() {
 
 			*/
 		})
-	pool.CashBox().Methods().Run().DeclareMethod(
-		`Run`,
+	pool.CashBox().Methods().RunPrivate().DeclareMethod(
+		`RunPrivate`,
 		func(rs pool.CashBoxSet, args struct {
 			Records interface{}
 		}) {

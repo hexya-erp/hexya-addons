@@ -15,25 +15,25 @@ func init() {
 	pool.AccountInvoiceReport().DeclareModel()
 	pool.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency().DeclareMethod(
 		`ComputeAmountsInUserCurrency`,
-		func(rs pool.AccountInvoiceReportSet) {
+		func(rs pool.AccountInvoiceReportSet) (*pool.AccountInvoiceReportData, []models.FieldNamer) {
 			//@api.depends('currency_id','date','price_total','price_average','residual')
 			/*def _compute_amounts_in_user_currency(self):
-			    """Compute the amounts in the currency of the user
-			    """
-			    context = dict(self._context or {})
-			    user_currency_id = self.env.user.company_id.currency_id
-			    currency_rate_id = self.env['res.currency.rate'].search([
-			        ('rate', '=', 1),
-			        '|', ('company_id', '=', self.env.user.company_id.id), ('company_id', '=', False)], limit=1)
-			    base_currency_id = currency_rate_id.currency_id
-			    ctx = context.copy()
-			    for record in self:
-			        ctx['date'] = record.date
-			        record.user_currency_price_total = base_currency_id.with_context(ctx).compute(record.price_total, user_currency_id)
-			        record.user_currency_price_average = base_currency_id.with_context(ctx).compute(record.price_average, user_currency_id)
-			        record.user_currency_residual = base_currency_id.with_context(ctx).compute(record.residual, user_currency_id)
-
-			date = */
+			  """Compute the amounts in the currency of the user
+			  """
+			  context = dict(self._context or {})
+			  user_currency_id = self.env.user.company_id.currency_id
+			  currency_rate_id = self.env['res.currency.rate'].search([
+			      ('rate', '=', 1),
+			      '|', ('company_id', '=', self.env.user.company_id.id), ('company_id', '=', False)], limit=1)
+			  base_currency_id = currency_rate_id.currency_id
+			  ctx = context.copy()
+			  for record in self:
+			      ctx['date'] = record.date
+			      record.user_currency_price_total = base_currency_id.with_context(ctx).compute(record.price_total, user_currency_id)
+			      record.user_currency_price_average = base_currency_id.with_context(ctx).compute(record.price_average, user_currency_id)
+			      record.user_currency_residual = base_currency_id.with_context(ctx).compute(record.residual, user_currency_id)
+			*/
+			return &pool.AccountInvoiceReportData{}, []models.FieldNamer{}
 		})
 	pool.AccountInvoiceReport().AddFields(map[string]models.FieldDefinition{
 		"Date":                     models.DateField{String: "Date" /*[readonly True]*/},

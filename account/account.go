@@ -55,7 +55,7 @@ from the fiscal year only. Account types that should be reset to zero at each ne
 		"UserType": models.Many2OneField{String: "Type", RelationModel: pool.AccountAccountType(),
 			Required: true, Help: `Account Type is used for information purpose, to generate country-specific
 legal reports, and set the rules to close a fiscal year and generate opening entries.`},
-		"InternalType": models.SelectionField{Related: "userType.Type", /*readonly=True)*/
+		"InternalType": models.SelectionField{Related: "UserType.Type", /*readonly=True)*/
 			Constraint: pool.AccountAccount().Methods().CheckReconcile(),
 			OnChange:   pool.AccountAccount().Methods().OnchangeInternalType()},
 		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date", /*[ readonly True]*/
@@ -345,7 +345,7 @@ to manage payments outside of the software.`},
 		"BankStatementsSource": models.SelectionField{String: "Bank Feeds", Selection: types.Selection{
 			"manual": "Record Manually",
 		}},
-		"BankAccNumber": models.CharField{Related: "BankAccount.AccNumber"},
+		"BankAccNumber": models.CharField{Related: "BankAccount.Name"},
 		"Bank":          models.Many2OneField{RelationModel: pool.Bank(), Related: "BankAccount.Bank"},
 	})
 
@@ -758,6 +758,7 @@ used to manually fill some data in the tax declaration`},
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTax(), JSON: "children_tax_ids",
+			M2MTheirField: "ChildTax", M2MOurField: "ParentTax",
 			Constraint: pool.AccountTax().Methods().CheckChildrenScope()},
 		"Sequence": models.IntegerField{Required: true, Default: models.DefaultValue(1),
 			Help: "The sequence field is used to define order in which the tax lines are applied."},

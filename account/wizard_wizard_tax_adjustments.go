@@ -39,8 +39,8 @@ func init() {
 		}},
 		"Tax": models.Many2OneField{String: "Adjustment Tax", RelationModel: pool.AccountTax(), JSON: "tax_id" /*['account.tax']*/, OnDelete: models.Restrict /*, Filter: [('type_tax_use'*/ /*[ ' ']*/ /*[ 'none']*/ /*[ ('tax_adjustment']*/ /*[ ' ']*/ /*[ True)]]*/, Required: true},
 	})
-	pool.TaxAdjustmentsWizard().Methods().CreateMove().DeclareMethod(
-		`CreateMove`,
+	pool.TaxAdjustmentsWizard().Methods().CreateMovePrivate().DeclareMethod(
+		`CreateMovePrivate`,
 		func(rs pool.TaxAdjustmentsWizardSet) {
 			//@api.multi
 			/*def _create_move(self):

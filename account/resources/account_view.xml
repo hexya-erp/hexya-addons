@@ -9,42 +9,69 @@
                             <field name="name"/>
                             <field name="user_type_id" widget="selection"/>
                             <field name="tax_ids" widget="many2many_tags"/>
-                            <field name="tag_ids" widget="many2many_tags" domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;taxes&apos;)]" context="{&apos;default_applicability&apos;: &apos;accounts&apos;}" options="
+                            <field name="tag_ids" widget="many2many_tags"
+                                   domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;taxes&apos;)]"
+                                   context="{&apos;default_applicability&apos;: &apos;accounts&apos;}" options="
                              {&apos;no_create_edit&apos;: True}"/>
-                            <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
-                            <field name="currency_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_currency"/>
+                            <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                   groups="base.group_multi_company"/>
+                            <field name="currency_id" options="{&apos;no_create&apos;: True}"
+                                   groups="base.group_multi_currency"/>
                             <field name="internal_type" invisible="1" readonly="1"/>
                             <label for="reconcile"/>
                             <div>
                                 <field name="reconcile"/>
-                                <button name="action_open_reconcile" class="oe_link" type="object" string=" -&gt; Reconcile" attrs="{&apos;invisible&apos;: [(&apos;reconcile&apos;, &apos;=&apos;, False)]}"/>
+                                <button name="action_open_reconcile" class="oe_link" type="object"
+                                        string=" -&gt; Reconcile"
+                                        attrs="{&apos;invisible&apos;: [(&apos;reconcile&apos;, &apos;=&apos;, False)]}"/>
                             </div>
                             <field name="deprecated"/>
                         </group>
                         <group>
                             <div class="row">
-                                <div class="col-md-11 col-md-offset-1 col-sm-12 no-margin-top" style="background-color: #eee">
-                                    <p class="text-center" style="font-weight: bold;">How account type affects your reports?</p>
+                                <div class="col-md-11 col-md-offset-1 col-sm-12 no-margin-top"
+                                     style="background-color: #eee">
+                                    <p class="text-center" style="font-weight: bold;">How account type affects your
+                                        reports?
+                                    </p>
                                     <div class="col-md-6 col-sm-6">
                                         <div class="oe_account_help">
                                             <p class="oe_account_font_help text-center">Profit &amp; Loss</p>
                                             <p class="oe_account_font_help oe_account_font_title">Income</p>
-                                            <p class="oe_account_font_help oe_account_font_title">Minus Cost of Revenue</p>
-                                            <p class="oe_account_font_help" style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">GROSS PROFIT</p>
+                                            <p class="oe_account_font_help oe_account_font_title">Minus Cost of
+                                                Revenue
+                                            </p>
+                                            <p class="oe_account_font_help"
+                                               style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">GROSS
+                                                PROFIT
+                                            </p>
                                             <p class="oe_account_font_help oe_account_font_title">Plus Other Income</p>
                                             <p class="oe_account_font_help oe_account_font_title">Minus Expenses</p>
                                             <p class="oe_account_font_help oe_account_font_content">Expenses</p>
                                             <p class="oe_account_font_help oe_account_font_content">Depreciation</p>
-                                            <p class="oe_account_font_help" style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">NET PROFIT</p>
+                                            <p class="oe_account_font_help"
+                                               style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">NET
+                                                PROFIT
+                                            </p>
                                             <div style="position: relative; width: 250px; height: 277px;" id="layer">
                                                 <div style="position: relative; left: 0px; top: 0px; visibility: visible; width: 250px; height: 277px;">
-                                                    <svg pointer-events="none" overflow="auto" width="712.5" height="265" viewBox="-4 -4 712.5 265" style="position: relative; top: -4px; left: -4px; overflow: auto; visibility: visible; width: 400.5px; height: 265px;">
+                                                    <svg pointer-events="none" overflow="auto" width="712.5"
+                                                         height="265" viewBox="-4 -4 712.5 265"
+                                                         style="position: relative; top: -4px; left: -4px; overflow: auto; visibility: visible; width: 400.5px; height: 265px;">
                                                         <defs>
-                                                            <marker id="arrow" markerWidth="70" markerHeight="70" refx="10" refy="6" orient="auto">
-                                                                <path d="M2,1 L2,12 L10,6 L2,1" stroke="rgb(173,216,230)" fill="rgb(173,216,230)"/>
+                                                            <marker id="arrow" markerWidth="70" markerHeight="70"
+                                                                    refx="10" refy="6" orient="auto">
+                                                                <path d="M2,1 L2,12 L10,6 L2,1"
+                                                                      stroke="rgb(173,216,230)"
+                                                                      fill="rgb(173,216,230)"/>
                                                             </marker>
                                                         </defs>
-                                                        <path pointer-events="visiblePainted" shape-rendering="auto" d="M 150 -110 q 270 100 150 150 t 160 120" fill="none" stroke-dasharray="8,3" stroke="rgb(173,216,230)" stroke-linecap="butt" stroke-width="4" stroke-opacity="1" stroke-linejoin="round" transform="matrix(1,0,0,1,0,0)" fill-opacity="1" style="marker-end: url(#arrow);"/>
+                                                        <path pointer-events="visiblePainted" shape-rendering="auto"
+                                                              d="M 150 -110 q 270 100 150 150 t 160 120" fill="none"
+                                                              stroke-dasharray="8,3" stroke="rgb(173,216,230)"
+                                                              stroke-linecap="butt" stroke-width="4" stroke-opacity="1"
+                                                              stroke-linejoin="round" transform="matrix(1,0,0,1,0,0)"
+                                                              fill-opacity="1" style="marker-end: url(#arrow);"/>
                                                     </svg>
                                                 </div>
                                             </div>
@@ -53,21 +80,44 @@
                                     <div class="col-md-6 col-sm-6">
                                         <div class="oe_account_help">
                                             <p class="oe_account_font_help text-center">Balance Sheet</p>
-                                            <p class="oe_account_font_help oe_account_font_title" style="color: grey;">Current Assets</p>
-                                            <p class="oe_account_font_help oe_account_font_content">Receivable Accounts</p>
+                                            <p class="oe_account_font_help oe_account_font_title" style="color: grey;">
+                                                Current Assets
+                                            </p>
+                                            <p class="oe_account_font_help oe_account_font_content">Receivable
+                                                Accounts
+                                            </p>
                                             <p class="oe_account_font_help oe_account_font_content">Prepayments</p>
                                             <p class="oe_account_font_help oe_account_font_title">Plus Bank</p>
                                             <p class="oe_account_font_help oe_account_font_title">Plus Fixed Assets</p>
-                                            <p class="oe_account_font_help oe_account_font_title">Plus Non-Current Assets</p>
-                                            <p class="oe_account_font_help" style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">TOTAL ASSETS</p>
-                                            <p class="oe_account_font_help oe_account_font_title">Minus Current Liabilities</p>
-                                            <p class="oe_account_font_help oe_account_font_title">Minus Credit Card Accounts</p>
-                                            <p class="oe_account_font_help oe_account_font_title">Minus Payable Accounts</p>
-                                            <p class="oe_account_font_help oe_account_font_title">Minus Non-Current Liabilities</p>
-                                            <p class="oe_account_font_help" style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">NET ASSETS</p>
+                                            <p class="oe_account_font_help oe_account_font_title">Plus Non-Current
+                                                Assets
+                                            </p>
+                                            <p class="oe_account_font_help"
+                                               style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">TOTAL
+                                                ASSETS
+                                            </p>
+                                            <p class="oe_account_font_help oe_account_font_title">Minus Current
+                                                Liabilities
+                                            </p>
+                                            <p class="oe_account_font_help oe_account_font_title">Minus Credit Card
+                                                Accounts
+                                            </p>
+                                            <p class="oe_account_font_help oe_account_font_title">Minus Payable
+                                                Accounts
+                                            </p>
+                                            <p class="oe_account_font_help oe_account_font_title">Minus Non-Current
+                                                Liabilities
+                                            </p>
+                                            <p class="oe_account_font_help"
+                                               style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">NET
+                                                ASSETS
+                                            </p>
                                             <p class="oe_account_font_help oe_account_font_title">Equity</p>
                                             <p class="oe_account_font_help oe_account_font_title">Plus Net Profit</p>
-                                            <p class="oe_account_font_help" style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">TOTAL EQUITY</p>
+                                            <p class="oe_account_font_help"
+                                               style="color: grey;border-top: 2px solid;border-bottom: 2px solid;">TOTAL
+                                                EQUITY
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -88,28 +138,34 @@
         </view>
         <view id="account_view_account_search" model="AccountAccount">
             <search string="Accounts">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;=like&apos;,str(self)+&apos;%&apos;)]" string="Account"/>
-                <filter string="Receivable Accounts" domain="[(&apos;internal_type&apos;,&apos;=&apos;,&apos;receivable&apos;)]"/>
-                <filter string="Payable Accounts" domain="[(&apos;internal_type&apos;,&apos;=&apos;,&apos;payable&apos;)]"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;=like&apos;,str(self)+&apos;%&apos;)]"
+                       string="Account"/>
+                <filter string="Receivable Accounts"
+                        domain="[(&apos;internal_type&apos;,&apos;=&apos;,&apos;receivable&apos;)]"/>
+                <filter string="Payable Accounts"
+                        domain="[(&apos;internal_type&apos;,&apos;=&apos;,&apos;payable&apos;)]"/>
                 <field name="user_type_id"/>
                 <group expand="0" string="Group By">
                     <filter string="Account Type" domain="" context="{&apos;group_by&apos;:&apos;user_type_id&apos;}"/>
                 </group>
             </search>
         </view>
-        <action id="account_action_account_form" type="ir.actions.act_window" name="Chart of Accounts" model="AccountAccount" view_mode="tree,form" search_view_id="account_view_account_search" view_id="account_view_account_list">
+        <action id="account_action_account_form" type="ir.actions.act_window" name="Chart of Accounts"
+                model="AccountAccount" view_mode="tree,form" search_view_id="account_view_account_search"
+                view_id="account_view_account_list">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to add an account.
-              </p>
+                    Click to add an account.
+                </p>
                 <p>
-                An account is part of a ledger allowing your company
-                to register all kinds of debit and credit transactions.
-                Companies present their annual accounts in two main parts: the
-                balance sheet and the income statement (profit and loss
-                account). The annual accounts of a company are required by law
-                to disclose a certain amount of information.
-              </p>
+                    An account is part of a ledger allowing your company
+                    to register all kinds of debit and credit transactions.
+                    Companies present their annual accounts in two main parts: the
+                    balance sheet and the income statement (profit and loss
+                    account). The annual accounts of a company are required by law
+                    to disclose a certain amount of information.
+                </p>
             </help>
         </action>
         <view id="account_view_account_journal_tree" model="AccountJournal">
@@ -123,12 +179,17 @@
         </view>
         <view id="account_view_account_journal_search" model="AccountJournal">
             <search string="Search Account Journal">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;ilike&apos;,self)]" string="Journal"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;ilike&apos;,self)]"
+                       string="Journal"/>
                 <filter domain="[(&apos;type&apos;, &apos;=&apos;, &apos;sale&apos;)]" string="Sale"/>
                 <filter domain="[(&apos;type&apos;, &apos;=&apos;, &apos;purchase&apos;)]" string="Purchase"/>
-                <filter domain="[&apos;|&apos;, (&apos;type&apos;, &apos;=&apos;, &apos;cash&apos;), (&apos;type&apos;, &apos;=&apos;, &apos;bank&apos;)]" string="Liquidity"/>
-                <filter domain="[(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;, &apos;cash&apos;, &apos;bank&apos;])]" string="Miscellaneous"/>
-                <filter name="dashboard" string="Favorites" domain="[(&apos;show_on_dashboard&apos;, &apos;=&apos;, True)]"/>
+                <filter domain="[&apos;|&apos;, (&apos;type&apos;, &apos;=&apos;, &apos;cash&apos;), (&apos;type&apos;, &apos;=&apos;, &apos;bank&apos;)]"
+                        string="Liquidity"/>
+                <filter domain="[(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;, &apos;cash&apos;, &apos;bank&apos;])]"
+                        string="Miscellaneous"/>
+                <filter name="dashboard" string="Favorites"
+                        domain="[(&apos;show_on_dashboard&apos;, &apos;=&apos;, True)]"/>
             </search>
         </view>
         <view id="account_view_account_journal_form" model="AccountJournal">
@@ -145,7 +206,8 @@
                             <field name="type"/>
                         </group>
                         <group>
-                            <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
+                            <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                   groups="base.group_multi_company"/>
                         </group>
                     </group>
                     <notebook>
@@ -153,14 +215,22 @@
                             <group>
                                 <group>
                                     <field name="code"/>
-                                    <field name="refund_sequence" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;])]}" groups="base.group_no_one"/>
-                                    <field name="sequence_id" required="0" attrs="{&apos;readonly&apos;: 1}" groups="base.group_no_one"/>
-                                    <field name="refund_sequence_id" required="0" attrs="{&apos;readonly&apos;: 1, &apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;]), (&apos;refund_sequence&apos;, &apos;!=&apos;, True)]}" groups="base.group_no_one"/>
+                                    <field name="refund_sequence"
+                                           attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;])]}"
+                                           groups="base.group_no_one"/>
+                                    <field name="sequence_id" required="0" attrs="{&apos;readonly&apos;: 1}"
+                                           groups="base.group_no_one"/>
+                                    <field name="refund_sequence_id" required="0"
+                                           attrs="{&apos;readonly&apos;: 1, &apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;]), (&apos;refund_sequence&apos;, &apos;!=&apos;, True)]}"
+                                           groups="base.group_no_one"/>
                                 </group>
                                 <group>
-                                    <field name="default_debit_account_id" domain="[(&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
-                                    <field name="default_credit_account_id" domain="[(&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
-                                    <field name="currency_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_currency"/>
+                                    <field name="default_debit_account_id"
+                                           domain="[(&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
+                                    <field name="default_credit_account_id"
+                                           domain="[(&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
+                                    <field name="currency_id" options="{&apos;no_create&apos;: True}"
+                                           groups="base.group_multi_currency"/>
                                 </group>
                             </group>
                         </page>
@@ -172,16 +242,22 @@
                                     <field name="account_control_ids" widget="many2many_tags"/>
                                 </group>
                                 <group string="Miscellaneous">
-                                    <field name="inbound_payment_method_ids" widget="many2many_checkboxes" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;bank&apos;, &apos;cash&apos;])]}"/>
-                                    <field name="outbound_payment_method_ids" widget="many2many_checkboxes" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;bank&apos;, &apos;cash&apos;])]}"/>
-                                    <field name="group_invoice_lines" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;])]}"/>
-                                    <field name="profit_account_id" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;cash&apos;)]}"/>
-                                    <field name="loss_account_id" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;cash&apos;)]}"/>
+                                    <field name="inbound_payment_method_ids" widget="many2many_checkboxes"
+                                           attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;bank&apos;, &apos;cash&apos;])]}"/>
+                                    <field name="outbound_payment_method_ids" widget="many2many_checkboxes"
+                                           attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;bank&apos;, &apos;cash&apos;])]}"/>
+                                    <field name="group_invoice_lines"
+                                           attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;])]}"/>
+                                    <field name="profit_account_id"
+                                           attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;cash&apos;)]}"/>
+                                    <field name="loss_account_id"
+                                           attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;cash&apos;)]}"/>
                                     <field name="show_on_dashboard" groups="base.group_no_one"/>
                                 </group>
                             </group>
                         </page>
-                        <page name="bank_account" string="Bank Account" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;bank&apos;)]}">
+                        <page name="bank_account" string="Bank Account"
+                              attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;bank&apos;)]}">
                             <group>
                                 <group>
                                     <field name="bank_acc_number"/>
@@ -189,7 +265,8 @@
                                     <field name="display_on_footer"/>
                                 </group>
                                 <group>
-                                    <field name="bank_statements_source" widget="radio" attrs="{&apos;required&apos;: [(&apos;type&apos;, &apos;=&apos;, &apos;bank&apos;)]}"/>
+                                    <field name="bank_statements_source" widget="radio"
+                                           attrs="{&apos;required&apos;: [(&apos;type&apos;, &apos;=&apos;, &apos;bank&apos;)]}"/>
                                 </group>
                             </group>
                         </page>
@@ -217,35 +294,39 @@
                     <group col="4">
                         <field name="bank_id"/>
                         <field name="display_on_footer"/>
-                        <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
-                        <field name="currency_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_currency"/>
+                        <field name="company_id" options="{&apos;no_create&apos;: True}"
+                               groups="base.group_multi_company"/>
+                        <field name="currency_id" options="{&apos;no_create&apos;: True}"
+                               groups="base.group_multi_currency"/>
                         <field name="inbound_payment_method_ids" widget="many2many_checkboxes"/>
                         <field name="outbound_payment_method_ids" widget="many2many_checkboxes"/>
                     </group>
                 </sheet>
             </form>
         </view>
-        <action id="account_action_account_bank_journal_form" type="ir.actions.act_window" name="Bank Accounts" model="AccountJournal" view_mode="tree,form">
+        <action id="account_action_account_bank_journal_form" type="ir.actions.act_window" name="Bank Accounts"
+                model="AccountJournal" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to add a bank account.
-              </p>
+                    Click to add a bank account.
+                </p>
             </help>
         </action>
-        <action id="account_action_account_journal_form" type="ir.actions.act_window" name="Journals" model="AccountJournal" view_mode="tree,form">
+        <action id="account_action_account_journal_form" type="ir.actions.act_window" name="Journals"
+                model="AccountJournal" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to add a journal.
-              </p>
+                    Click to add a journal.
+                </p>
                 <p>
-                A journal is used to record transactions of all accounting data
-                related to the day-to-day business.
-              </p>
+                    A journal is used to record transactions of all accounting data
+                    related to the day-to-day business.
+                </p>
                 <p>
-                A typical company may use one journal per payment method (cash,
-                bank accounts, checks), one purchase journal, one sale journal
-                and one for miscellaneous information.
-              </p>
+                    A typical company may use one journal per payment method (cash,
+                    bank accounts, checks), one purchase journal, one sale journal
+                    and one for miscellaneous information.
+                </p>
             </help>
         </action>
         <view id="account_account_tag_view_form" model="AccountAccountTag">
@@ -255,11 +336,12 @@
                 </group>
             </form>
         </view>
-        <action id="account_account_tag_action" type="ir.actions.act_window" name="Accounts Tags" model="AccountAccountTag" view_mode="tree,form">
+        <action id="account_account_tag_action" type="ir.actions.act_window" name="Accounts Tags"
+                model="AccountAccountTag" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to add a new tag.
-              </p>
+                    Click to add a new tag.
+                </p>
             </help>
         </action>
         <view id="account_view_account_bnk_stmt_cashbox" model="AccountBankStatementCashbox">
@@ -279,12 +361,16 @@
                 </footer>
             </form>
         </view>
-        <action id="account_action_view_account_bnk_stmt_cashbox" type="ir.actions.act_window" name="Cash Control" model="AccountBankStatementCashbox" view_mode="tree,form" view_id="account_view_account_bnk_stmt_cashbox"/>
+        <action id="account_action_view_account_bnk_stmt_cashbox" type="ir.actions.act_window" name="Cash Control"
+                model="AccountBankStatementCashbox" view_mode="tree,form"
+                view_id="account_view_account_bnk_stmt_cashbox"/>
         <view id="account_view_account_bnk_stmt_check" model="AccountBankStatementClosebalance">
             <form>
                 <div>
                     <p>The closing balance is different than the computed one!</p>
-                    <p>Confirming this will create automatically a journal entry with the difference in the profit/loss account set on the cash journal.</p>
+                    <p>Confirming this will create automatically a journal entry with the difference in the profit/loss
+                        account set on the cash journal.
+                    </p>
                     <footer>
                         <button string="Confirm" name="validate" type="object" class="btn-primary"/>
                         <button string="Cancel" class="btn-default" special="cancel"/>
@@ -292,9 +378,12 @@
                 </div>
             </form>
         </view>
-        <action id="account_action_view_account_bnk_stmt_check" type="ir.actions.act_window" name="Check Closing Balance" model="AccountBankStatementClosebalance" view_mode="tree,form" view_id="account_view_account_bnk_stmt_check"/>
+        <action id="account_action_view_account_bnk_stmt_check" type="ir.actions.act_window"
+                name="Check Closing Balance" model="AccountBankStatementClosebalance" view_mode="tree,form"
+                view_id="account_view_account_bnk_stmt_check"/>
         <view id="account_view_bank_statement_tree" model="AccountBankStatement">
-            <tree decoration-danger="not is_difference_zero and state==&apos;open&apos;" decoration-info="state==&apos;open&apos; and is_difference_zero" string="Statements">
+            <tree decoration-danger="not is_difference_zero and state==&apos;open&apos;"
+                  decoration-info="state==&apos;open&apos; and is_difference_zero" string="Statements">
                 <field name="name"/>
                 <field name="date"/>
                 <field name="journal_id"/>
@@ -324,14 +413,20 @@
             <form string="Bank Statement">
                 <header>
                     <field name="all_lines_reconciled" invisible="1"/>
-                    <button name="%(action_bank_reconcile_bank_statements)d" string="Reconcile" type="action" class="oe_highlight" attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;all_lines_reconciled&apos;,&apos;=&apos;,True),(&apos;line_ids&apos;,&apos;=&apos;,[]),(&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"/>
-                    <button name="check_confirm_bank" string="Validate" type="object" class="oe_highlight" attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;all_lines_reconciled&apos;,&apos;=&apos;,False),(&apos;line_ids&apos;,&apos;=&apos;,[]),(&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"/>
+                    <button name="%(action_bank_reconcile_bank_statements)d" string="Reconcile" type="action"
+                            class="oe_highlight"
+                            attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;all_lines_reconciled&apos;,&apos;=&apos;,True),(&apos;line_ids&apos;,&apos;=&apos;,[]),(&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"/>
+                    <button name="check_confirm_bank" string="Validate" type="object" class="oe_highlight"
+                            attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;all_lines_reconciled&apos;,&apos;=&apos;,False),(&apos;line_ids&apos;,&apos;=&apos;,[]),(&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"/>
                     <button name="button_cancel" states="confirm" string="Cancel Statement" type="object"/>
                     <field name="state" widget="statusbar" statusbar_visible="open,confirm"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" name="button_journal_entries" string="Journal Entries" type="object" attrs="{&apos;invisible&apos;:[(&apos;move_line_ids&apos;,&apos;=&apos;,[])]}" icon="fa-bars"/>
+                        <button class="oe_stat_button" name="button_journal_entries" string="Journal Entries"
+                                type="object"
+                                attrs="{&apos;invisible&apos;:[(&apos;move_line_ids&apos;,&apos;=&apos;,[])]}"
+                                icon="fa-bars"/>
                         <field name="move_line_ids" invisible="1"/>
                     </div>
                     <div class="oe_title oe_inline">
@@ -345,23 +440,38 @@
                             <field name="journal_type" invisible="1"/>
                             <field name="cashbox_start_id" invisible="1"/>
                             <field name="cashbox_end_id" invisible="1"/>
-                            <field name="journal_id" domain="[(&apos;type&apos;, &apos;=&apos;, journal_type)]" attrs="{&apos;readonly&apos;: [(&apos;move_line_ids&apos;, &apos;!=&apos;, [])]}" widget="selection"/>
+                            <field name="journal_id" domain="[(&apos;type&apos;, &apos;=&apos;, journal_type)]"
+                                   attrs="{&apos;readonly&apos;: [(&apos;move_line_ids&apos;, &apos;!=&apos;, [])]}"
+                                   widget="selection"/>
                             <field name="date"/>
-                            <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
+                            <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                   groups="base.group_multi_company"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group>
                             <label for="balance_start"/>
                             <div>
                                 <field class="oe_inline" name="balance_start"/>
-                                <button class="oe_inline oe_link oe_edit_only" name="%(action_view_account_bnk_stmt_cashbox)d" string="→ Count" type="action" attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_start_id&apos;,&apos;!=&apos;,False)]}" context="{&apos;balance&apos;:&apos;start&apos;}"/>
-                                <button name="open_cashbox_id" attrs="{&apos;invisible&apos;: [&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_start_id&apos;, &apos;=&apos;, False)]}" string="→ Count" type="object" class="oe_edit_only oe_link oe_inline" context="{&apos;balance&apos;:&apos;start&apos;, &apos;cashbox_id&apos;: cashbox_start_id}"/>
+                                <button class="oe_inline oe_link oe_edit_only"
+                                        name="%(action_view_account_bnk_stmt_cashbox)d" string="→ Count" type="action"
+                                        attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_start_id&apos;,&apos;!=&apos;,False)]}"
+                                        context="{&apos;balance&apos;:&apos;start&apos;}"/>
+                                <button name="open_cashbox_id"
+                                        attrs="{&apos;invisible&apos;: [&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_start_id&apos;, &apos;=&apos;, False)]}"
+                                        string="→ Count" type="object" class="oe_edit_only oe_link oe_inline"
+                                        context="{&apos;balance&apos;:&apos;start&apos;, &apos;cashbox_id&apos;: cashbox_start_id}"/>
                             </div>
                             <label for="balance_end_real"/>
                             <div>
                                 <field class="oe_inline" name="balance_end_real"/>
-                                <button class="oe_inline oe_link oe_edit_only" name="%(action_view_account_bnk_stmt_cashbox)d" string="→ Count" type="action" attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_end_id&apos;,&apos;!=&apos;,False)]}" context="{&apos;balance&apos;:&apos;close&apos;}"/>
-                                <button name="open_cashbox_id" attrs="{&apos;invisible&apos;: [&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_end_id&apos;, &apos;=&apos;, False)]}" string="→ Count" type="object" class="oe_edit_only oe_link oe_inline" context="{&apos;balance&apos;:&apos;close&apos;, &apos;cashbox_id&apos;: cashbox_end_id}"/>
+                                <button class="oe_inline oe_link oe_edit_only"
+                                        name="%(action_view_account_bnk_stmt_cashbox)d" string="→ Count" type="action"
+                                        attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_end_id&apos;,&apos;!=&apos;,False)]}"
+                                        context="{&apos;balance&apos;:&apos;close&apos;}"/>
+                                <button name="open_cashbox_id"
+                                        attrs="{&apos;invisible&apos;: [&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_end_id&apos;, &apos;=&apos;, False)]}"
+                                        string="→ Count" type="object" class="oe_edit_only oe_link oe_inline"
+                                        context="{&apos;balance&apos;:&apos;close&apos;, &apos;cashbox_id&apos;: cashbox_end_id}"/>
                             </div>
                         </group>
                     </group>
@@ -371,15 +481,27 @@
                                 <tree editable="bottom" string="Statement lines" decoration-muted="journal_entry_ids">
                                     <field name="sequence" widget="handle"/>
                                     <field name="journal_entry_ids" invisible="1"/>
-                                    <field name="date" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
-                                    <field name="name" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
-                                    <field name="partner_id" domain="[&apos;|&apos;,(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;is_company&apos;,&apos;=&apos;,True)]" context="{&apos;default_supplier&apos;: 1}" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
-                                    <field name="ref" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }" groups="base.group_no_one"/>
-                                    <field name="amount" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
+                                    <field name="date"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
+                                    <field name="name"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
+                                    <field name="partner_id"
+                                           domain="[&apos;|&apos;,(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;is_company&apos;,&apos;=&apos;,True)]"
+                                           context="{&apos;default_supplier&apos;: 1}"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
+                                    <field name="ref"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"
+                                           groups="base.group_no_one"/>
+                                    <field name="amount"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
                                     <field name="journal_currency_id" invisible="1"/>
-                                    <field name="amount_currency" invisible="1" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
-                                    <field name="currency_id" options="{&apos;no_create&apos;: True}" invisible="1" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
-                                    <field name="bank_account_id" invisible="1" attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }" domain="[&apos;|&apos;, (&apos;partner_id&apos;, &apos;=&apos;, partner_id), (&apos;partner_id&apos;, &apos;=&apos;, False)]"/>
+                                    <field name="amount_currency" invisible="1"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
+                                    <field name="currency_id" options="{&apos;no_create&apos;: True}" invisible="1"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"/>
+                                    <field name="bank_account_id" invisible="1"
+                                           attrs="{&apos;readonly&apos; : [(&apos;journal_entry_ids&apos;, &apos;!=&apos;, [])] }"
+                                           domain="[&apos;|&apos;, (&apos;partner_id&apos;, &apos;=&apos;, partner_id), (&apos;partner_id&apos;, &apos;=&apos;, False)]"/>
                                 </tree>
                             </field>
                         </page>
@@ -394,20 +516,22 @@
                 </sheet>
             </form>
         </view>
-        <action id="account_action_bank_statement_tree" type="ir.actions.act_window" name="Bank Statements" model="AccountBankStatement" view_mode="tree,form,pivot,graph" search_view_id="account_view_bank_statement_search">
+        <action id="account_action_bank_statement_tree" type="ir.actions.act_window" name="Bank Statements"
+                model="AccountBankStatement" view_mode="tree,form,pivot,graph"
+                search_view_id="account_view_bank_statement_search">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to register a bank statement.
-              </p>
+                    Click to register a bank statement.
+                </p>
                 <p>
-                A bank statement is a summary of all financial transactions
-                occurring over a given period of time on a bank account. You
-                should receive this periodicaly from your bank.
-              </p>
+                    A bank statement is a summary of all financial transactions
+                    occurring over a given period of time on a bank account. You
+                    should receive this periodicaly from your bank.
+                </p>
                 <p>
-                Odoo allows you to reconcile a statement line directly with
-                the related sale or puchase invoices.
-              </p>
+                    Odoo allows you to reconcile a statement line directly with
+                    the related sale or puchase invoices.
+                </p>
             </help>
         </action>
         <view id="account_view_bank_statement_line_search" model="AccountBankStatementLine">
@@ -416,7 +540,8 @@
                 <field name="statement_id"/>
                 <field name="partner_id"/>
                 <field name="date"/>
-                <field name="journal_id" domain="[(&apos;type&apos;, &apos;in&apos;, (&apos;bank&apos;, &apos;cash&apos;))]"/>
+                <field name="journal_id"
+                       domain="[(&apos;type&apos;, &apos;in&apos;, (&apos;bank&apos;, &apos;cash&apos;))]"/>
             </search>
         </view>
         <view id="account_view_bank_statement_line_form" model="AccountBankStatementLine">
@@ -447,18 +572,21 @@
                 <field name="journal_currency_id" invisible="1"/>
             </tree>
         </view>
-        <action id="account_action_bank_statement_line" type="ir.actions.act_window" name="Bank Statement Lines" model="AccountBankStatementLine" view_mode="tree,form" search_view_id="account_view_bank_statement_line_search">
+        <action id="account_action_bank_statement_line" type="ir.actions.act_window" name="Bank Statement Lines"
+                model="AccountBankStatementLine" view_mode="tree,form"
+                search_view_id="account_view_bank_statement_line_search">
             <help>
                 <p>
-                A bank statement line is a financial transaction on a bank account.
-              </p>
+                    A bank statement line is a financial transaction on a bank account.
+                </p>
                 <p>
-                Odoo allows you to reconcile a statement line directly with
-                the related sale or puchase invoice(s).
-              </p>
+                    Odoo allows you to reconcile a statement line directly with
+                    the related sale or puchase invoice(s).
+                </p>
             </help>
         </action>
-        <action id="account_action_bank_statement_draft_tree" type="ir.actions.act_window" name="Draft statements" model="AccountBankStatement" view_mode="tree,form"/>
+        <action id="account_action_bank_statement_draft_tree" type="ir.actions.act_window" name="Draft statements"
+                model="AccountBankStatement" view_mode="tree,form"/>
         <view id="account_view_account_reconcile_model_form" model="AccountReconcileModel">
             <form string="Operation Templates">
                 <sheet>
@@ -472,8 +600,10 @@
                         <group>
                             <field name="account_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
                             <field name="amount_type"/>
-                            <field name="tax_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]" widget="selection"/>
-                            <field name="analytic_account_id" groups="analytic.group_analytic_accounting" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
+                            <field name="tax_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"
+                                   widget="selection"/>
+                            <field name="analytic_account_id" groups="analytic.group_analytic_accounting"
+                                   domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
                         <group>
@@ -481,9 +611,11 @@
                             <label for="amount"/>
                             <div>
                                 <field name="amount" class="oe_inline"/>
-                                <label string="%" class="oe_inline" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;!=&apos;,&apos;percentage&apos;)]}"/>
+                                <label string="%" class="oe_inline"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;!=&apos;,&apos;percentage&apos;)]}"/>
                             </div>
-                            <field name="journal_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]" widget="selection"/>
+                            <field name="journal_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"
+                                   widget="selection"/>
                         </group>
                     </group>
                     <div class="oe_edit_only">
@@ -492,19 +624,25 @@
                     </div>
                     <group attrs="{&apos;invisible&apos;:[(&apos;has_second_line&apos;,&apos;!=&apos;,True)]}">
                         <group>
-                            <field name="second_account_id" string="Account" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
+                            <field name="second_account_id" string="Account"
+                                   domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
                             <field name="second_amount_type" string="Amount type"/>
-                            <field name="second_tax_id" string="Tax" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]" widget="selection"/>
-                            <field name="second_analytic_account_id" string="Analytic Account" groups="analytic.group_analytic_accounting" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
+                            <field name="second_tax_id" string="Tax"
+                                   domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]" widget="selection"/>
+                            <field name="second_analytic_account_id" string="Analytic Account"
+                                   groups="analytic.group_analytic_accounting"
+                                   domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
                         </group>
                         <group>
                             <field name="second_label" string="Journal Item Label"/>
                             <label for="second_amount" string="Amount"/>
                             <div>
                                 <field name="second_amount" class="oe_inline"/>
-                                <label string="%" class="oe_inline" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;!=&apos;,&apos;percentage&apos;)]}"/>
+                                <label string="%" class="oe_inline"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;!=&apos;,&apos;percentage&apos;)]}"/>
                             </div>
-                            <field name="second_journal_id" string="Journal" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]" widget="selection"/>
+                            <field name="second_journal_id" string="Journal"
+                                   domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]" widget="selection"/>
                         </group>
                     </group>
                 </sheet>
@@ -526,20 +664,24 @@
                 <field name="journal_id"/>
             </search>
         </view>
-        <action id="account_action_account_reconcile_model" type="ir.actions.act_window" name="Reconciliation Models" model="AccountReconcileModel" view_mode="tree,form" search_view_id="account_view_account_reconcile_model_search">
+        <action id="account_action_account_reconcile_model" type="ir.actions.act_window" name="Reconciliation Models"
+                model="AccountReconcileModel" view_mode="tree,form"
+                search_view_id="account_view_account_reconcile_model_search">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to create a reconciliation model.
-              </p>
+                    Click to create a reconciliation model.
+                </p>
                 <p>
-                Those can be used to quickly create a journal items when reconciling
-                a bank statement or an account.
-              </p>
+                    Those can be used to quickly create a journal items when reconciling
+                    a bank statement or an account.
+                </p>
             </help>
         </action>
         <view id="account_view_account_type_search" model="AccountAccountType">
             <search string="Account Type">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;type&apos;,&apos;ilike&apos;,self)]" string="Account Type"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;type&apos;,&apos;ilike&apos;,self)]"
+                       string="Account Type"/>
             </search>
         </view>
         <view id="account_view_account_type_tree" model="AccountAccountType">
@@ -563,18 +705,19 @@
                 <field name="note"/>
             </form>
         </view>
-        <action id="account_action_account_type_form" type="ir.actions.act_window" name="Account Types" model="AccountAccountType" view_mode="tree,form" search_view_id="account_view_account_type_search">
+        <action id="account_action_account_type_form" type="ir.actions.act_window" name="Account Types"
+                model="AccountAccountType" view_mode="tree,form" search_view_id="account_view_account_type_search">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to define a new account type.
-              </p>
+                    Click to define a new account type.
+                </p>
                 <p>
-                An account type is used to determine how an account is used in
-                each journal. The deferral method of an account type determines
-                the process for the annual closing. Reports such as the Balance
-                Sheet and the Profit and Loss report use the category
-                (profit/loss or balance sheet).
-              </p>
+                    An account type is used to determine how an account is used in
+                    each journal. The deferral method of an account type determines
+                    the process for the annual closing. Reports such as the Balance
+                    Sheet and the Profit and Loss report use the category
+                    (profit/loss or balance sheet).
+                </p>
             </help>
         </action>
         <view id="account_view_tax_tree" model="AccountTax">
@@ -588,13 +731,18 @@
         </view>
         <view id="account_view_account_tax_search" model="AccountTax">
             <search string="Search Taxes">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;description&apos;,&apos;ilike&apos;,self)]" string="Tax"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;description&apos;,&apos;ilike&apos;,self)]"
+                       string="Tax"/>
                 <field name="company_id" groups="base.group_multi_company"/>
                 <filter string="Sale" name="sale" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"/>
-                <filter string="Purchase" name="purchase" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"/>
+                <filter string="Purchase" name="purchase"
+                        domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"/>
                 <group string="Group By">
-                    <filter string="Company" domain="[]" context="{&apos;group_by&apos;:&apos;company_id&apos;}" groups="base.group_multi_company"/>
-                    <filter string="Tax Application" domain="[]" context="{&apos;group_by&apos;:&apos;type_tax_use&apos;}"/>
+                    <filter string="Company" domain="[]" context="{&apos;group_by&apos;:&apos;company_id&apos;}"
+                            groups="base.group_multi_company"/>
+                    <filter string="Tax Application" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;type_tax_use&apos;}"/>
                 </group>
             </search>
         </view>
@@ -614,10 +762,12 @@
                             <group>
                                 <group>
                                     <field name="amount_type"/>
-                                    <label for="amount" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;not in&apos;, (&apos;fixed&apos;, &apos;percent&apos;, &apos;division&apos;))]}"/>
+                                    <label for="amount"
+                                           attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;not in&apos;, (&apos;fixed&apos;, &apos;percent&apos;, &apos;division&apos;))]}"/>
                                     <div attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;not in&apos;, (&apos;fixed&apos;, &apos;percent&apos;, &apos;division&apos;))]}">
                                         <field name="amount" class="oe_inline"/>
-                                        <label string="%" class="oe_inline" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;,&apos;fixed&apos;)]}"/>
+                                        <label string="%" class="oe_inline"
+                                               attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;,&apos;fixed&apos;)]}"/>
                                     </div>
                                 </group>
                                 <group attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}">
@@ -625,7 +775,9 @@
                                     <field name="refund_account_id"/>
                                 </group>
                             </group>
-                            <field name="children_tax_ids" attrs="{&apos;invisible&apos;:[&apos;|&apos;, (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;), (&apos;type_tax_use&apos;,&apos;=&apos;,&apos;none&apos;)]}" domain="[(&apos;type_tax_use&apos;,&apos;in&apos;,(&apos;none&apos;,type_tax_use)), (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;)]">
+                            <field name="children_tax_ids"
+                                   attrs="{&apos;invisible&apos;:[&apos;|&apos;, (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;), (&apos;type_tax_use&apos;,&apos;=&apos;,&apos;none&apos;)]}"
+                                   domain="[(&apos;type_tax_use&apos;,&apos;in&apos;,(&apos;none&apos;,type_tax_use)), (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;)]">
                                 <tree string="Children Taxes">
                                     <field name="sequence" widget="handle"/>
                                     <field name="name"/>
@@ -637,16 +789,25 @@
                         <page string="Advanced Options">
                             <group>
                                 <group>
-                                    <field name="description" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                    <field name="description"
+                                           attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
                                     <field name="tax_group_id"/>
-                                    <field name="tag_ids" domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;accounts&apos;)]" widget="many2many_tags" context="{&apos;default_applicability&apos;: &apos;taxes&apos;}"/>
-                                    <field name="analytic" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}" groups="analytic.group_analytic_accounting"/>
-                                    <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
+                                    <field name="tag_ids"
+                                           domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;accounts&apos;)]"
+                                           widget="many2many_tags"
+                                           context="{&apos;default_applicability&apos;: &apos;taxes&apos;}"/>
+                                    <field name="analytic"
+                                           attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"
+                                           groups="analytic.group_analytic_accounting"/>
+                                    <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                           groups="base.group_multi_company"/>
                                     <field name="active" groups="base.group_no_one"/>
                                 </group>
                                 <group name="advanced_booleans">
-                                    <field name="price_include" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
-                                    <field name="include_base_amount" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                    <field name="price_include"
+                                           attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                    <field name="include_base_amount"
+                                           attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
                                     <field name="tax_adjustment"/>
                                 </group>
                             </group>
@@ -655,7 +816,8 @@
                 </sheet>
             </form>
         </view>
-        <action id="account_action_tax_form" type="ir.actions.act_window" name="Taxes" model="AccountTax" view_mode="tree,form" view_id="account_view_tax_tree"/>
+        <action id="account_action_tax_form" type="ir.actions.act_window" name="Taxes" model="AccountTax"
+                view_mode="tree,form" view_id="account_view_tax_tree"/>
         <view id="account_view_move_line_form" model="AccountMoveLine">
             <form string="Journal Item">
                 <sheet>
@@ -663,7 +825,8 @@
                         <group>
                             <field name="name"/>
                             <field name="ref"/>
-                            <field name="partner_id" domain="[&apos;|&apos;, (&apos;parent_id&apos;, &apos;=&apos;, False), (&apos;is_company&apos;, &apos;=&apos;, True)]"/>
+                            <field name="partner_id"
+                                   domain="[&apos;|&apos;, (&apos;parent_id&apos;, &apos;=&apos;, False), (&apos;is_company&apos;, &apos;=&apos;, True)]"/>
                         </group>
                         <group>
                             <field name="journal_id"/>
@@ -675,7 +838,8 @@
                         <page string="Information">
                             <group>
                                 <group string="Amount">
-                                    <field name="account_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
+                                    <field name="account_id"
+                                           domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
                                     <field name="debit"/>
                                     <field name="credit"/>
                                     <field name="quantity"/>
@@ -698,7 +862,9 @@
                                         <field name="reconciled" invisible="1"/>
                                         <field name="matched_debit_ids" invisible="1"/>
                                         <field name="matched_credit_ids" invisible="1"/>
-                                        <button name="open_reconcile_view" class="oe_link" type="object" string="-&gt; View partially reconciled entries" attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;full_reconcile_id&apos;, &apos;!=&apos;, False), &apos;&amp;&apos;, (&apos;matched_debit_ids&apos;, &apos;=&apos;, []),(&apos;matched_credit_ids&apos;, &apos;=&apos;, [])]}"/>
+                                        <button name="open_reconcile_view" class="oe_link" type="object"
+                                                string="-&gt; View partially reconciled entries"
+                                                attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;full_reconcile_id&apos;, &apos;!=&apos;, False), &apos;&amp;&apos;, (&apos;matched_debit_ids&apos;, &apos;=&apos;, []),(&apos;matched_credit_ids&apos;, &apos;=&apos;, [])]}"/>
                                     </div>
                                 </group>
                                 <group string="Currency" groups="base.group_multi_currency">
@@ -716,7 +882,8 @@
                             <field name="narration" colspan="4" nolabel="1" placeholder="Add an internal note..."/>
                         </page>
                         <page string="Analytic Lines" groups="analytic.group_analytic_accounting">
-                            <field name="analytic_line_ids" context="{&apos;default_general_account_id&apos;:account_id, &apos;default_name&apos;: name, &apos;default_date&apos;:date, &apos;amount&apos;: (debit or 0.0)-(credit or 0.0)}"/>
+                            <field name="analytic_line_ids"
+                                   context="{&apos;default_general_account_id&apos;:account_id, &apos;default_name&apos;: name, &apos;default_date&apos;:date, &apos;amount&apos;: (debit or 0.0)-(credit or 0.0)}"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -732,7 +899,8 @@
                             <field name="date"/>
                             <field name="journal_id" readonly="False"/>
                             <field name="account_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
-                            <field name="partner_id" domain="[&apos;|&apos;, (&apos;parent_id&apos;, &apos;=&apos;, False), (&apos;is_company&apos;, &apos;=&apos;, True)]"/>
+                            <field name="partner_id"
+                                   domain="[&apos;|&apos;, (&apos;parent_id&apos;, &apos;=&apos;, False), (&apos;is_company&apos;, &apos;=&apos;, True)]"/>
                             <newline/>
                             <field name="debit"/>
                             <field name="credit"/>
@@ -775,7 +943,8 @@
                 <field name="ref"/>
                 <field name="statement_id" invisible="1"/>
                 <field name="partner_id"/>
-                <field name="account_id" options="{&quot;no_open&quot;:True}" domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
+                <field name="account_id" options="{&quot;no_open&quot;:True}"
+                       domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id)]"/>
                 <field name="analytic_account_id" groups="analytic.group_analytic_accounting"/>
                 <field name="reconciled" invisible="1"/>
                 <field name="full_reconcile_id"/>
@@ -802,18 +971,29 @@
         </view>
         <view id="account_view_account_move_line_filter" model="AccountMoveLine">
             <search string="Search Journal Items">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;ref&apos;,&apos;ilike&apos;,self)]" string="Move"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;ref&apos;,&apos;ilike&apos;,self)]"
+                       string="Move"/>
                 <field name="date"/>
                 <field name="tax_line_id"/>
                 <field name="tax_ids"/>
                 <separator/>
-                <filter string="Unposted" domain="[(&apos;move_id.state&apos;,&apos;=&apos;,&apos;draft&apos;)]" help="Unposted Journal Items"/>
-                <filter name="posted" string="Posted" domain="[(&apos;move_id.state&apos;,&apos;=&apos;,&apos;posted&apos;)]" help="Posted Journal Items"/>
+                <filter string="Unposted" domain="[(&apos;move_id.state&apos;,&apos;=&apos;,&apos;draft&apos;)]"
+                        help="Unposted Journal Items"/>
+                <filter name="posted" string="Posted"
+                        domain="[(&apos;move_id.state&apos;,&apos;=&apos;,&apos;posted&apos;)]"
+                        help="Posted Journal Items"/>
                 <separator/>
-                <filter string="Unreconciled" domain="[(&apos;full_reconcile_id&apos;, &apos;=&apos;, False), (&apos;balance&apos;,&apos;!=&apos;, 0), (&apos;account_id.reconcile&apos;,&apos;=&apos;,True)]" help="Journal items where matching number isn&apos;t set" name="unreconciled"/>
+                <filter string="Unreconciled"
+                        domain="[(&apos;full_reconcile_id&apos;, &apos;=&apos;, False), (&apos;balance&apos;,&apos;!=&apos;, 0), (&apos;account_id.reconcile&apos;,&apos;=&apos;,True)]"
+                        help="Journal items where matching number isn&apos;t set" name="unreconciled"/>
                 <separator/>
-                <filter string="Payable" domain="[(&apos;account_id.internal_type&apos;, &apos;=&apos;, &apos;payable&apos;)]" help="From Payable accounts" name="payable"/>
-                <filter string="Receivable" domain="[(&apos;account_id.internal_type&apos;, &apos;=&apos;, &apos;receivable&apos;)]" help="From Receivable accounts" name="receivable"/>
+                <filter string="Payable"
+                        domain="[(&apos;account_id.internal_type&apos;, &apos;=&apos;, &apos;payable&apos;)]"
+                        help="From Payable accounts" name="payable"/>
+                <filter string="Receivable"
+                        domain="[(&apos;account_id.internal_type&apos;, &apos;=&apos;, &apos;receivable&apos;)]"
+                        help="From Receivable accounts" name="receivable"/>
                 <separator/>
                 <field name="move_id" string="Number (Move)"/>
                 <field name="account_id"/>
@@ -827,12 +1007,20 @@
                 </group>
             </search>
         </view>
-        <action id="account_action_account_moves_all_a" type="ir.actions.act_window" name="Journal Items" model="AccountMoveLine" view_id="account_view_move_line_tree" view_mode="tree,form,pivot"/>
-        <action id="account_action_account_moves_all_tree" type="ir.actions.act_window" name="Journal Items" model="AccountMoveLine" view_id="account_view_move_line_tree" view_mode="tree,form"/>
-        <action id="account_action_move_line_graph" type="ir.actions.act_window" name="Journal Items" view_mode="graph,pivot" view_id="account_account_move_line_graph_date" model="AccountMoveLine"/>
-        <action id="account_action_move_line_graph_posted" type="ir.actions.act_window" name="Journal Items" view_mode="graph,pivot" view_id="account_account_move_line_graph_date" model="AccountMoveLine"/>
-        <action id="account_action_move_line_graph_cash_basis" type="ir.actions.act_window" name="Journal Items" view_mode="graph,pivot" view_id="account_account_move_line_graph_date_cash_basis" model="AccountMoveLine"/>
-        <action id="account_action_move_line_graph_cash_basis_posted" type="ir.actions.act_window" name="Journal Items" view_mode="graph,pivot" view_id="account_account_move_line_graph_date_cash_basis" model="AccountMoveLine"/>
+        <action id="account_action_account_moves_all_a" type="ir.actions.act_window" name="Journal Items"
+                model="AccountMoveLine" view_id="account_view_move_line_tree" view_mode="tree,form,pivot"/>
+        <action id="account_action_account_moves_all_tree" type="ir.actions.act_window" name="Journal Items"
+                model="AccountMoveLine" view_id="account_view_move_line_tree" view_mode="tree,form"/>
+        <action id="account_action_move_line_graph" type="ir.actions.act_window" name="Journal Items"
+                view_mode="graph,pivot" view_id="account_account_move_line_graph_date" model="AccountMoveLine"/>
+        <action id="account_action_move_line_graph_posted" type="ir.actions.act_window" name="Journal Items"
+                view_mode="graph,pivot" view_id="account_account_move_line_graph_date" model="AccountMoveLine"/>
+        <action id="account_action_move_line_graph_cash_basis" type="ir.actions.act_window" name="Journal Items"
+                view_mode="graph,pivot" view_id="account_account_move_line_graph_date_cash_basis"
+                model="AccountMoveLine"/>
+        <action id="account_action_move_line_graph_cash_basis_posted" type="ir.actions.act_window" name="Journal Items"
+                view_mode="graph,pivot" view_id="account_account_move_line_graph_date_cash_basis"
+                model="AccountMoveLine"/>
         <view id="account_view_move_tree" model="AccountMove">
             <tree decoration-info="state == &apos;draft&apos;" string="Journal Entries">
                 <field name="date"/>
@@ -848,22 +1036,29 @@
         <view id="account_view_move_form" model="AccountMove">
             <form string="Account Entry">
                 <header>
-                    <button name="post" states="draft" string="Post" type="object" class="oe_highlight" groups="account.group_account_invoice"/>
-                    <button name="%(action_view_account_move_reversal)d" states="posted" string="Reverse Entry" type="action" groups="account.group_account_invoice"/>
-                    <button name="button_cancel" states="posted" string="Cancel Entry" type="object" groups="account.group_account_invoice"/>
+                    <button name="post" states="draft" string="Post" type="object" class="oe_highlight"
+                            groups="account.group_account_invoice"/>
+                    <button name="%(action_view_account_move_reversal)d" states="posted" string="Reverse Entry"
+                            type="action" groups="account.group_account_invoice"/>
+                    <button name="button_cancel" states="posted" string="Cancel Entry" type="object"
+                            groups="account.group_account_invoice"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box">
-                        <button name="open_reconcile_view" class="oe_stat_button" icon="fa-bars" type="object" string="Reconciled entries"/>
+                        <button name="open_reconcile_view" class="oe_stat_button" icon="fa-bars" type="object"
+                                string="Reconciled entries"/>
                     </div>
-                    <label for="name" class="oe_edit_only" attrs="{&apos;invisible&apos;:[(&apos;name&apos;,&apos;=&apos;,&apos;/&apos;)]}"/>
+                    <label for="name" class="oe_edit_only"
+                           attrs="{&apos;invisible&apos;:[(&apos;name&apos;,&apos;=&apos;,&apos;/&apos;)]}"/>
                     <h1>
-                        <field name="name" readonly="True" attrs="{&apos;invisible&apos;:[(&apos;name&apos;,&apos;=&apos;,&apos;/&apos;)]}"/>
+                        <field name="name" readonly="True"
+                               attrs="{&apos;invisible&apos;:[(&apos;name&apos;,&apos;=&apos;,&apos;/&apos;)]}"/>
                     </h1>
                     <group>
                         <group>
-                            <field name="journal_id" options="{&apos;no_open&apos;: True, &apos;no_create&apos;: True}"/>
+                            <field name="journal_id"
+                                   options="{&apos;no_open&apos;: True, &apos;no_create&apos;: True}"/>
                             <field name="date"/>
                         </group>
                         <group>
@@ -875,21 +1070,26 @@
                     </group>
                     <notebook>
                         <page string="Journal Items">
-                            <field name="line_ids" widget="one2many_list" context="{&apos;line_ids&apos;: line_ids, &apos;journal_id&apos;: journal_id }">
+                            <field name="line_ids" widget="one2many_list"
+                                   context="{&apos;line_ids&apos;: line_ids, &apos;journal_id&apos;: journal_id }">
                                 <tree editable="bottom" string="Journal Items">
-                                    <field name="account_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id), (&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
-                                    <field name="partner_id" domain="[&apos;|&apos;, (&apos;parent_id&apos;, &apos;=&apos;, False), (&apos;is_company&apos;, &apos;=&apos;, True)]"/>
+                                    <field name="account_id"
+                                           domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id), (&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
+                                    <field name="partner_id"
+                                           domain="[&apos;|&apos;, (&apos;parent_id&apos;, &apos;=&apos;, False), (&apos;is_company&apos;, &apos;=&apos;, True)]"/>
                                     <field name="name"/>
                                     <field name="analytic_account_id" groups="analytic.group_analytic_accounting"/>
                                     <field name="amount_currency" groups="base.group_multi_currency"/>
                                     <field name="company_currency_id" invisible="1"/>
-                                    <field name="currency_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_currency"/>
+                                    <field name="currency_id" options="{&apos;no_create&apos;: True}"
+                                           groups="base.group_multi_currency"/>
                                     <field name="debit" sum="Total Debit"/>
                                     <field name="credit" sum="Total Credit"/>
                                     <field name="date_maturity" required="0"/>
                                 </tree>
                             </field>
-                            <field name="narration" colspan="4" placeholder="Add an internal note..." nolabel="1" height="50"/>
+                            <field name="narration" colspan="4" placeholder="Add an internal note..." nolabel="1"
+                                   height="50"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -897,16 +1097,26 @@
         </view>
         <view id="account_view_account_move_filter" model="AccountMove">
             <search string="Search Move">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;ref&apos;,&apos;ilike&apos;,self)]" string="Move"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;ref&apos;,&apos;ilike&apos;,self)]"
+                       string="Move"/>
                 <field name="date"/>
-                <filter string="Unposted" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]" help="Unposted Journal Entries"/>
-                <filter string="Posted" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;posted&apos;)]" help="Posted Journal Entries"/>
+                <filter string="Unposted" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]"
+                        help="Unposted Journal Entries"/>
+                <filter string="Posted" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;posted&apos;)]"
+                        help="Posted Journal Entries"/>
                 <separator/>
-                <filter string="Sales" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;sale&apos;)]" context="{&apos;default_journal_type&apos;: &apos;sale&apos;}"/>
-                <filter string="Purchases" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;purchase&apos;)]" context="{&apos;default_journal_type&apos;: &apos;purchase&apos;}"/>
-                <filter string="Bank Operations" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;bank&apos;)]" context="{&apos;default_journal_type&apos;: &apos;bank&apos;}"/>
-                <filter string="Cash Operations" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;cash&apos;)]" context="{&apos;default_journal_type&apos;: &apos;cash&apos;}"/>
-                <filter string="Miscellaneous Operations" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;general&apos;)]" name="misc_filter" context="{&apos;default_journal_type&apos;: &apos;general&apos;}"/>
+                <filter string="Sales" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;sale&apos;)]"
+                        context="{&apos;default_journal_type&apos;: &apos;sale&apos;}"/>
+                <filter string="Purchases" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;purchase&apos;)]"
+                        context="{&apos;default_journal_type&apos;: &apos;purchase&apos;}"/>
+                <filter string="Bank Operations" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;bank&apos;)]"
+                        context="{&apos;default_journal_type&apos;: &apos;bank&apos;}"/>
+                <filter string="Cash Operations" domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;cash&apos;)]"
+                        context="{&apos;default_journal_type&apos;: &apos;cash&apos;}"/>
+                <filter string="Miscellaneous Operations"
+                        domain="[(&apos;journal_id.type&apos;,&apos;=&apos;,&apos;general&apos;)]" name="misc_filter"
+                        context="{&apos;default_journal_type&apos;: &apos;general&apos;}"/>
                 <separator/>
                 <field name="partner_id"/>
                 <field name="journal_id"/>
@@ -915,28 +1125,33 @@
                     <filter string="Partner" domain="[]" context="{&apos;group_by&apos;:&apos;partner_id&apos;}"/>
                     <filter string="Journal" domain="[]" context="{&apos;group_by&apos;:&apos;journal_id&apos;}"/>
                     <filter string="States" domain="[]" context="{&apos;group_by&apos;:&apos;state&apos;}"/>
-                    <filter string="Date" domain="[]" context="{&apos;group_by&apos;:&apos;date&apos;}" help="Journal Entries by Month"/>
+                    <filter string="Date" domain="[]" context="{&apos;group_by&apos;:&apos;date&apos;}"
+                            help="Journal Entries by Month"/>
                 </group>
             </search>
         </view>
-        <action id="account_action_move_journal_line" type="ir.actions.act_window" name="Journal Entries" model="AccountMove" view_mode="tree,form" view_id="account_view_move_tree" search_view_id="account_view_account_move_filter">
+        <action id="account_action_move_journal_line" type="ir.actions.act_window" name="Journal Entries"
+                model="AccountMove" view_mode="tree,form" view_id="account_view_move_tree"
+                search_view_id="account_view_account_move_filter">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to create a journal entry.
-              </p>
+                    Click to create a journal entry.
+                </p>
                 <p>
-                A journal entry consists of several journal items, each of
-                which is either a debit or a credit transaction.
-              </p>
+                    A journal entry consists of several journal items, each of
+                    which is either a debit or a credit transaction.
+                </p>
                 <p>
-                Odoo automatically creates one journal entry per accounting
-                document: invoice, refund, vendor payment, bank statements,
-                etc. So, you should record journal entries manually only/mainly
-                for miscellaneous operations.
-              </p>
+                    Odoo automatically creates one journal entry per accounting
+                    document: invoice, refund, vendor payment, bank statements,
+                    etc. So, you should record journal entries manually only/mainly
+                    for miscellaneous operations.
+                </p>
             </help>
         </action>
-        <action id="account_action_move_line_form" type="ir.actions.act_window" name="Entries" model="AccountMove" view_id="account_view_move_tree" search_view_id="account_view_account_move_filter" view_mode="tree,form"/>
+        <action id="account_action_move_line_form" type="ir.actions.act_window" name="Entries" model="AccountMove"
+                view_id="account_view_move_tree" search_view_id="account_view_account_move_filter"
+                view_mode="tree,form"/>
         <view id="account_view_full_reconcile_form" model="AccountFullReconcile">
             <form string="Matching">
                 <group>
@@ -954,7 +1169,8 @@
             <tree string="Payment Terms">
                 <field name="sequence" widget="handle"/>
                 <field name="value" string="Due Type"/>
-                <field name="value_amount" attrs="{&apos;readonly&apos;:[(&apos;value&apos;,&apos;=&apos;,&apos;balance&apos;)]}"/>
+                <field name="value_amount"
+                       attrs="{&apos;readonly&apos;:[(&apos;value&apos;,&apos;=&apos;,&apos;balance&apos;)]}"/>
                 <field name="days"/>
                 <field name="option" string=""/>
             </tree>
@@ -964,10 +1180,12 @@
                 <group>
                     <group string="Term Type">
                         <field name="value" widget="radio"/>
-                        <label for="value_amount" attrs="{&apos;invisible&apos;:[(&apos;value&apos;,&apos;=&apos;, &apos;balance&apos;)]}"/>
+                        <label for="value_amount"
+                               attrs="{&apos;invisible&apos;:[(&apos;value&apos;,&apos;=&apos;, &apos;balance&apos;)]}"/>
                         <div attrs="{&apos;invisible&apos;:[(&apos;value&apos;,&apos;=&apos;, &apos;balance&apos;)]}">
                             <field name="value_amount" class="oe_inline"/>
-                            <label string="%" class="oe_inline" attrs="{&apos;invisible&apos;:[(&apos;value&apos;,&apos;!=&apos;,&apos;percent&apos;)]}"/>
+                            <label string="%" class="oe_inline"
+                                   attrs="{&apos;invisible&apos;:[(&apos;value&apos;,&apos;!=&apos;,&apos;percent&apos;)]}"/>
                         </div>
                         <field name="sequence" invisible="1"/>
                     </group>
@@ -975,10 +1193,11 @@
                         <label for="days"/>
                         <div>
                             <field name="option" widget="radio"/>
-                            <div class="o_row" attrs="{&apos;invisible&apos;: [(&apos;option&apos;, &apos;in&apos;, [&apos;last_day_following_month&apos;, &apos;last_day_current_month&apos;])]}">
+                            <div class="o_row"
+                                 attrs="{&apos;invisible&apos;: [(&apos;option&apos;, &apos;in&apos;, [&apos;last_day_following_month&apos;, &apos;last_day_current_month&apos;])]}">
                                 <field name="days"/>
-                                    days
-                                </div>
+                                days
+                            </div>
                         </div>
                     </group>
                 </group>
@@ -1001,12 +1220,14 @@
                 <field name="note" placeholder="Payment term explanation for the customer..."/>
                 <separator string="Terms"/>
                 <p class="text-muted">
-                        The last line&apos;s computation type should be &quot;Balance&quot; to ensure that the whole amount will be allocated.
-                    </p>
+                    The last line&apos;s computation type should be &quot;Balance&quot; to ensure that the whole amount
+                    will be allocated.
+                </p>
                 <field name="line_ids"/>
             </form>
         </view>
-        <action id="account_action_payment_term_form" type="ir.actions.act_window" name="Payment Terms" model="AccountPaymentTerm" view_mode="tree,form" search_view_id="account_view_payment_term_search"/>
+        <action id="account_action_payment_term_form" type="ir.actions.act_window" name="Payment Terms"
+                model="AccountPaymentTerm" view_mode="tree,form" search_view_id="account_view_payment_term_search"/>
         <view id="account_view_account_template_form" model="AccountAccountTemplate">
             <form string="Account Template">
                 <group col="4">
@@ -1014,8 +1235,10 @@
                     <field name="code"/>
                     <newline/>
                     <field name="user_type_id" widget="selection"/>
-                    <field name="currency_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_currency"/>
-                    <field name="tag_ids" domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;taxes&apos;)]" widget="many2many_tags" context="{&apos;default_applicability&apos;: &apos;accounts&apos;}"/>
+                    <field name="currency_id" options="{&apos;no_create&apos;: True}"
+                           groups="base.group_multi_currency"/>
+                    <field name="tag_ids" domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;taxes&apos;)]"
+                           widget="many2many_tags" context="{&apos;default_applicability&apos;: &apos;accounts&apos;}"/>
                     <field name="reconcile"/>
                     <field name="chart_template_id"/>
                 </group>
@@ -1034,14 +1257,19 @@
         </view>
         <view id="account_view_account_template_search" model="AccountAccountTemplate">
             <search string="Search Account Templates">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;ilike&apos;,self)]" string="Account Template"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;ilike&apos;,self)]"
+                       string="Account Template"/>
                 <field name="user_type_id"/>
                 <group expand="0" string="Group By">
-                    <filter string="Account Type" domain="[]" context="{&apos;group_by&apos;:&apos;user_type_id&apos;}"/>
+                    <filter string="Account Type" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;user_type_id&apos;}"/>
                 </group>
             </search>
         </view>
-        <action id="account_action_account_template_form" type="ir.actions.act_window" name="Account Templates" model="AccountAccountTemplate" view_mode="tree,form" search_view_id="account_view_account_template_search"/>
+        <action id="account_action_account_template_form" type="ir.actions.act_window" name="Account Templates"
+                model="AccountAccountTemplate" view_mode="tree,form"
+                search_view_id="account_view_account_template_search"/>
         <view id="account_view_account_chart_template_form" model="AccountChartTemplate">
             <form string="Chart of Accounts Template">
                 <group col="4">
@@ -1074,10 +1302,14 @@
                 <field name="bank_account_code_prefix"/>
                 <field name="cash_account_code_prefix"/>
                 <group expand="0" string="Group By">
-                    <filter string="Receivable Account" domain="[]" context="{&apos;group_by&apos;:&apos;property_account_receivable_id&apos;}"/>
-                    <filter string="Payable Account" domain="[]" context="{&apos;group_by&apos;:&apos;property_account_payable_id&apos;}"/>
-                    <filter string="Income Account" domain="[]" context="{&apos;group_by&apos;:&apos;property_account_income_categ_id&apos;}"/>
-                    <filter string="Expense Account" domain="[]" context="{&apos;group_by&apos;:&apos;property_account_expense_categ_id&apos;}"/>
+                    <filter string="Receivable Account" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;property_account_receivable_id&apos;}"/>
+                    <filter string="Payable Account" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;property_account_payable_id&apos;}"/>
+                    <filter string="Income Account" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;property_account_income_categ_id&apos;}"/>
+                    <filter string="Expense Account" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;property_account_expense_categ_id&apos;}"/>
                 </group>
             </search>
         </view>
@@ -1091,7 +1323,8 @@
                 <field name="property_account_income_categ_id" invisible="1"/>
             </tree>
         </view>
-        <action id="account_action_account_chart_template_form" type="ir.actions.act_window" name="Chart of Accounts Templates" model="AccountChartTemplate" view_mode="tree,form"/>
+        <action id="account_action_account_chart_template_form" type="ir.actions.act_window"
+                name="Chart of Accounts Templates" model="AccountChartTemplate" view_mode="tree,form"/>
         <view id="account_view_account_tax_template_form" model="AccountTaxTemplate">
             <form string="Account Tax Template">
                 <group>
@@ -1107,10 +1340,12 @@
                         <group>
                             <group>
                                 <field name="amount_type"/>
-                                <label for="amount" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                <label for="amount"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
                                 <div attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}">
                                     <field name="amount" class="oe_inline"/>
-                                    <label string="%" class="oe_inline" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;,&apos;fixed&apos;)]}"/>
+                                    <label string="%" class="oe_inline"
+                                           attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;,&apos;fixed&apos;)]}"/>
                                 </div>
                             </group>
                             <group attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}">
@@ -1118,7 +1353,9 @@
                                 <field name="refund_account_id"/>
                             </group>
                         </group>
-                        <field name="children_tax_ids" attrs="{&apos;invisible&apos;:[&apos;|&apos;, (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;), (&apos;type_tax_use&apos;,&apos;=&apos;,&apos;none&apos;)]}" domain="[(&apos;type_tax_use&apos;,&apos;in&apos;,(&apos;none&apos;,type_tax_use)), (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;)]">
+                        <field name="children_tax_ids"
+                               attrs="{&apos;invisible&apos;:[&apos;|&apos;, (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;), (&apos;type_tax_use&apos;,&apos;=&apos;,&apos;none&apos;)]}"
+                               domain="[(&apos;type_tax_use&apos;,&apos;in&apos;,(&apos;none&apos;,type_tax_use)), (&apos;amount_type&apos;,&apos;!=&apos;,&apos;group&apos;)]">
                             <tree string="Children Taxes">
                                 <field name="sequence" widget="handle"/>
                                 <field name="name"/>
@@ -1130,17 +1367,26 @@
                     <page string="Advanced Options">
                         <group>
                             <group>
-                                <field name="description" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
-                                <field name="analytic" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}" groups="analytic.group_analytic_accounting"/>
+                                <field name="description"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                <field name="analytic"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"
+                                       groups="analytic.group_analytic_accounting"/>
                             </group>
                             <group>
-                                <field name="price_include" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
-                                <field name="include_base_amount" attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                <field name="price_include"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
+                                <field name="include_base_amount"
+                                       attrs="{&apos;invisible&apos;:[(&apos;amount_type&apos;,&apos;=&apos;, &apos;group&apos;)]}"/>
                             </group>
                             <group>
-                                <field name="tag_ids" domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;accounts&apos;)]" widget="many2many_tags" context="{&apos;default_applicability&apos;: &apos;taxes&apos;}"/>
+                                <field name="tag_ids"
+                                       domain="[(&apos;applicability&apos;, &apos;!=&apos;, &apos;accounts&apos;)]"
+                                       widget="many2many_tags"
+                                       context="{&apos;default_applicability&apos;: &apos;taxes&apos;}"/>
                                 <field name="active" groups="base.group_no_one"/>
-                                <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
+                                <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                       groups="base.group_multi_company"/>
                             </group>
                         </group>
                     </page>
@@ -1155,13 +1401,19 @@
         </view>
         <view id="account_view_account_tax_template_search" model="AccountTaxTemplate">
             <search string="Search Tax Templates">
-                <field name="name" filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;description&apos;,&apos;ilike&apos;,self)]" string="Tax Template"/>
-                <filter string="Sale" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]" help="Taxes used in Sales"/>
-                <filter string="Purchase" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]" help="Taxes used in Purchases"/>
+                <field name="name"
+                       filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;description&apos;,&apos;ilike&apos;,self)]"
+                       string="Tax Template"/>
+                <filter string="Sale" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"
+                        help="Taxes used in Sales"/>
+                <filter string="Purchase" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"
+                        help="Taxes used in Purchases"/>
                 <field name="chart_template_id"/>
             </search>
         </view>
-        <action id="account_action_account_tax_template_form" type="ir.actions.act_window" name="Tax Templates" model="AccountTaxTemplate" view_mode="tree,form" search_view_id="account_view_account_tax_template_search"/>
+        <action id="account_action_account_tax_template_form" type="ir.actions.act_window" name="Tax Templates"
+                model="AccountTaxTemplate" view_mode="tree,form"
+                search_view_id="account_view_account_tax_template_search"/>
         <view id="account_view_wizard_multi_chart" model="WizardMultiChartsAccounts">
             <form position="attributes">
                 <attribute name="string">Accounting Application Configuration</attribute>
@@ -1171,23 +1423,32 @@
                 <field name="complete_tax_set" invisible="1"/>
                 <group col="1">
                     <group>
-                        <field name="chart_template_id" widget="selection" domain="[(&apos;visible&apos;,&apos;=&apos;, True)]"/>
+                        <field name="chart_template_id" widget="selection"
+                               domain="[(&apos;visible&apos;,&apos;=&apos;, True)]"/>
                     </group>
                     <group invisible="1">
                         <field name="company_id" options="{&apos;no_create&apos;: True}"/>
                         <!-- we assume that this wizard will be run only by administrators and as this field may cause problem if hidden (because of the default company of the user removed from the selection because already configured), we simply choosed to remove the group "multi company" of it -->
                         <field name="currency_id" class="oe_inline"/>
                         <field name="use_anglo_saxon"/>
-                        <field name="sale_tax_id" attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}" domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"/>
-                        <label for="sale_tax_rate" string="Sale Tax" attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>
+                        <field name="sale_tax_id"
+                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}"
+                               domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"/>
+                        <label for="sale_tax_rate" string="Sale Tax"
+                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>
                         <div attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}">
-                            <field name="sale_tax_rate" class="oe_inline"/> %%
-                            </div>
-                        <field name="purchase_tax_id" attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}" domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"/>
-                        <label for="purchase_tax_rate" string="Purchase Tax" attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>
+                            <field name="sale_tax_rate" class="oe_inline"/>
+                            %%
+                        </div>
+                        <field name="purchase_tax_id"
+                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}"
+                               domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"/>
+                        <label for="purchase_tax_rate" string="Purchase Tax"
+                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>
                         <div attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}">
-                            <field name="purchase_tax_rate" class="oe_inline"/> %%
-                            </div>
+                            <field name="purchase_tax_rate" class="oe_inline"/>
+                            %%
+                        </div>
                         <field name="transfer_account_id"/>
                     </group>
                     <group groups="account.group_account_user" invisible="1">
@@ -1198,7 +1459,8 @@
                 </group>
             </group>
         </view>
-        <action id="account_action_wizard_multi_chart" type="ir.actions.act_window" name="Choose Accounting Template" model="WizardMultiChartsAccounts" view_id="account_view_wizard_multi_chart" view_mode="form"/>
+        <action id="account_action_wizard_multi_chart" type="ir.actions.act_window" name="Choose Accounting Template"
+                model="WizardMultiChartsAccounts" view_id="account_view_wizard_multi_chart" view_mode="form"/>
         <view id="account_view_account_position_template_search" model="AccountFiscalPositionTemplate">
             <search string="Fiscal Position">
                 <field name="name" string="Fiscal Position Template"/>
@@ -1237,7 +1499,9 @@
                 <field name="name"/>
             </tree>
         </view>
-        <action id="account_action_account_fiscal_position_template_form" type="ir.actions.act_window" name="Fiscal Position" model="AccountFiscalPositionTemplate" view_mode="tree,form" search_view_id="account_view_account_position_template_search"/>
+        <action id="account_action_account_fiscal_position_template_form" type="ir.actions.act_window"
+                name="Fiscal Position" model="AccountFiscalPositionTemplate" view_mode="tree,form"
+                search_view_id="account_view_account_position_template_search"/>
         <view id="account_account_bank_statement_pivot" model="AccountBankStatement">
             <pivot string="Account Statistics">
                 <field name="date" type="row"/>
@@ -1252,18 +1516,20 @@
                 <field name="balance_end" operator="+"/>
             </graph>
         </view>
-        <action id="account_action_view_bank_statement_tree" type="ir.actions.act_window" name="Cash Registers" model="AccountBankStatement" view_mode="tree,form,pivot,graph" view_id="account_view_bank_statement_tree" search_view_id="account_view_bank_statement_search">
+        <action id="account_action_view_bank_statement_tree" type="ir.actions.act_window" name="Cash Registers"
+                model="AccountBankStatement" view_mode="tree,form,pivot,graph"
+                view_id="account_view_bank_statement_tree" search_view_id="account_view_bank_statement_search">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to create a new cash log.
-              </p>
+                    Click to create a new cash log.
+                </p>
                 <p>
-                A Cash Register allows you to manage cash entries in your cash
-                journals. This feature provides an easy way to follow up cash
-                payments on a daily basis. You can enter the coins that are in
-                your cash box, and then post entries when money comes in or
-                goes out of the cash box.
-              </p>
+                    A Cash Register allows you to manage cash entries in your cash
+                    journals. This feature provides an easy way to follow up cash
+                    payments on a daily basis. You can enter the coins that are in
+                    your cash box, and then post entries when money comes in or
+                    goes out of the cash box.
+                </p>
             </help>
         </action>
         <view id="account_view_account_financial_report_form" model="AccountFinancialReport">
@@ -1276,14 +1542,19 @@
                     <field name="sign"/>
                     <field name="style_overwrite"/>
                 </group>
-                <notebook attrs="{&apos;invisible&apos;: [(&apos;type&apos;,&apos;not in&apos;,[&apos;accounts&apos;,&apos;account_type&apos;, &apos;account_report&apos;])]}">
+                <notebook
+                        attrs="{&apos;invisible&apos;: [(&apos;type&apos;,&apos;not in&apos;,[&apos;accounts&apos;,&apos;account_type&apos;, &apos;account_report&apos;])]}">
                     <page string="Report">
                         <group>
-                            <field name="display_detail" attrs="{&apos;invisible&apos;: [(&apos;type&apos;,&apos;not in&apos;,[&apos;accounts&apos;,&apos;account_type&apos;])]}"/>
-                            <field name="account_report_id" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;account_report&apos;)]}"/>
+                            <field name="display_detail"
+                                   attrs="{&apos;invisible&apos;: [(&apos;type&apos;,&apos;not in&apos;,[&apos;accounts&apos;,&apos;account_type&apos;])]}"/>
+                            <field name="account_report_id"
+                                   attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;account_report&apos;)]}"/>
                         </group>
-                        <field name="account_ids" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;accounts&apos;)]}"/>
-                        <field name="account_type_ids" attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;account_type&apos;)]}"/>
+                        <field name="account_ids"
+                               attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;accounts&apos;)]}"/>
+                        <field name="account_type_ids"
+                               attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;account_type&apos;)]}"/>
                     </page>
                 </notebook>
             </form>
@@ -1307,7 +1578,10 @@
                 </group>
             </search>
         </view>
-        <action id="account_action_account_financial_report_tree" type="ir.actions.act_window" name="Financial Reports" model="AccountFinancialReport" view_mode="tree,form" search_view_id="account_view_account_financial_report_search" view_id="account_view_account_financial_report_tree"/>
+        <action id="account_action_account_financial_report_tree" type="ir.actions.act_window" name="Financial Reports"
+                model="AccountFinancialReport" view_mode="tree,form"
+                search_view_id="account_view_account_financial_report_search"
+                view_id="account_view_account_financial_report_tree"/>
         <view id="account_view_account_report_tree_hierarchy" model="AccountFinancialReport">
             <tree string="Account Reports Hierarchy">
                 <field name="name"/>
@@ -1316,37 +1590,73 @@
                 <field name="account_report_id"/>
             </tree>
         </view>
-        <action id="account_action_account_report_tree_hierarchy" type="ir.actions.act_window" name="Financial Reports Hierarchy" model="AccountFinancialReport" view_id="account_view_account_report_tree_hierarchy" view_mode="tree,form"/>
-        <act_window id="account_act_account_partner_ledger_payable" name="Partner Ledger: Payable" model="AccountMoveLine" src_model="res.partner" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_partner_ledger_payable_no_partner" name="Unknown Partner Ledger" model="AccountMoveLine" src_model="res.partner" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_partner_ledger_receivable" name="Partner Ledger: Receivable" model="AccountMoveLine" src_model="res.partner" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_partner_ledger_receivable_no_partner" name="Unknown Partner Ledger" model="AccountMoveLine" src_model="res.partner" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_acount_move_line_open_unreconciled" name="Unreconciled Entries" model="AccountMoveLine" src_model="account.account" view_mode="tree,form" target=""/>
-        <act_window id="account_action_move_line_select" name="Journal Items" model="AccountMoveLine" src_model="account.account" view_mode="tree,form" target=""/>
-        <act_window id="account_action_move_select" name="Journal Entries" model="AccountMove" src_model="" view_mode="tree,form" target=""/>
-        <act_window id="account_action_move_line_select_by_type" name="Journal Items" model="AccountMoveLine" src_model="account.account.type" view_mode="tree,form" target=""/>
-        <act_window id="account_action_move_line_select_by_partner" name="Journal Items" model="AccountMoveLine" src_model="res.partner" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_tax_net" name="Net Tax Lines" model="AccountMoveLine" src_model="account.tax" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_tax_tax" name="Tax Lines" model="AccountMoveLine" src_model="account.tax" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_tax_net_posted" name="Net Tax Lines" model="AccountMoveLine" src_model="account.tax" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_tax_tax_posted" name="Tax Lines" model="AccountMoveLine" src_model="account.tax" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_journal_2_account_bank_statement" name="Bank statements" model="AccountBankStatement" src_model="account.journal" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_journal_2_account_move_line" name="Journal Items" model="AccountMoveLine" src_model="account.journal" view_mode="tree,form" target=""/>
-        <act_window id="account_act_account_move_to_account_move_line_open" name="Journal Items" model="AccountMoveLine" src_model="account.move" view_mode="tree,form" target=""/>
-        <menuitem id="account_menu_action_account_form" sequence="20" parent="account_menu_finance_entries" action="account_action_account_form"/>
-        <menuitem id="account_menu_action_account_bank_journal_form" parent="account_account_account_menu" action="account_action_account_bank_journal_form" groups="group_account_manager"/>
-        <menuitem id="account_menu_action_account_journal_form" parent="account_account_account_menu" action="account_action_account_journal_form" groups="group_account_manager"/>
-        <menuitem id="account_account_tag_menu" parent="account_account_account_menu" action="account_account_tag_action" groups="base.group_no_one"/>
-        <menuitem id="account_account_report_folder" name="Reports" sequence="4" parent="account_account_account_menu" groups="account.group_account_manager"/>
-        <menuitem id="account_menu_action_tax_form" sequence="1" parent="account_account_account_menu" action="account_action_tax_form"/>
-        <menuitem id="account_menu_action_account_moves_all" sequence="1" parent="account_menu_finance_entries" action="account_action_account_moves_all_a" groups="base.group_no_one"/>
-        <menuitem id="account_menu_action_move_journal_line_form" sequence="2" parent="account_menu_finance_entries" action="account_action_move_journal_line" groups="group_account_user"/>
-        <menuitem id="account_menu_action_payment_term_form" sequence="4" parent="account_account_management_menu" action="account_action_payment_term_form"/>
-        <menuitem id="account_menu_account_customer" name="Customers" sequence="100" parent="account_menu_finance_receivables" action="base_action_partner_customer_form"/>
-        <menuitem id="account_menu_product_template_action" name="Sellable Products" sequence="110" parent="account_menu_finance_receivables" action="product_product_template_action"/>
-        <menuitem id="account_menu_account_supplier" name="Vendors" sequence="100" parent="account_menu_finance_payables" action="base_action_partner_supplier_form"/>
-        <menuitem id="account_menu_account_financial_reports_tree" name="Account Reports" parent="account_menu_account_reports" action="account_action_account_financial_report_tree"/>
-        <menuitem id="account_menu_account_report_tree_hierarchy" name="Account Reports Hierarchy" parent="account_menu_account_reports" action="account_action_account_report_tree_hierarchy"/>
-        <menuitem id="account_menu_action_manual_reconciliation" name="Manual Payments &amp; Invoices Matching" sequence="25" parent="account_menu_finance_entries" action="account_action_manual_reconciliation"/>
+        <action id="account_action_account_report_tree_hierarchy" type="ir.actions.act_window"
+                name="Financial Reports Hierarchy" model="AccountFinancialReport"
+                view_id="account_view_account_report_tree_hierarchy" view_mode="tree,form"/>
+        <action id="account_act_account_partner_ledger_payable" name="Partner Ledger: Payable" model="AccountMoveLine"
+                src_model="Partner" view_mode="tree,form"/>
+        <action id="account_act_account_partner_ledger_payable_no_partner" name="Unknown Partner Ledger"
+                model="AccountMoveLine"
+                src_model="Partner" view_mode="tree,form"/>
+        <action id="account_act_account_partner_ledger_receivable" name="Partner Ledger: Receivable"
+                model="AccountMoveLine" src_model="Partner" view_mode="tree,form"/>
+        <action id="account_act_account_partner_ledger_receivable_no_partner" name="Unknown Partner Ledger"
+                model="AccountMoveLine" src_model="Partner" view_mode="tree,form"/>
+        <action id="account_act_account_acount_move_line_open_unreconciled" name="Unreconciled Entries"
+                model="AccountMoveLine" src_model="AccountAccount" view_mode="tree,form"/>
+        <action id="account_action_move_line_select" name="Journal Items" model="AccountMoveLine"
+                src_model="AccountAccount" view_mode="tree,form"/>
+        <action id="account_action_move_select" name="Journal Entries" model="AccountMove" view_mode="tree,form"
+        />
+        <action id="account_action_move_line_select_by_type" name="Journal Items" model="AccountMoveLine"
+                src_model="AccountAccountType" view_mode="tree,form"/>
+        <action id="account_action_move_line_select_by_partner" name="Journal Items" model="AccountMoveLine"
+                src_model="Partner" view_mode="tree,form"/>
+        <action id="account_act_account_tax_net" name="Net Tax Lines" model="AccountMoveLine" src_model="AccountTax"
+                view_mode="tree,form"/>
+        <action id="account_act_account_tax_tax" name="Tax Lines" model="AccountMoveLine" src_model="AccountTax"
+                view_mode="tree,form"/>
+        <action id="account_act_account_tax_net_posted" name="Net Tax Lines" model="AccountMoveLine"
+                src_model="AccountTax" view_mode="tree,form"/>
+        <action id="account_act_account_tax_tax_posted" name="Tax Lines" model="AccountMoveLine" src_model="AccountTax"
+                view_mode="tree,form"/>
+        <action id="account_act_account_journal_2_account_bank_statement" name="Bank statements"
+                model="AccountBankStatement" src_model="AccountJournal" view_mode="tree,form"/>
+        <action id="account_act_account_journal_2_account_move_line" name="Journal Items" model="AccountMoveLine"
+                src_model="AccountJournal" view_mode="tree,form"/>
+        <action id="account_act_account_move_to_account_move_line_open" name="Journal Items" model="AccountMoveLine"
+                src_model="AccountMove" view_mode="tree,form"/>
+        <menuitem id="account_menu_action_account_form" sequence="20" parent="account_menu_finance_entries"
+                  action="account_action_account_form"/>
+        <menuitem id="account_menu_action_account_bank_journal_form" parent="account_account_account_menu"
+                  action="account_action_account_bank_journal_form" groups="group_account_manager"/>
+        <menuitem id="account_menu_action_account_journal_form" parent="account_account_account_menu"
+                  action="account_action_account_journal_form" groups="group_account_manager"/>
+        <menuitem id="account_account_tag_menu" parent="account_account_account_menu"
+                  action="account_account_tag_action" groups="base.group_no_one"/>
+        <menuitem id="account_account_report_folder" name="Reports" sequence="4" parent="account_account_account_menu"
+                  groups="account.group_account_manager"/>
+        <menuitem id="account_menu_action_tax_form" sequence="1" parent="account_account_account_menu"
+                  action="account_action_tax_form"/>
+        <menuitem id="account_menu_action_account_moves_all" sequence="1" parent="account_menu_finance_entries"
+                  action="account_action_account_moves_all_a" groups="base.group_no_one"/>
+        <menuitem id="account_menu_action_move_journal_line_form" sequence="2" parent="account_menu_finance_entries"
+                  action="account_action_move_journal_line" groups="group_account_user"/>
+        <menuitem id="account_menu_action_payment_term_form" sequence="4" parent="account_account_management_menu"
+                  action="account_action_payment_term_form"/>
+        <menuitem id="account_menu_account_customer" name="Customers" sequence="100"
+                  parent="account_menu_finance_receivables" action="base_action_partner_customer_form"/>
+        <menuitem id="account_menu_product_template_action" name="Sellable Products" sequence="110"
+                  parent="account_menu_finance_receivables" action="product_product_template_action"/>
+        <menuitem id="account_menu_account_supplier" name="Vendors" sequence="100"
+                  parent="account_menu_finance_payables" action="base_action_partner_supplier_form"/>
+        <menuitem id="account_menu_account_financial_reports_tree" name="Account Reports"
+                  parent="account_menu_account_reports" action="account_action_account_financial_report_tree"/>
+        <menuitem id="account_menu_account_report_tree_hierarchy" name="Account Reports Hierarchy"
+                  parent="account_menu_account_reports" action="account_action_account_report_tree_hierarchy"/>
+        <action id="account_action_manual_reconciliation" type="ir.actions.client" name="Manual Reconciliation"
+                tag="manual_reconciliation_view"/>
+        <menuitem id="account_menu_action_manual_reconciliation" name="Manual Payments &amp; Invoices Matching"
+                  sequence="25" parent="account_menu_finance_entries" action="account_action_manual_reconciliation"/>
     </data>
 </hexya>

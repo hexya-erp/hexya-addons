@@ -280,8 +280,8 @@
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers"/>
-                    <field name="message_ids" widget="mail_thread"/>
+                    <!--<field name="message_follower_ids" widget="mail_followers"/>-->
+                    <!--<field name="message_ids" widget="mail_thread"/>-->
                 </div>
             </form>
         </view>
@@ -433,8 +433,8 @@
                     </notebook>
                 </sheet>
                 <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
-                    <field name="message_ids" widget="mail_thread"/>
+                    <!--<field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>-->
+                    <!--<field name="message_ids" widget="mail_thread"/>-->
                 </div>
             </form>
         </view>
@@ -496,7 +496,8 @@
               </p>
             </help>
         </action>
-        <act_window id="account_act_account_journal_2_account_invoice_opened" name="Unpaid Invoices" model="AccountInvoice" src_model="account.journal" view_mode="tree,form" target=""/>
+        <action id="account_act_account_journal_2_account_invoice_opened" name="Unpaid Invoices" model="AccountInvoice"
+                src_model="AccountJournal" view_mode="tree,form"/>
         <menuitem id="account_menu_action_invoice_tree1" sequence="1" parent="account_menu_finance_receivables" action="account_action_invoice_tree1"/>
         <menuitem id="account_menu_action_invoice_tree2" sequence="1" parent="account_menu_finance_payables" action="account_action_invoice_tree2"/>
     </data>

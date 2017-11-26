@@ -23,6 +23,7 @@
             </form>
         </view>
         <action id="account_action_account_invoice_cancel" type="ir.actions.act_window" name="Cancel Selected Invoices" model="AccountInvoiceCancel" view_mode="form" view_id="account_account_invoice_cancel_view"/>
-        <act_window id="account_action_account_invoice_confirm" name="Confirm Draft Invoices" model="AccountInvoiceConfirm" src_model="account.invoice" view_mode="form" target="new"/>
+        <action id="account_action_account_invoice_confirm" name="Confirm Draft Invoices" model="AccountInvoiceConfirm"
+                src_model="AccountInvoice" view_mode="form" target="new"/>
     </data>
 </hexya>

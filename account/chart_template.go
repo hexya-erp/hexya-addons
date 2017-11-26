@@ -574,7 +574,8 @@ Note : 'None' means a tax can't be used by itself however it can still be used i
 			Default: func(env models.Environment, vals models.FieldMap) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
-		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTaxTemplate(), JSON: "children_tax_ids"},
+		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTaxTemplate(), JSON: "children_tax_ids",
+			M2MTheirField: "ChildTax", M2MOurField: "ParentTax"},
 		"Sequence": models.IntegerField{Required: true, Default: models.DefaultValue(1),
 			Help: "The sequence field is used to define order in which the tax lines are applied."},
 		"Amount": models.FloatField{Required: true, Digits: nbutils.Digits{Precision: 16, Scale: 4}},

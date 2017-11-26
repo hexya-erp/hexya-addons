@@ -58,7 +58,7 @@ to value expenses for the current product.`},
 			return rs.Super().Write(data, fieldsToReset...)
 		})
 
-	pool.ProductTemplate().Methods().GetProductAccounts().DeclareMethod(
+	pool.ProductTemplate().Methods().GetProductDirectAccounts().DeclareMethod(
 		`GetProductDirectAccounts`,
 		func(rs pool.ProductTemplateSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
 			//@api.multi

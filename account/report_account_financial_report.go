@@ -14,7 +14,7 @@ func init() {
 	pool.AccountFinancialReport().DeclareModel()
 	pool.AccountFinancialReport().Methods().GetLevel().DeclareMethod(
 		`GetLevel`,
-		func(rs pool.AccountFinancialReportSet) {
+		func(rs pool.AccountFinancialReportSet) (*pool.AccountFinancialReportData, []models.FieldNamer) {
 			//@api.depends('parent_id','parent_id.level')
 			/*def _get_level(self):
 			  '''Returns a dictionary with key=the ID of a record and value = the level of this
@@ -26,6 +26,7 @@ func init() {
 			      report.level = level
 
 			*/
+			return &pool.AccountFinancialReportData{}, []models.FieldNamer{}
 		})
 	pool.AccountFinancialReport().Methods().GetChildrenByOrder().DeclareMethod(
 		`GetChildrenByOrder`,
