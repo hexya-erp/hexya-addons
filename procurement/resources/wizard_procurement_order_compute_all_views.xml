@@ -1,0 +1,16 @@
+<hexya>
+    <data>
+        <view id="procurement_view_compute_schedulers_wizard" model="ProcurementOrderComputeAll">
+            <form string="Scheduler Parameters">
+                <p>
+                        Compute all procurements in the background.
+                    </p>
+                <footer>
+                    <button name="procure_calculation" string="Run Schedulers" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </view>
+        <action id="procurement_action_compute_schedulers" type="ir.actions.act_window" name="Run Schedulers" model="ProcurementOrderComputeAll" view_mode="form"/>
+    </data>
+</hexya>
