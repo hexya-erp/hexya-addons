@@ -218,10 +218,10 @@
                                     <field name="refund_sequence"
                                            attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;])]}"
                                            groups="base.group_no_one"/>
-                                    <field name="sequence_id" required="0" attrs="{&apos;readonly&apos;: 1}"
+                                    <field name="sequence_id" required="0" readonly="1"
                                            groups="base.group_no_one"/>
-                                    <field name="refund_sequence_id" required="0"
-                                           attrs="{&apos;readonly&apos;: 1, &apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;]), (&apos;refund_sequence&apos;, &apos;!=&apos;, True)]}"
+                                    <field name="refund_sequence_id" required="0" readonly="1"
+                                           attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;not in&apos;, [&apos;sale&apos;, &apos;purchase&apos;]), (&apos;refund_sequence&apos;, &apos;!=&apos;, True)]}"
                                            groups="base.group_no_one"/>
                                 </group>
                                 <group>

@@ -425,16 +425,14 @@ Use this field anywhere a small image is required.`},
 	pool.ProductTemplate().Methods().CreateVariants().DeclareMethod(
 		`CreateVariants`,
 		func(rs pool.ProductTemplateSet) {
-			//@api.multi
 			for _, tmpl := range rs.WithContext("active_test", false).Records() {
 				// adding an attribute with only one value should not recreate product
 				// write this attribute on every product to make sure we don't lose them
 				variantAlone := pool.ProductAttributeValue().NewSet(rs.Env())
 				for _, attrLine := range tmpl.AttributeLines().Records() {
-					if attrLine.Values().Len() != 1 {
-						continue
+					if attrLine.Values().Len() == 1 {
+						variantAlone = variantAlone.Union(attrLine.Values())
 					}
-					variantAlone = variantAlone.Union(attrLine.Values())
 				}
 				for _, value := range variantAlone.Records() {
 					for _, prod := range tmpl.ProductVariants().Records() {
@@ -469,6 +467,8 @@ Use this field anywhere a small image is required.`},
 				var variantMatrix []pool.ProductAttributeValueSet
 				if len(matrixValues) > 0 {
 					variantMatrix = variantMatrix[0].CartesianProduct(variantMatrix[1:]...)
+				} else {
+					variantMatrix = []pool.ProductAttributeValueSet{pool.ProductAttributeValue().NewSet(rs.Env())}
 				}
 
 				var toCreateVariants []pool.ProductAttributeValueSet

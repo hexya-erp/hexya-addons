@@ -312,9 +312,9 @@
                     <label string="Pro Forma Invoice" attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;not in&apos;,(&apos;proforma&apos;,&apos;proforma2&apos;))]}"/>
                     <label string="Refund" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;,&apos;proforma&apos;,&apos;proforma2&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
                     <h1 class="mt0">
-                        <label string="Draft Invoice" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;,)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_invoice&apos;)]}"/>
-                        <label string="Draft Refund" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;,)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
-                        <field name="number" readonly="1" class="oe_inline" attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;,))]}"/>
+                        <label string="Draft Invoice" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_invoice&apos;)]}"/>
+                        <label string="Draft Refund" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
+                        <field name="number" readonly="1" class="oe_inline" attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;))]}"/>
                     </h1>
                     <field name="type" invisible="1"/>
                     <group>
@@ -484,6 +484,8 @@
                 the bottom of each invoice.
               </p>
             </help>
+            <view id="account_invoice_tree" type="tree"/>
+            <view id="account_invoice_form" type="form"/>
         </action>
         <action id="account_action_invoice_tree2" type="ir.actions.act_window" name="Vendor Bills" model="AccountInvoice" view_mode="tree,kanban,form,calendar,pivot,graph" search_view_id="account_view_account_invoice_filter">
             <help>
@@ -495,6 +497,8 @@
                 what you purchased or received.
               </p>
             </help>
+            <view id="account_invoice_supplier_tree" type="tree"/>
+            <view id="account_invoice_supplier_form" type="form"/>
         </action>
         <action id="account_act_account_journal_2_account_invoice_opened" name="Unpaid Invoices" model="AccountInvoice"
                 src_model="AccountJournal" view_mode="tree,form"/>
