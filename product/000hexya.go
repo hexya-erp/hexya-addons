@@ -13,23 +13,6 @@ import (
 
 const MODULE_NAME string = "product"
 
-var (
-	// GroupSalePriceList enables the "Sales Pricelists" feature
-	GroupSalePriceList *security.Group
-	// GroupPricelistItem enables the "Manage Pricelist Items" feature
-	GroupPricelistItem *security.Group
-	// GroupProductPricelist enables the "Pricelists On Product" feature
-	GroupProductPricelist *security.Group
-	// GroupUom enables the "Manage Multiple Units of Measure" feature
-	GroupUom *security.Group
-	// GroupStockPackaging enables the "Manage Product Packaging" feature
-	GroupStockPackaging *security.Group
-	// GroupMRPProperties enables the "Manage Properties of Product" feature
-	GroupMRPProperties *security.Group
-	// GroupProductVariant enables the "Manage Product Variants" feature
-	GroupProductVariant *security.Group
-)
-
 func init() {
 	server.RegisterModule(&server.Module{
 		Name:     MODULE_NAME,

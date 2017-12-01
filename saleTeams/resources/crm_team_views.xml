@@ -1,0 +1,133 @@
+<hexya>
+    <data>
+        <view id="sale_teams_crm_team_salesteams_search" model="CRMTeam">
+            <search string="Salesteams Search">
+                <filter name="personal" string="My Salesteams" domain="[&apos;|&apos;, (&apos;member_ids&apos;, &apos;=&apos;, uid), (&apos;user_id&apos;, &apos;=&apos;, uid)]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[(&apos;active&apos;,&apos;=&apos;,False)]"/>
+                <field name="name"/>
+                <field name="user_id"/>
+                <group expand="0" string="Group By...">
+                    <filter string="Team Leader" domain="[]" context="{&apos;group_by&apos;:&apos;user_id&apos;}"/>
+                </group>
+            </search>
+        </view>
+        <action id="sale_teams_crm_team_salesteams_act" type="ir.actions.act_window" name="Dashboard" model="CRMTeam" view_mode="kanban,form" view_id="sale_teams_crm_team_salesteams_search">
+            <help>
+                <p class="oe_view_nocontent_create">
+                    Click here to define a new sales team.
+                </p>
+                <p>
+                    Use sales team to organize your different salespersons or
+                    departments into separate teams. Each team will work in
+                    its own list of opportunities.
+                </p>
+            </help>
+        </action>
+        <view id="sale_teams_crm_team_view_form" model="CRMTeam">
+            <form string="Sales Team">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="Sales team"/>
+                        <h1>
+                            <field name="name" placeholder="Salesteam name..."/>
+                        </h1>
+                        <div name="options_active"/>
+                    </div>
+                    <group>
+                        <group name="left">
+                            <field name="user_id" domain="[(&apos;share&apos;, &apos;=&apos;, False)]"/>
+                        </group>
+                        <group name="right"/>
+                    </group>
+                    <notebook>
+                        <page name="members" string="Team Members">
+                            <field name="member_ids" widget="many2many_kanban" options="{&apos;not_delete&apos;: True}">
+                                <kanban quick_create="false" create="true" delete="true">
+                                    <field name="name"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_global_click" style="position: relative">
+                                                <a t-if="! read_only_mode" type="delete" style="position: absolute; right: 0; padding: 4px; diplay: inline-block">X</a>
+                                                <div class="oe_module_vignette">
+                                                    <img t-att-src="kanban_image(&apos;res.users&apos;, &apos;image_small&apos;, record.id.value)" class="oe_avatar oe_kanban_avatar_smallbox"/>
+                                                    <div class="oe_module_desc">
+                                                        <field name="name"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </page>
+                        <page string="More Info" name="more_info" groups="base.group_no_one">
+                            <group string="Company" groups="base.group_multi_company">
+                                <field name="company_id" options="{&apos;no_create&apos;: True}"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <!--<field name="message_follower_ids" widget="mail_followers" help="Follow this salesteam to automatically track the events associated to users of this team."/>-->
+                    <!--<field name="message_ids" widget="mail_thread"/>-->
+                </div>
+            </form>
+        </view>
+        <view id="sale_teams_crm_team_view_tree" model="CRMTeam">
+            <tree string="Sales Team">
+                <field name="name"/>
+                <field name="active" invisible="1"/>
+                <field name="user_id"/>
+            </tree>
+        </view>
+        <action id="sale_teams_crm_team_act" type="ir.actions.act_window" name="Sales Teams" model="CRMTeam" view_id="sale_teams_crm_team_view_tree" view_mode="tree,form">
+            <help>
+                <p class="oe_view_nocontent_create">
+                    Click here to define a new sales team.
+                </p>
+                <p>
+                    Use sales team to organize your different salespersons or
+                    departments into separate teams. Each team will work in
+                    its own list of opportunities.
+                </p>
+            </help>
+        </action>
+        <action id="sale_teams_sale_teams_config_action" type="ir.actions.act_window" name="Sales Teams" model="CRMTeam" view_mode="tree,form" search_view_id="sale_teams_crm_team_salesteams_search">
+            <help>
+                <p class="oe_view_nocontent_create">
+                    Click here to define a new sales team.
+                </p>
+                <p>
+                    Use sales team to organize your different salespersons or
+                    departments into separate teams. Each team will work in
+                    its own list of opportunities.
+                </p>
+            </help>
+        </action>
+        <menuitem id="sale_teams_menu_base_partner" name="Sales" sequence="6" groups="group_sale_salesman,group_sale_manager"/>
+        <menuitem id="sale_teams_menu_sales" name="Sales" sequence="5" parent="sale_teams_menu_base_partner"/>
+        <menuitem id="sale_teams_menu_partner_form" sequence="3" parent="sale_teams_menu_sales" action="base_action_partner_form"/>
+        <menuitem id="sale_teams_menu_sale_config" name="Configuration" sequence="100" parent="sale_teams_menu_base_partner" groups="group_sale_manager"/>
+        <menuitem id="sale_teams_menu_sale_general_settings" name="Settings" sequence="0" parent="sale_teams_menu_sale_config" action="sale_teams_action_sale_config" groups="base.group_system"/>
+        <menuitem id="sale_teams_menu_config_address_book" name="Contacts" sequence="4" parent="sale_teams_menu_sale_config" groups="base.group_system"/>
+        <menuitem id="sale_teams_menu_partner_category_form" name="Contact Tags" sequence="1" parent="sale_teams_menu_config_address_book" action="base_action_partner_category_form" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_partner_title_contact" name="Contact Titles" sequence="3" parent="sale_teams_menu_config_address_book" action="base_action_partner_title_contact" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_localisation" name="Localization" sequence="5" parent="sale_teams_menu_config_address_book" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_country_partner" sequence="1" parent="sale_teams_menu_localisation" action="base_action_country" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_country_group" name="Country Group" sequence="3" parent="sale_teams_menu_localisation" action="base_action_country_group" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_country_state_partner" sequence="2" parent="sale_teams_menu_localisation" action="base_action_country_state" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_action_currency_form" sequence="3" parent="sale_teams_menu_localisation" action="base_action_currency_form" groups="base.group_multi_currency"/>
+        <menuitem id="sale_teams_menu_config_bank_accounts" name="Bank Accounts" sequence="6" parent="sale_teams_menu_config_address_book" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_action_res_bank_form" sequence="1" parent="sale_teams_menu_config_bank_accounts" action="base_action_res_bank_form" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_action_res_partner_bank_form" sequence="2" parent="sale_teams_menu_config_bank_accounts" action="base_action_res_partner_bank_account_form" groups="base.group_no_one"/>
+        <menuitem id="sale_teams_menu_sale_teams_act" name="Dashboard" sequence="1" parent="sale_teams_menu_base_partner" action="sale_teams_crm_team_salesteams_act"/>
+        <menuitem id="sale_teams_menu_sale_report" name="Reports" sequence="99" parent="sale_teams_menu_base_partner" groups="sale_teams.group_sale_manager"/>
+        <menuitem id="sale_teams_sale_teams_config" name="Sales Teams" parent="sale_teams_menu_sale_config" action="sale_teams_sale_teams_config_action"/>
+    </data>
+</hexya>

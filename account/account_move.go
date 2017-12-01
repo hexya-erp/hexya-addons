@@ -1404,7 +1404,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 					# Create tax lines
 					tax_lines_vals = []
 					if context.get('apply_taxes') and vals.get('tax_ids'):
-						# Get ids from triplets : https://www.odoo.com/documentation/master/reference/orm.html#openerp.models.Model.write
+						# Get ids from triplets : https://www.hexya.io/documentation/master/reference/orm.html#hexyaerp.models.Model.write
 						tax_ids = [tax['id'] for tax in self.resolve_2many_commands('tax_ids', vals['tax_ids']) if tax.get('id')]
 						# Since create() receives ids instead of recordset, let's just use the old-api bridge
 						taxes = self.env['account.tax'].browse(tax_ids)

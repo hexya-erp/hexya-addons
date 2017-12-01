@@ -68,7 +68,7 @@ func init() {
 	pool.ProcurementOrder().AddFields(map[string]models.FieldDefinition{
 		"Name": models.TextField{String: "Description", Required: true},
 		"Origin": models.CharField{String: "Source Document",
-			Help: "Reference of the document that created this Procurement. This is automatically completed by Odoo."},
+			Help: "Reference of the document that created this Procurement. This is automatically completed by Hexya."},
 		"Company": models.Many2OneField{RelationModel: pool.Company(),
 			Default: func(env models.Environment, vals models.FieldMap) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()

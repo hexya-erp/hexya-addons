@@ -5,7 +5,14 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya-base/base"
+	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/pool"
+)
+
+var (
+	GroupAccountInvoice *security.Group
+	GroupAccountUser    *security.Group
+	GroupAccountManager *security.Group
 )
 
 func init() {
