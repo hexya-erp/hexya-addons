@@ -4,6 +4,7 @@
 package account
 
 import (
+	"github.com/hexya-erp/hexya-addons/account/accounttypes"
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/operator"
@@ -976,8 +977,19 @@ to the same analytic account as the invoice line (if any)`},
 		})
 
 	pool.AccountTax().Methods().ComputeAll().DeclareMethod(
-		`ComputeAll`,
-		func(rs pool.AccountTaxSet, priceUnit float64, currency pool.CurrencySet, quantity float64, product pool.ProductProductSet, partner pool.PartnerSet) (float64, float64, pool.AccountTaxSet) {
+		`ComputeAll returns all information required to apply taxes (in self + their children in case of a tax goup).
+			      We consider the sequence of the parent for group of taxes.
+			          Eg. considering letters as taxes and alphabetic order as sequence :
+			          [G, B([A, D, F]), E, C] will be computed as [A, D, F, C, E, G]
+
+			  RETURN:
+                   0.0,                 # Base
+			       0.0,                 # Total without taxes
+			       0.0,                 # Total with taxes
+                   struct               # One struct for each tax in rs and their children
+			  } `,
+		func(rs pool.AccountTaxSet, priceUnit float64, currency pool.CurrencySet, quantity float64,
+			product pool.ProductProductSet, partner pool.PartnerSet) (float64, float64, float64, []accounttypes.AppliedTaxData) {
 			//@api.multi
 			/*def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None):
 			  """ Returns all information required to apply taxes (in self + their children in case of a tax goup).
@@ -1087,7 +1099,7 @@ to the same analytic account as the invoice line (if any)`},
 			  }
 
 			*/
-			return 0, 0, pool.AccountTax().NewSet(rs.Env())
+			return 0, 0, 0, []accounttypes.AppliedTaxData{}
 		})
 
 	pool.AccountTax().Methods().FixTaxIncludedPrice().DeclareMethod(

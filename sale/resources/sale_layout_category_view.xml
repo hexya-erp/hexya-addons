@@ -1,0 +1,33 @@
+<hexya>
+    <data>
+        <view id="sale_report_configuration_form_view" model="SaleLayoutCategory">
+            <form string="Report Configuration">
+                <group>
+                    <field name="name"/>
+                    <field name="subtotal" widget="checkbox"/>
+                    <field name="pagebreak" widget="checkbox"/>
+                    <field name="sequence"/>
+                </group>
+            </form>
+        </view>
+        <view id="sale_report_configuration_tree_view" model="SaleLayoutCategory">
+            <tree string="Report Configuration">
+                <field name="name"/>
+                <field name="subtotal" widget="checkbox"/>
+                <field name="pagebreak" widget="checkbox"/>
+                <field name="sequence"/>
+            </tree>
+        </view>
+        <view id="sale_report_configuration_search_view" model="SaleLayoutCategory">
+            <search string="Search Name">
+                <filter string="Total" domain="[(&apos;subtotal&apos;,&apos;=&apos;,&apos;True&apos;)]"/>
+                <filter string="Breaks Page" domain="[(&apos;pagebreak&apos;,&apos;=&apos;,&apos;True&apos;)]"/>
+                <group string="Group By Name">
+                    <filter string="Name" context="{&apos;group_by&apos; : &apos;name&apos;}"/>
+                </group>
+            </search>
+        </view>
+        <action id="sale_report_configuration_action" type="ir.actions.act_window" name="Report Configuration" model="SaleLayoutCategory" view_mode="tree,form"/>
+        <menuitem id="sale_Report_configuration" name="Report Layout Categories" sequence="2" parent="sale_menu_sales_config" action="sale_report_configuration_action" groups="sale.group_sale_layout"/>
+    </data>
+</hexya>

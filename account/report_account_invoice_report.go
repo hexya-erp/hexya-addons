@@ -74,7 +74,7 @@ func init() {
 	})
 	pool.AccountInvoiceReport().Methods().Select().DeclareMethod(
 		`Select`,
-		func(rs pool.AccountInvoiceReportSet) {
+		func(rs pool.AccountInvoiceReportSet) string {
 			/*def _select(self):
 			  select_str = """
 			      SELECT sub.id, sub.date, sub.product_id, sub.partner_id, sub.country_id, sub.account_analytic_id,
@@ -88,10 +88,12 @@ func init() {
 			  return select_str
 
 			*/
+			return ""
 		})
+
 	pool.AccountInvoiceReport().Methods().SubSelect().DeclareMethod(
 		`SubSelect`,
-		func(rs pool.AccountInvoiceReportSet) {
+		func(rs pool.AccountInvoiceReportSet) string {
 			/*def _sub_select(self):
 			  select_str = """
 			          SELECT ail.id AS id,
@@ -119,10 +121,12 @@ func init() {
 			  return select_str
 
 			*/
+			return ""
 		})
+
 	pool.AccountInvoiceReport().Methods().From().DeclareMethod(
 		`From`,
-		func(rs pool.AccountInvoiceReportSet) {
+		func(rs pool.AccountInvoiceReportSet) string {
 			/*def _from(self):
 			  from_str = """
 			          FROM account_invoice_line ail
@@ -145,10 +149,12 @@ func init() {
 			  return from_str
 
 			*/
+			return ""
 		})
-	pool.AccountInvoiceReport().Methods().GroupBy().DeclareMethod(
+
+	pool.AccountInvoiceReport().Methods().GroupByClause().DeclareMethod(
 		`GroupBy`,
-		func(rs pool.AccountInvoiceReportSet) {
+		func(rs pool.AccountInvoiceReportSet) string {
 			/*def _group_by(self):
 			  group_by_str = """
 			          GROUP BY ail.id, ail.product_id, ail.account_analytic_id, ai.date_invoice, ai.id,
@@ -160,7 +166,9 @@ func init() {
 			  return group_by_str
 
 			*/
+			return ""
 		})
+
 	pool.AccountInvoiceReport().Methods().Init().DeclareMethod(
 		`Init`,
 		func(rs pool.AccountInvoiceReportSet) {

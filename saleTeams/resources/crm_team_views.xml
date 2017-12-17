@@ -12,7 +12,7 @@
                 </group>
             </search>
         </view>
-        <action id="sale_teams_crm_team_salesteams_act" type="ir.actions.act_window" name="Dashboard" model="CRMTeam" view_mode="kanban,form" view_id="sale_teams_crm_team_salesteams_search">
+        <action id="sale_teams_crm_team_salesteams_act" type="ir.actions.act_window" name="Dashboard" model="CRMTeam" view_mode="kanban,form" search_view_id="sale_teams_crm_team_salesteams_search">
             <help>
                 <p class="oe_view_nocontent_create">
                     Click here to define a new sales team.
