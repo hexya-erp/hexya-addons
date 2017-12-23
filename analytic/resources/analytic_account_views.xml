@@ -100,7 +100,7 @@
             </form>
         </view>
 
-        <view id="analytic_view_account_analytic_account_list" model="AccountAnalyticAccount">
+        <view id="analytic_view_account_analytic_account_list" model="AccountAnalyticAccount" priority="8">
             <tree string="Analytic Accounts">
                 <field name="display_name"/>
                 <field name="code"/>
@@ -143,7 +143,7 @@
                 model="AccountAnalyticAccount" search_view_id="analytic_view_account_analytic_account_search"
                 view_mode="tree,form"/>
 
-        <view id="analytic_view_account_analytic_line_form" model="AccountAnalyticLine">
+        <view id="analytic_view_account_analytic_line_form" model="AccountAnalyticLine" priority="1">
             <form string="Analytic Entry">
                 <sheet string="Analytic Entry">
                     <group>

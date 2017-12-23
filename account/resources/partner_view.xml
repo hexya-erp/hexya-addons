@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_view_account_position_form" model="AccountFiscalPosition">
             <form string="Fiscal Position">
                 <sheet>
@@ -7,21 +8,28 @@
                         <group>
                             <field name="name"/>
                             <field name="active"/>
-                            <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
+                            <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                   groups="base.group_multi_company"/>
                         </group>
                         <group>
                             <field name="auto_apply"/>
                             <field name="states_count" invisible="1"/>
-                            <field name="vat_required" attrs="{&apos;invisible&apos;: [(&apos;auto_apply&apos;, &apos;!=&apos;, True)]}"/>
-                            <field name="country_group_id" attrs="{&apos;invisible&apos;: [(&apos;auto_apply&apos;, &apos;!=&apos;, True)]}"/>
-                            <field name="country_id" attrs="{&apos;invisible&apos;: [(&apos;auto_apply&apos;, &apos;!=&apos;, True)]}"/>
-                            <field name="state_ids" widget="many2many_tags" domain="[(&apos;country_id&apos;, &apos;=&apos;, country_id)]" attrs="{&apos;invisible&apos;: [&apos;|&apos;, &apos;|&apos;, (&apos;auto_apply&apos;, &apos;!=&apos;, True), (&apos;country_id&apos;, &apos;=&apos;, False), (&apos;states_count&apos;, &apos;=&apos;, 0)]}"/>
-                            <label for="zip_from" string="Zip Range" attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;auto_apply&apos;, &apos;!=&apos;, True), (&apos;country_id&apos;, &apos;=&apos;, False)]}"/>
+                            <field name="vat_required"
+                                   attrs="{&apos;invisible&apos;: [(&apos;auto_apply&apos;, &apos;!=&apos;, True)]}"/>
+                            <field name="country_group_id"
+                                   attrs="{&apos;invisible&apos;: [(&apos;auto_apply&apos;, &apos;!=&apos;, True)]}"/>
+                            <field name="country_id"
+                                   attrs="{&apos;invisible&apos;: [(&apos;auto_apply&apos;, &apos;!=&apos;, True)]}"/>
+                            <field name="state_ids" widget="many2many_tags"
+                                   domain="[(&apos;country_id&apos;, &apos;=&apos;, country_id)]"
+                                   attrs="{&apos;invisible&apos;: [&apos;|&apos;, &apos;|&apos;, (&apos;auto_apply&apos;, &apos;!=&apos;, True), (&apos;country_id&apos;, &apos;=&apos;, False), (&apos;states_count&apos;, &apos;=&apos;, 0)]}"/>
+                            <label for="zip_from" string="Zip Range"
+                                   attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;auto_apply&apos;, &apos;!=&apos;, True), (&apos;country_id&apos;, &apos;=&apos;, False)]}"/>
                             <div attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;auto_apply&apos;, &apos;!=&apos;, True), (&apos;country_id&apos;, &apos;=&apos;, False)]}">
-                                <span> From </span>
+                                <span>From</span>
                                 <field name="zip_from" class="oe_inline"/>
                                 <div class="oe_edit_only"/>
-                                <span> To </span>
+                                <span>To</span>
                                 <field name="zip_to" class="oe_inline"/>
                             </div>
                         </group>
@@ -31,13 +39,17 @@
                             <group>
                                 <field name="tax_ids" widget="one2many_list" nolabel="1">
                                     <tree name="tax_map_tree" string="Tax Mapping" editable="bottom">
-                                        <field name="tax_src_id" domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
-                                        <field name="tax_dest_id" domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
+                                        <field name="tax_src_id"
+                                               domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
+                                        <field name="tax_dest_id"
+                                               domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
                                     </tree>
                                     <form name="tax_map_form" string="Tax Mapping">
                                         <group>
-                                            <field name="tax_src_id" domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
-                                            <field name="tax_dest_id" domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
+                                            <field name="tax_src_id"
+                                                   domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
+                                            <field name="tax_dest_id"
+                                                   domain="[(&apos;type_tax_use&apos;, &apos;!=&apos;, None)]"/>
                                         </group>
                                     </form>
                                 </field>
@@ -62,6 +74,7 @@
                 </sheet>
             </form>
         </view>
+
         <view id="account_view_account_position_tree" model="AccountFiscalPosition">
             <tree string="Fiscal Position">
                 <field name="sequence" widget="handle"/>
@@ -69,13 +82,20 @@
                 <field name="company_id" groups="base.group_multi_company" options="{&apos;no_create&apos;: True}"/>
             </tree>
         </view>
-        <action id="account_action_open_partner_analytic_accounts" type="ir.actions.act_window" name="Analytic Accounts" model="AccountAnalyticAccount" view_mode="tree,form"/>
-        <view id="account_partner_view_buttons" model="ResPartner">
+
+        <action id="account_action_open_partner_analytic_accounts" type="ir.actions.act_window" name="Analytic Accounts"
+                model="AccountAnalyticAccount" view_mode="tree,form"/>
+
+        <view inherit_id="base_view_partner_form">
             <div name="button_box" position="inside">
-                <button type="object" class="oe_stat_button" id="invoice_button" icon="fa-pencil-square-o" name="open_partner_history" attrs="{&apos;invisible&apos;: [(&apos;customer&apos;, &apos;=&apos;, False)]}" context="{&apos;default_partner_id&apos;: active_id}">
+                <button type="object" class="oe_stat_button" id="invoice_button" icon="fa-pencil-square-o"
+                        name="open_partner_history"
+                        attrs="{&apos;invisible&apos;: [(&apos;customer&apos;, &apos;=&apos;, False)]}"
+                        context="{&apos;default_partner_id&apos;: active_id}">
                     <div class="o_form_field o_stat_info">
                         <span class="o_stat_value">
-                            <field name="total_invoiced" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                            <field name="total_invoiced" widget="monetary"
+                                   options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
                         </span>
                         <span class="o_stat_text">Invoiced</span>
                     </div>
@@ -85,7 +105,8 @@
                 <group string="Payments" name="banks">
                     <field name="currency_id" invisible="1"/>
                     <div>
-                        <button type="action" class="btn-link" name="%(base.action_res_partner_bank_account_form)d" context="{&apos;search_default_partner_id&apos;: active_id, &apos;default_partner_id&apos;: active_id}">
+                        <button type="action" class="btn-link" name="%(base.action_res_partner_bank_account_form)d"
+                                context="{&apos;search_default_partner_id&apos;: active_id, &apos;default_partner_id&apos;: active_id}">
                             <field string="Bank account(s)" name="bank_account_count" widget="statinfo"/>
                         </button>
                     </div>
@@ -95,21 +116,28 @@
                 <group colspan="2" col="2" groups="account.group_warning_account">
                     <separator string="Warning on the Invoice" colspan="4"/>
                     <field name="invoice_warn" nolabel="1"/>
-                    <field name="invoice_warn_msg" colspan="3" nolabel="1" attrs="{&apos;required&apos;:[(&apos;invoice_warn&apos;,&apos;!=&apos;,&apos;no-message&apos;)],&apos;readonly&apos;:[(&apos;invoice_warn&apos;,&apos;=&apos;,&apos;no-message&apos;)]}"/>
+                    <field name="invoice_warn_msg" colspan="3" nolabel="1"
+                           attrs="{&apos;required&apos;:[(&apos;invoice_warn&apos;,&apos;!=&apos;,&apos;no-message&apos;)],&apos;readonly&apos;:[(&apos;invoice_warn&apos;,&apos;=&apos;,&apos;no-message&apos;)]}"/>
                 </group>
             </page>
         </view>
-        <view id="account_partner_view_button_contracts_count" model="ResPartner">
+
+        <view inherit_id="base_view_partner_form">
             <div name="button_box" position="inside">
-                <button class="oe_stat_button" type="action" name="%(account.action_open_partner_analytic_accounts)d" icon="fa-book" groups="analytic.group_analytic_accounting">
+                <button class="oe_stat_button" type="action" name="%(account.action_open_partner_analytic_accounts)d"
+                        icon="fa-book" groups="analytic.group_analytic_accounting">
                     <field string="Analytic Accounts" name="contracts_count" widget="statinfo"/>
                 </button>
             </div>
         </view>
-        <action id="account_action_account_fiscal_position_form" type="ir.actions.act_window" name="Fiscal Positions" model="AccountFiscalPosition" view_mode="tree,form"/>
-        <view id="account_view_partner_property_form" model="ResPartner">
+
+        <action id="account_action_account_fiscal_position_form" type="ir.actions.act_window" name="Fiscal Positions"
+                model="AccountFiscalPosition" view_mode="tree,form"/>
+
+        <view inherit_id="base_view_partner_form">
             <page name="sales_purchases" position="after">
-                <page string="Accounting" name="accounting" attrs="{&apos;invisible&apos;: [(&apos;is_company&apos;,&apos;=&apos;,False),(&apos;parent_id&apos;,&apos;!=&apos;,False)]}">
+                <page string="Accounting" name="accounting"
+                      attrs="{&apos;invisible&apos;: [(&apos;is_company&apos;,&apos;=&apos;,False),(&apos;parent_id&apos;,&apos;!=&apos;,False)]}">
                     <group>
                         <group string="Sale" name="acc_sale">
                             <field name="property_payment_term_id" widget="selection"/>
@@ -122,23 +150,30 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                         <group string="Fiscal Information" name="fiscal_information">
-                            <field name="property_account_position_id" options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}"/>
+                            <field name="property_account_position_id"
+                                   options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}"/>
                         </group>
-                        <group string="Accounting Entries" name="accounting_entries" groups="account.group_account_manager">
+                        <group string="Accounting Entries" name="accounting_entries"
+                               groups="account.group_account_manager">
                             <field name="property_account_receivable_id"/>
                             <field name="property_account_payable_id"/>
                         </group>
                     </group>
                 </page>
-                <page string="Accounting" name="accounting_disabled" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;is_company&apos;,&apos;=&apos;,True),(&apos;parent_id&apos;,&apos;=&apos;,False)]}">
+                <page string="Accounting" name="accounting_disabled"
+                      attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;is_company&apos;,&apos;=&apos;,True),(&apos;parent_id&apos;,&apos;=&apos;,False)]}">
                     <div>
-                        <p>Accounting-related settings are managed on 
-                            <button name="open_commercial_entity" type="object" string="the parent company" class="oe_link"/>
+                        <p>Accounting-related settings are managed on
+                            <button name="open_commercial_entity" type="object" string="the parent company"
+                                    class="oe_link"/>
                         </p>
                     </div>
                 </page>
             </page>
         </view>
-        <menuitem id="account_menu_action_account_fiscal_position_form" sequence="3" parent="account_account_account_menu" action="account_action_account_fiscal_position_form"/>
+
+        <menuitem id="account_menu_action_account_fiscal_position_form" sequence="3"
+                  parent="account_account_account_menu" action="account_action_account_fiscal_position_form"/>
+
     </data>
 </hexya>

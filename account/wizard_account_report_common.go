@@ -11,7 +11,7 @@ import (
 
 func init() {
 
-	pool.AccountCommonReport().DeclareTransientModel()
+	pool.AccountCommonReport().DeclareMixinModel()
 	pool.AccountCommonReport().AddFields(map[string]models.FieldDefinition{
 		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/ /* readonly=true */, Default: func(models.Environment, models.FieldMap) interface{} {
 			/*lambda self: self.env.user.company_id*/

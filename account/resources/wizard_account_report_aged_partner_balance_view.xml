@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_account_aged_balance_view" model="AccountAgedTrialBalance">
             <form string="Report Options">
                 <separator string="Aged Partner Balance"/>
@@ -15,12 +16,16 @@
                 <footer>
                     <button name="check_report" string="Print" type="object" default_focus="1" class="oe_highlight"/>
                     or
-                    
                     <button string="Cancel" class="oe_link" special="cancel"/>
                 </footer>
             </form>
         </view>
-        <action id="account_action_account_aged_balance_view" type="ir.actions.act_window" name="Aged Partner Balance" model="AccountAgedTrialBalance" view_mode="tree,form" view_id="account_account_aged_balance_view"/>
-        <menuitem id="account_menu_aged_trial_balance" name="Aged Partner Balance" parent="account_menu_finance_legal_statement" action="account_action_account_aged_balance_view"/>
+
+        <action id="account_action_account_aged_balance_view" type="ir.actions.act_window" name="Aged Partner Balance"
+                model="AccountAgedTrialBalance" view_mode="tree,form" view_id="account_account_aged_balance_view"/>
+
+        <menuitem id="account_menu_aged_trial_balance" name="Aged Partner Balance"
+                  parent="account_menu_finance_legal_statement" action="account_action_account_aged_balance_view"/>
+
     </data>
 </hexya>

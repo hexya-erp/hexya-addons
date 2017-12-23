@@ -1,15 +1,20 @@
 <hexya>
     <data>
+
         <view id="account_account_unreconcile_view" model="AccountUnreconcile">
             <form string="Unreconcile">
                 <separator string="Unreconcile Transactions"/>
                 <label string="If you unreconcile transactions, you must also verify all the actions that are linked to those transactions because they will not be disabled"/>
                 <footer>
-                    <button string="Unreconcile" name="trans_unrec" type="object" default_focus="1" class="btn-primary"/>
+                    <button string="Unreconcile" name="trans_unrec" type="object" default_focus="1"
+                            class="btn-primary"/>
                     <button string="Cancel" class="btn-default" special="cancel"/>
                 </footer>
             </form>
         </view>
-        <action id="account_action_account_unreconcile" type="ir.actions.act_window" name="Unreconcile Entries" model="AccountUnreconcile" view_mode="form" view_id="account_account_unreconcile_view"/>
+
+        <action id="account_action_account_unreconcile" type="ir.actions.act_window" name="Unreconcile Entries"
+                model="AccountUnreconcile" view_mode="form" view_id="account_account_unreconcile_view"/>
+
     </data>
 </hexya>

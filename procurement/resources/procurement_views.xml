@@ -1,27 +1,38 @@
 <hexya>
     <data>
+
         <view id="procurement_procurement_tree_view" model="ProcurementOrder">
-            <tree string="Procurement Lines" decoration-danger="date_planned&lt;current_date and state == &apos;exception&apos;" decoration-success="state==&apos;confirmed&apos;" decoration-muted="state in [&apos;done&apos;,&apos;cancel&apos;]" decoration-info="state == &apos;ready&apos;">
+            <tree string="Procurement Lines"
+                  decoration-danger="date_planned&lt;current_date and state == &apos;exception&apos;"
+                  decoration-success="state==&apos;confirmed&apos;"
+                  decoration-muted="state in [&apos;done&apos;,&apos;cancel&apos;]"
+                  decoration-info="state == &apos;ready&apos;">
                 <field name="date_planned" widget="date"/>
                 <field name="origin"/>
                 <field name="product_id"/>
                 <field name="product_qty"/>
-                <field name="product_uom" string="Unit of Measure"/>
+                <field name="product_uom_id" string="Unit of Measure"/>
                 <field name="state"/>
             </tree>
         </view>
+
         <view id="procurement_procurement_form_view" model="ProcurementOrder">
             <form string="Procurement">
                 <header>
-                    <button name="run" states="confirmed,exception" string="Run Procurement" class="oe_highlight" type="object"/>
-                    <button name="check" states="running" string="Check Procurement" class="oe_highlight" type="object"/>
-                    <button name="cancel" states="exception,confirmed,running" string="Cancel Procurement" type="object"/>
+                    <button name="run" states="confirmed,exception" string="Run Procurement" class="oe_highlight"
+                            type="object"/>
+                    <button name="check" states="running" string="Check Procurement" class="oe_highlight"
+                            type="object"/>
+                    <button name="cancel" states="exception,confirmed,running" string="Cancel Procurement"
+                            type="object"/>
                     <button name="reset_to_confirmed" states="cancel" string="Reconfirm Procurement" type="object"/>
-                    <field name="state" readonly="1" widget="statusbar" statusbar_visible="draft,confirmed,running,done"/>
+                    <field name="state" readonly="1" widget="statusbar"
+                           statusbar_visible="draft,confirmed,running,done"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="do_view_procurements" class="oe_stat_button" icon="fa-bars" string="Group&apos;s Procurements" type="object"/>
+                        <button name="do_view_procurements" class="oe_stat_button" icon="fa-bars"
+                                string="Group&apos;s Procurements" type="object"/>
                     </div>
                     <group>
                         <group>
@@ -30,7 +41,7 @@
                             <div>
                                 <div>
                                     <field name="product_qty" class="oe_inline"/>
-                                    <field name="product_uom" class="oe_inline" groups="product.group_uom"/>
+                                    <field name="product_uom_id" class="oe_inline" groups="product.group_uom"/>
                                 </div>
                             </div>
                         </group>
@@ -51,7 +62,8 @@
                                 </group>
                                 <group>
                                     <field name="rule_id"/>
-                                    <field name="company_id" groups="base.group_multi_company" options="{&apos;no_create&apos;: True}"/>
+                                    <field name="company_id" groups="base.group_multi_company"
+                                           options="{&apos;no_create&apos;: True}"/>
                                 </group>
                             </group>
                         </page>
@@ -63,7 +75,10 @@
                 </div>
             </form>
         </view>
-        <action id="procurement_do_view_procurements" type="ir.actions.act_window" name="Group&apos;s Procurements" model="ProcurementOrder" view_mode="tree,form"/>
+
+        <action id="procurement_do_view_procurements" type="ir.actions.act_window" name="Group&apos;s Procurements"
+                model="ProcurementOrder" view_mode="tree,form"/>
+
         <view id="procurement_procurement_group_form_view" model="ProcurementGroup">
             <form string="Procurement group">
                 <sheet>
@@ -77,104 +92,135 @@
                 </sheet>
             </form>
         </view>
+
         <view id="procurement_view_procurement_filter" model="ProcurementOrder">
             <search string="Search Procurement">
                 <field name="origin" string="Procurement"/>
                 <field name="date_planned"/>
-                <filter string="Exceptions" name="exceptions" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;exception&apos;)]" help="Procurement Exceptions"/>
+                <filter string="Exceptions" name="exceptions"
+                        domain="[(&apos;state&apos;,&apos;=&apos;,&apos;exception&apos;)]"
+                        help="Procurement Exceptions"/>
                 <separator/>
-                <filter string="Late" domain="[&apos;&amp;&apos;, (&apos;date_planned&apos;,&apos;&lt;&apos;, current_date), (&apos;state&apos;, &apos;=&apos;, &apos;confirmed&apos;)]" help="Procurement started late"/>
+                <filter string="Late"
+                        domain="[&apos;&amp;&apos;, (&apos;date_planned&apos;,&apos;&lt;&apos;, current_date), (&apos;state&apos;, &apos;=&apos;, &apos;confirmed&apos;)]"
+                        help="Procurement started late"/>
                 <field name="product_id"/>
                 <field name="state"/>
                 <group expand="0" string="Group By">
                     <filter string="Product" domain="[]" context="{&apos;group_by&apos;:&apos;product_id&apos;}"/>
-                    <filter string="Scheduled Month" domain="[]" context="{&apos;group_by&apos;:&apos;date_planned&apos;}"/>
+                    <filter string="Scheduled Month" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;date_planned&apos;}"/>
                     <filter string="Status" domain="[]" context="{&apos;group_by&apos;:&apos;state&apos;}"/>
                 </group>
             </search>
         </view>
-        <action id="procurement_procurement_order_action_exceptions" type="ir.actions.act_window" name="Procurement Exceptions" model="ProcurementOrder" view_mode="tree,form" search_view_id="procurement_view_procurement_filter">
+
+        <action id="procurement_procurement_order_action_exceptions" type="ir.actions.act_window"
+                name="Procurement Exceptions" model="ProcurementOrder" view_mode="tree,form"
+                search_view_id="procurement_view_procurement_filter">
             <help>
                 <p>
-                A 
-                    <b>Procurement Exception</b> occurs when the system cannot find a way to fulfill a procurement. Some exceptions will resolve themselves automatically, but others require manual intervention (those are identified by a specific error message in the chatter).
-              </p>
-                <p>
-                Most common exceptions are products to purchase without
-                having a vendor defined on the product, and products to
-                manufacture without having a bill of materials.
-              </p>
-            </help>
-        </action>
-        <action id="procurement_procurement_action" type="ir.actions.act_window" name="Procurement Orders" model="ProcurementOrder" search_view_id="procurement_view_procurement_filter" view_mode="tree,form">
-            <help>
-                <p class="oe_view_nocontent_create">
-                 Click to create a procurement order.
-              </p>
-                <p>
-                A 
-                    <b>procurement order</b> is used to record a need for a specific
-                product at a specific location. Procurement orders are usually
-                created automatically from 
-                    <i>sales orders, pull logistic rules or
-                minimum stock rules.</i>
+                    A
+                    <b>Procurement Exception</b>
+                    occurs when the system cannot find a way to fulfill a procurement. Some exceptions will resolve
+                    themselves automatically, but others require manual intervention (those are identified by a specific
+                    error message in the chatter).
                 </p>
                 <p>
-                When the procurement order is confirmed, it automatically
-                creates the necessary operations to fulfill the need: purchase
-                order proposition, manufacturing order, etc.
-              </p>
+                    Most common exceptions are products to purchase without
+                    having a vendor defined on the product, and products to
+                    manufacture without having a bill of materials.
+                </p>
             </help>
         </action>
-        <action id="procurement_procurement_order_action_product_template_stat" type="ir.actions.act_window" name="Procurement Orders" model="ProcurementOrder" search_view_id="procurement_view_procurement_filter" view_mode="tree,form">
+
+        <action id="procurement_procurement_action" type="ir.actions.act_window" name="Procurement Orders"
+                model="ProcurementOrder" search_view_id="procurement_view_procurement_filter" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                 Click to create a procurement order.  
-              </p>
-                <p>
-                A 
-                    <b>procurement order</b> is used to record a need for a specific
-                product at a specific location. Procurement orders are usually
-                created automatically from 
-                    <i>sales orders, pull logistic rules or
-                minimum stock rules.</i>
+                    Click to create a procurement order.
                 </p>
                 <p>
-                When the procurement order is confirmed, it automatically
-                creates the necessary operations to fulfill the need: purchase
-                order proposition, manufacturing order, etc.
-              </p>
+                    A
+                    <b>procurement order</b>
+                    is used to record a need for a specific
+                    product at a specific location. Procurement orders are usually
+                    created automatically from
+                    <i>sales orders, pull logistic rules or
+                        minimum stock rules.
+                    </i>
+                </p>
+                <p>
+                    When the procurement order is confirmed, it automatically
+                    creates the necessary operations to fulfill the need: purchase
+                    order proposition, manufacturing order, etc.
+                </p>
             </help>
         </action>
-        <action id="procurement_procurement_order_action_product_product_stat" type="ir.actions.act_window" name="Procurement Orders" model="ProcurementOrder" search_view_id="procurement_view_procurement_filter" view_mode="tree,form">
+
+        <action id="procurement_procurement_order_action_product_template_stat" type="ir.actions.act_window"
+                name="Procurement Orders" model="ProcurementOrder" search_view_id="procurement_view_procurement_filter"
+                view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
-                 Click to create a procurement order.  
-              </p>
-                <p>
-                A 
-                    <b>procurement order</b> is used to record a need for a specific
-                product at a specific location. Procurement orders are usually
-                created automatically from 
-                    <i>sales orders, pull logistic rules or
-                minimum stock rules.</i>
+                    Click to create a procurement order.
                 </p>
                 <p>
-                When the procurement order is confirmed, it automatically
-                creates the necessary operations to fulfill the need: purchase
-                order proposition, manufacturing order, etc.
-              </p>
+                    A
+                    <b>procurement order</b>
+                    is used to record a need for a specific
+                    product at a specific location. Procurement orders are usually
+                    created automatically from
+                    <i>sales orders, pull logistic rules or
+                        minimum stock rules.
+                    </i>
+                </p>
+                <p>
+                    When the procurement order is confirmed, it automatically
+                    creates the necessary operations to fulfill the need: purchase
+                    order proposition, manufacturing order, etc.
+                </p>
             </help>
         </action>
-        <action id="procurement_procurement_action5" type="ir.actions.act_window" name="Procurement Exceptions" model="ProcurementOrder" view_mode="tree,form"/>
+
+        <action id="procurement_procurement_order_action_product_product_stat" type="ir.actions.act_window"
+                name="Procurement Orders" model="ProcurementOrder" search_view_id="procurement_view_procurement_filter"
+                view_mode="tree,form">
+            <help>
+                <p class="oe_view_nocontent_create">
+                    Click to create a procurement order.
+                </p>
+                <p>
+                    A
+                    <b>procurement order</b>
+                    is used to record a need for a specific
+                    product at a specific location. Procurement orders are usually
+                    created automatically from
+                    <i>sales orders, pull logistic rules or
+                        minimum stock rules.
+                    </i>
+                </p>
+                <p>
+                    When the procurement order is confirmed, it automatically
+                    creates the necessary operations to fulfill the need: purchase
+                    order proposition, manufacturing order, etc.
+                </p>
+            </help>
+        </action>
+
+        <action id="procurement_procurement_action5" type="ir.actions.act_window" name="Procurement Exceptions"
+                model="ProcurementOrder" view_mode="tree,form"/>
+
         <view id="procurement_view_procurement_rule_filter" model="ProcurementRule">
             <search string="Search Procurement">
-                <filter string="Global" name="route_false" domain="[(&apos;route_id&apos;,&apos;=&apos;,False)]" help="If the route is global"/>
+                <filter string="Global" name="route_false" domain="[(&apos;route_id&apos;,&apos;=&apos;,False)]"
+                        help="If the route is global"/>
                 <separator/>
                 <filter string="Archived" name="inactive" domain="[(&apos;active&apos;,&apos;=&apos;,False)]"/>
             </search>
         </view>
-        <view id="procurement_view_procurement_rule_tree" model="ProcurementRule">
+
+        <view id="procurement_view_procurement_rule_tree" model="ProcurementRule" priority="10">
             <tree string="Procurement Rules">
                 <field name="name"/>
                 <field name="active" invisible="1"/>
@@ -182,11 +228,13 @@
                 <field name="company_id" groups="base.group_multi_company"/>
             </tree>
         </view>
-        <view id="procurement_view_procurement_rule_form" model="ProcurementRule">
+
+        <view id="procurement_view_procurement_rule_form" model="ProcurementRule" priority="10">
             <form string="Procurement Rule">
                 <div class="oe_button_box" name="button_box">
                     <button name="toggle_active" type="object" class="oe_stat_button" icon="fa-archive">
-                        <field name="active" widget="boolean_button" options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
+                        <field name="active" widget="boolean_button"
+                               options="{&quot;terminology&quot;: &quot;archive&quot;}"/>
                     </button>
                 </div>
                 <div class="oe_title">
@@ -205,9 +253,32 @@
                 </group>
                 <group name="propagation_group" string="Propagation Options" groups="base.group_no_one">
                     <field name="group_propagation_option"/>
-                    <field name="group_id" attrs="{&apos;invisible&apos;: [(&apos;group_propagation_option&apos;, &apos;!=&apos;, &apos;fixed&apos;)], &apos;required&apos;: [(&apos;group_propagation_option&apos;, &apos;=&apos;, &apos;fixed&apos;)]}"/>
+                    <field name="group_id"
+                           attrs="{&apos;invisible&apos;: [(&apos;group_propagation_option&apos;, &apos;!=&apos;, &apos;fixed&apos;)], &apos;required&apos;: [(&apos;group_propagation_option&apos;, &apos;=&apos;, &apos;fixed&apos;)]}"/>
                 </group>
             </form>
         </view>
+
+        <!-- Run Procurement server action
+        <record id="procurement_order_server_action" model="ir.actions.server">
+            <field name="name">Run Procurements</field>
+            <field name="model_id" ref="model_procurement_order"/>
+            <field name="state">code</field>
+            <field name="code">
+if records:
+    records.run()
+            </field>
+        </record>
+
+        <record id="run_procurement_order_action" model="ir.values">
+            <field name="model_id" ref="procurement.model_procurement_order" />
+            <field name="name">Run Procurements</field>
+            <field name="key2">client_action_multi</field>
+            <field name="key">action</field>
+            <field name="model">procurement.order</field>
+            <field name="value" eval="'ir.actions.server,' + str(ref('procurement_order_server_action'))" />
+        </record>
+        -->
+
     </data>
 </hexya>

@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_view_account_payment_tree" model="AccountPayment">
             <tree decoration-info="state==&apos;draft&apos;" decoration-muted="state==&apos;reconciled&apos;"
                   edit="false">
@@ -15,6 +16,7 @@
                 <field name="partner_type" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_account_supplier_payment_tree" model="AccountPayment">
             <tree decoration-info="state==&apos;draft&apos;" decoration-muted="state==&apos;reconciled&apos;"
                   edit="false">
@@ -30,6 +32,7 @@
                 <field name="partner_type" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_account_payment_search" model="AccountPayment">
             <search string="Payments">
                 <field name="name"
@@ -61,6 +64,7 @@
                         groups="base.group_multi_company"/>
             </search>
         </view>
+
         <view id="account_view_account_payment_form" model="AccountPayment">
             <form string="Register Payment" version="7">
                 <header>
@@ -123,6 +127,7 @@
                 </sheet>
             </form>
         </view>
+
         <view id="account_view_account_payment_graph" model="AccountPayment">
             <graph string="Invoices" type="bar" stacked="1">
                 <field name="payment_type"/>
@@ -130,6 +135,7 @@
                 <field name="amount" type="measure"/>
             </graph>
         </view>
+
         <action id="account_action_account_payments" type="ir.actions.act_window" name="Payments" model="AccountPayment"
                 view_mode="tree,form,graph" view_id="account_view_account_payment_tree">
             <help>
@@ -142,6 +148,7 @@
                 </p>
             </help>
         </action>
+
         <action id="account_action_account_payments_payable" type="ir.actions.act_window" name="Payments"
                 model="AccountPayment" view_mode="tree,form,graph" view_id="account_view_account_supplier_payment_tree">
             <help>
@@ -154,6 +161,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_view_account_payment_invoice_form" model="AccountPayment">
             <form string="Register Payment" version="7">
                 <sheet>
@@ -198,8 +206,10 @@
                 </footer>
             </form>
         </view>
+
         <action id="account_action_account_invoice_payment" type="ir.actions.act_window" name="Register Payment"
                 model="AccountPayment" view_mode="form" view_id="account_view_account_payment_invoice_form"/>
+
         <view id="account_view_account_payment_from_invoices" model="AccountRegisterPayments">
             <form string="Register Payment" version="7">
                 <field name="payment_type" invisible="1"/>
@@ -226,9 +236,11 @@
                 </footer>
             </form>
         </view>
+
         <action id="account_action_account_payment_from_invoices" name="Register Payment"
                 model="AccountRegisterPayments"
                 src_model="AccountInvoice" view_mode="form" target="new"/>
+
         <menuitem id="account_menu_action_account_payments_receivable" sequence="20"
                   parent="account_menu_finance_receivables" action="account_action_account_payments"
                   groups="group_account_user"/>

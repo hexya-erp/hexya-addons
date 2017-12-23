@@ -56,6 +56,7 @@
 
         <action id="product_variants_action" type="ir.actions.act_window" name="Attribute Values"
                 model="ProductAttributeValue" view_mode="tree"/>
+
         <view id="product_product_attribute_line_form" model="ProductAttributeLine">
             <form string="Product Attribute and Values">
                 <group name="main_field">

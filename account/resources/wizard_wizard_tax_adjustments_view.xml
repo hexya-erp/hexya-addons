@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_tax_adjustments_wizard" model="TaxAdjustmentsWizard">
             <form>
                 <h1>
@@ -22,12 +23,13 @@
                     </group>
                 </group>
                 <footer>
-                    <button name="create_move" string="Create and post move" type="object" default_focus="1" class="oe_highlight"/>
-                or 
-                
+                    <button name="create_move" string="Create and post move" type="object" default_focus="1"
+                            class="oe_highlight"/>
+                    or
                     <button string="Cancel" class="oe_link" special="cancel"/>
                 </footer>
             </form>
         </view>
+
     </data>
 </hexya>

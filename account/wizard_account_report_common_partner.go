@@ -10,7 +10,9 @@ import (
 
 func init() {
 
-	pool.AccountCommonPartnerReport().DeclareTransientModel()
+	pool.AccountCommonPartnerReport().DeclareMixinModel()
+	pool.AccountCommonPartnerReport().InheritModel(pool.AccountCommonReport())
+
 	pool.AccountCommonPartnerReport().AddFields(map[string]models.FieldDefinition{
 		"ResultSelection": models.SelectionField{ /*result_selection = fields.Selection([('customer', 'Receivable Accounts'), ('supplier', 'Payable Accounts'), ('customer_supplier', 'Receivable and Payable Accounts')*/ },
 	})

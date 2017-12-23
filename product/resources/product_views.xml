@@ -130,7 +130,8 @@
             </help>
         </action>
 
-        <view id="product_product_search_form_view" model="ProductProduct">
+        <view id="product_product_search_form_view" inherit_id="product_product_template_search_view"
+              model="ProductProduct">
             <field name="attribute_line_ids" position="replace">
                 <field name="attribute_value_ids" groups="product.group_product_variant"/>
                 <field name="product_tmpl_id" string="Product Template"/>
@@ -234,7 +235,7 @@
             </help>
         </action>
 
-        <view id="product_product_product_tree_view" model="ProductProduct">
+        <view id="product_product_product_tree_view" model="ProductProduct" priority="7">
             <tree string="Product Variants">
                 <field name="default_code"/>
                 <field name="name"/>
@@ -249,7 +250,8 @@
             </tree>
         </view>
 
-        <view id="product_product_normal_form_view" model="ProductProduct">
+        <view id="product_product_normal_form_view" inherit_id="product_product_template_form_view"
+              model="ProductProduct" priority="7">
             <form position="attributes">
                 <attribute name="string">Product Variant</attribute>
             </form>
@@ -374,7 +376,7 @@
             </form>
         </view>
 
-        <view id="product_product_category_list_view" model="ProductCategory">
+        <view id="product_product_category_list_view" model="ProductCategory" priority="1">
             <tree string="Product Categories">
                 <field name="display_name"/>
             </tree>

@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_view_account_move_reversal" model="AccountMoveReversal">
             <form string="Account Move Reversal">
                 <group col="4">
@@ -12,6 +13,9 @@
                 </footer>
             </form>
         </view>
-        <action id="account_action_view_account_move_reversal" type="ir.actions.act_window" name="Reverse Moves" model="AccountMoveReversal" view_mode="tree,form" view_id="account_view_account_move_reversal"/>
+
+        <action id="account_action_view_account_move_reversal" type="ir.actions.act_window" name="Reverse Moves"
+                model="AccountMoveReversal" view_mode="tree,form" view_id="account_view_account_move_reversal"/>
+
     </data>
 </hexya>

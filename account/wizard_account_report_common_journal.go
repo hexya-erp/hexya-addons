@@ -10,7 +10,9 @@ import (
 
 func init() {
 
-	pool.AccountCommonJournalReport().DeclareTransientModel()
+	pool.AccountCommonJournalReport().DeclareMixinModel()
+	pool.AccountCommonJournalReport().InheritModel(pool.AccountCommonReport())
+
 	pool.AccountCommonJournalReport().AddFields(map[string]models.FieldDefinition{
 		"AmountCurrency": models.BooleanField{String: "With Currency" /*['With Currency']*/, Help: "Print Report with the currency column if the currency differs from the company currency."},
 	})

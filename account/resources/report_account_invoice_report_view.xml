@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_view_account_invoice_report_pivot" model="AccountInvoiceReport">
             <pivot string="Invoices Analysis" disable_linking="True">
                 <field name="categ_id" type="row"/>
@@ -7,12 +8,14 @@
                 <field name="price_total" type="measure"/>
             </pivot>
         </view>
+
         <view id="account_view_account_invoice_report_graph" model="AccountInvoiceReport">
             <graph string="Invoices Analysis">
                 <field name="categ_id"/>
                 <field name="price_total" type="measure"/>
             </graph>
         </view>
+
         <view id="account_view_account_invoice_report_search" model="AccountInvoiceReport">
             <search string="Invoices Analysis">
                 <field name="date"/>
@@ -54,18 +57,22 @@
                 </group>
             </search>
         </view>
+
         <action id="account_action_account_invoice_report_all_supp" type="ir.actions.act_window"
                 name="Invoices Analysis" model="AccountInvoiceReport" view_mode="pivot,graph"
                 search_view_id="account_view_account_invoice_report_search">
             <help/>
         </action>
+
         <action id="account_action_account_invoice_report_all" type="ir.actions.act_window" name="Invoices Analysis"
                 model="AccountInvoiceReport" view_mode="pivot,graph"
                 search_view_id="account_view_account_invoice_report_search">
             <help/>
         </action>
+
         <action id="account_act_account_invoice_partner_relation" name="Monthly Turnover" model="AccountInvoiceReport"
                 src_model="Partner" view_mode="graph"/>
+
         <menuitem id="account_menu_action_account_invoice_report_all" name="Invoices" sequence="20"
                   parent="account_account_reports_business_intelligence_menu"
                   action="account_action_account_invoice_report_all"/>

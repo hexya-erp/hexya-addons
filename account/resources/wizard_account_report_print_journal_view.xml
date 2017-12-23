@@ -1,6 +1,8 @@
 <hexya>
     <data>
-        <view id="account_account_report_print_journal_view" model="AccountPrintJournal">
+
+        <view id="account_account_report_print_journal_view" model="AccountPrintJournal"
+              inherit_id="account_account_common_report_view">
             <data>
                 <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
                     <field name="amount_currency" groups="base.group_multi_currency"/>
@@ -12,7 +14,13 @@
                 </xpath>
             </data>
         </view>
-        <action id="account_action_account_print_journal_menu" type="ir.actions.act_window" name="Sale/Purchase Journal" model="AccountPrintJournal" view_mode="form" view_id="account_account_report_print_journal_view"/>
-        <menuitem id="account_menu_print_journal" name="Sale/Purchase Journal" parent="account_menu_finance_legal_statement" action="account_action_account_print_journal_menu" groups="account.group_account_manager,account.group_account_user"/>
+
+        <action id="account_action_account_print_journal_menu" type="ir.actions.act_window" name="Sale/Purchase Journal"
+                model="AccountPrintJournal" view_mode="form" view_id="account_account_report_print_journal_view"/>
+
+        <menuitem id="account_menu_print_journal" name="Sale/Purchase Journal"
+                  parent="account_menu_finance_legal_statement" action="account_action_account_print_journal_menu"
+                  groups="account.group_account_manager,account.group_account_user"/>
+
     </data>
 </hexya>

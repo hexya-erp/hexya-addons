@@ -1,7 +1,9 @@
 <hexya>
     <data>
+
         <view id="sale_teams_crm_team_salesteams_view_kanban" model="CRMTeam">
-            <kanban class="oe_background_grey o_kanban_dashboard o_salesteam_kanban" create="0" js_class="sale_teams_dashboard">
+            <kanban class="oe_background_grey o_kanban_dashboard o_salesteam_kanban" create="0"
+                    js_class="sale_teams_dashboard">
                 <field name="name"/>
                 <field name="user_id"/>
                 <field name="member_ids"/>
@@ -16,7 +18,7 @@
                                     </div>
                                 </div>
                                 <div class="o_kanban_manage_button_section">
-                                    <a class="o_kanban_manage_toggle_button" href="#">More 
+                                    <a class="o_kanban_manage_toggle_button" href="#">More
                                         <i class="fa fa-caret-down"/>
                                     </a>
                                 </div>
@@ -45,7 +47,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div t-if="widget.editable" class="o_kanban_card_manage_settings row" groups="sale_teams.group_sale_manager">
+                                <div t-if="widget.editable" class="o_kanban_card_manage_settings row"
+                                     groups="sale_teams.group_sale_manager">
                                     <div class="col-xs-8">
                                         <ul class="oe_kanban_colorpicker" data-field="color"/>
                                     </div>
@@ -59,5 +62,6 @@
                 </templates>
             </kanban>
         </view>
+
     </data>
 </hexya>

@@ -1,14 +1,21 @@
 <hexya>
     <data>
-        <view id="procurement_product_template_view_form_procurement_button" model="ProductTemplate">
+
+        <view inherit_id="product_product_template_only_form_view">
             <xpath expr="//div[@name=&apos;button_box&apos;]" position="inside">
-                <button class="oe_stat_button" name="%(procurement.procurement_order_action_product_template_stat)d" icon="fa-truck" string="Procurements" type="action" groups="base.group_no_one" attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;=&apos;, &apos;service&apos;)]}"/>
+                <button class="oe_stat_button" name="%(procurement.procurement_order_action_product_template_stat)d"
+                        icon="fa-truck" string="Procurements" type="action" groups="base.group_no_one"
+                        attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;=&apos;, &apos;service&apos;)]}"/>
             </xpath>
         </view>
-        <view id="procurement_product_product_view_form_procurement_button" model="ProductProduct">
+
+        <view inherit_id="product_product_normal_form_view">
             <xpath expr="//div[@name=&apos;button_box&apos;]" position="inside">
-                <button class="oe_stat_button" name="%(procurement.procurement_order_action_product_product_stat)d" icon="fa-truck" string="Procurements" type="action" groups="base.group_no_one" attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;=&apos;, &apos;service&apos;)]}"/>
+                <button class="oe_stat_button" name="%(procurement.procurement_order_action_product_product_stat)d"
+                        icon="fa-truck" string="Procurements" type="action" groups="base.group_no_one"
+                        attrs="{&apos;invisible&apos;:[(&apos;type&apos;, &apos;=&apos;, &apos;service&apos;)]}"/>
             </xpath>
         </view>
+
     </data>
 </hexya>

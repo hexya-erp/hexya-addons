@@ -145,7 +145,7 @@
             </form>
         </view>
 
-        <view id="product_inherits_website_sale_country_group_form" model="ResCountryGroup">
+        <view inherit_id="base_view_country_group_form">
             <group name="country_group" position="after">
                 <field name="pricelist_ids"/>
             </group>

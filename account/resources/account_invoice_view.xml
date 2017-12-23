@@ -1,23 +1,27 @@
 <hexya>
     <data>
+
         <view id="account_view_invoice_line_calendar" model="AccountInvoice">
             <calendar string="Invoices" color="journal_id" date_start="date_invoice">
                 <field name="partner_id"/>
                 <field name="amount_total_signed"/>
             </calendar>
         </view>
+
         <view id="account_view_invoice_pivot" model="AccountInvoice">
             <pivot string="Invoices" display_quantity="true">
                 <field name="partner_id"/>
                 <field name="amount_total_signed" type="measure"/>
             </pivot>
         </view>
+
         <view id="account_view_invoice_graph" model="AccountInvoice">
             <graph string="Invoices">
                 <field name="partner_id"/>
                 <field name="amount_total_signed" type="measure"/>
             </graph>
         </view>
+
         <view id="account_view_invoice_line_tree" model="AccountInvoiceLine">
             <tree string="Invoice Line">
                 <field name="name"/>
@@ -30,6 +34,7 @@
                 <field name="currency_id" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_invoice_line_form" model="AccountInvoiceLine">
             <form string="Invoice Line">
                 <group>
@@ -45,9 +50,13 @@
                         <field name="currency_id" invisible="1"/>
                     </group>
                     <group>
-                        <field domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" name="account_id" groups="account.group_account_user"/>
-                        <field name="invoice_line_tax_ids" context="{&apos;type&apos;:parent.get(&apos;type&apos;)}" domain="[(&apos;type_tax_use&apos;,&apos;!=&apos;,&apos;none&apos;),(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" widget="many2many_tags" options="{&apos;no_create&apos;: True}"/>
-                        <field domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
+                        <field domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" name="account_id"
+                               groups="account.group_account_user"/>
+                        <field name="invoice_line_tax_ids" context="{&apos;type&apos;:parent.get(&apos;type&apos;)}"
+                               domain="[(&apos;type_tax_use&apos;,&apos;!=&apos;,&apos;none&apos;),(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"
+                               widget="many2many_tags" options="{&apos;no_create&apos;: True}"/>
+                        <field domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"
+                               name="account_analytic_id" groups="analytic.group_analytic_accounting"/>
                         <field name="company_id" groups="base.group_multi_company" readonly="1"/>
                     </group>
                 </group>
@@ -55,6 +64,7 @@
                 <field name="name"/>
             </form>
         </view>
+
         <view id="account_view_invoice_tax_tree" model="AccountInvoiceTax">
             <tree string="Manual Invoice Taxes">
                 <field name="sequence"/>
@@ -66,13 +76,16 @@
                 <field name="currency_id" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_invoice_tax_form" model="AccountInvoiceTax">
             <form string="Manual Invoice Taxes">
                 <group col="4">
                     <field name="name"/>
                     <field name="sequence"/>
                     <field name="account_id" groups="account.group_account_user"/>
-                    <field name="account_analytic_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" groups="analytic.group_analytic_accounting"/>
+                    <field name="account_analytic_id"
+                           domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"
+                           groups="analytic.group_analytic_accounting"/>
                     <field name="manual"/>
                     <field name="amount"/>
                     <field name="base"/>
@@ -80,8 +93,10 @@
                 </group>
             </form>
         </view>
+
         <view id="account_invoice_tree" model="AccountInvoice">
-            <tree decoration-info="state == &apos;draft&apos;" decoration-muted="state == &apos;cancel&apos;" string="Invoice">
+            <tree decoration-info="state == &apos;draft&apos;" decoration-muted="state == &apos;cancel&apos;"
+                  string="Invoice">
                 <field name="partner_id" groups="base.group_user" string="Customer"/>
                 <field name="date_invoice"/>
                 <field name="number"/>
@@ -101,6 +116,7 @@
                 <field name="type" invisible="context.get(&apos;type&apos;,True)"/>
             </tree>
         </view>
+
         <view id="account_invoice_kanban" model="AccountInvoice">
             <kanban class="o_kanban_mobile">
                 <field name="number"/>
@@ -135,7 +151,8 @@
                                 </div>
                                 <div class="col-xs-6">
                                     <span class="pull-right text-right">
-                                        <field name="state" widget="kanban_label_selection" options="{&apos;classes&apos;: {&apos;draft&apos;: &apos;default&apos;, &apos;cancel&apos;: &apos;default&apos;, &apos;none&apos;: &apos;danger&apos;, &apos;proforma&apos;: &apos;warning&apos;, &apos;proforma2&apos;: &apos;warning&apos;, &apos;open&apos;: &apos;warning&apos;,
+                                        <field name="state" widget="kanban_label_selection"
+                                               options="{&apos;classes&apos;: {&apos;draft&apos;: &apos;default&apos;, &apos;cancel&apos;: &apos;default&apos;, &apos;none&apos;: &apos;danger&apos;, &apos;proforma&apos;: &apos;warning&apos;, &apos;proforma2&apos;: &apos;warning&apos;, &apos;open&apos;: &apos;warning&apos;,
                                             &apos;paid&apos;: &apos;success&apos;}}"/>
                                     </span>
                                 </div>
@@ -145,8 +162,10 @@
                 </templates>
             </kanban>
         </view>
+
         <view id="account_invoice_supplier_tree" model="AccountInvoice">
-            <tree decoration-info="state == &apos;draft&apos;" decoration-muted="state == &apos;cancel&apos;" string="Invoice">
+            <tree decoration-info="state == &apos;draft&apos;" decoration-muted="state == &apos;cancel&apos;"
+                  string="Invoice">
                 <field name="partner_id" groups="base.group_user" string="Vendor"/>
                 <field name="date_invoice" string="Bill Date"/>
                 <field name="number"/>
@@ -165,64 +184,89 @@
                 <field name="type" invisible="context.get(&apos;type&apos;,True)"/>
             </tree>
         </view>
-        <view id="account_invoice_supplier_form" model="AccountInvoice">
+
+        <view id="account_invoice_supplier_form" model="AccountInvoice" priority="2">
             <form string="Vendor Bill">
                 <header>
-                    <button name="action_invoice_open" type="object" states="draft,proforma2" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
-                    <button name="%(action_account_invoice_payment)d" type="action" states="open" string="Register Payment" groups="account.group_account_invoice" class="oe_highlight"/>
-                    <button name="%(action_account_invoice_refund)d" type="action" string="Ask Refund" groups="account.group_account_invoice" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;in&apos;, [&apos;in_refund&apos;,&apos;out_refund&apos;]),(&apos;state&apos;,&apos;not in&apos;,(&apos;open&apos;,&apos;paid&apos;))]}"/>
-                    <button name="action_invoice_cancel" type="object" states="draft,proforma2" string="Cancel Bill" groups="account.group_account_invoice"/>
-                    <button name="action_invoice_draft" states="cancel" string="Set to Draft" type="object" groups="account.group_account_invoice"/>
+                    <button name="action_invoice_open" type="object" states="draft,proforma2" string="Validate"
+                            class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="%(action_account_invoice_payment)d" type="action" states="open"
+                            string="Register Payment" groups="account.group_account_invoice" class="oe_highlight"/>
+                    <button name="%(action_account_invoice_refund)d" type="action" string="Ask Refund"
+                            groups="account.group_account_invoice"
+                            attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;in&apos;, [&apos;in_refund&apos;,&apos;out_refund&apos;]),(&apos;state&apos;,&apos;not in&apos;,(&apos;open&apos;,&apos;paid&apos;))]}"/>
+                    <button name="action_invoice_cancel" type="object" states="draft,proforma2" string="Cancel Bill"
+                            groups="account.group_account_invoice"/>
+                    <button name="action_invoice_draft" states="cancel" string="Set to Draft" type="object"
+                            groups="account.group_account_invoice"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,open,paid"/>
                 </header>
-                <div class="alert alert-info" role="alert" style="margin-bottom:0px;" attrs="{&apos;invisible&apos;: [(&apos;has_outstanding&apos;,&apos;=&apos;,False)]}">
-                    You have 
+                <div class="alert alert-info" role="alert" style="margin-bottom:0px;"
+                     attrs="{&apos;invisible&apos;: [(&apos;has_outstanding&apos;,&apos;=&apos;,False)]}">
+                    You have
                     <bold>
                         <a class="alert-link" href="#outstanding" role="button">outstanding debits</a>
-                    </bold> for this supplier. You can allocate them to mark this bill as paid.
+                    </bold>
+                    for this supplier. You can allocate them to mark this bill as paid.
                 </div>
                 <field name="has_outstanding" invisible="1"/>
                 <sheet string="Vendor Bill">
                     <div>
-                        <label string="Draft Bill" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;&lt;&gt;&apos;,&apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_invoice&apos;)]}"/>
-                        <label string="Draft Refund" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;&lt;&gt;&apos;,&apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_refund&apos;)]}"/>
-                        <label string="Bill " attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_invoice&apos;)]}"/>
-                        <label string="Refund " attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_refund&apos;)]}"/>
+                        <label string="Draft Bill"
+                               attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;&lt;&gt;&apos;,&apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_invoice&apos;)]}"/>
+                        <label string="Draft Refund"
+                               attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;&lt;&gt;&apos;,&apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_refund&apos;)]}"/>
+                        <label string="Bill "
+                               attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_invoice&apos;)]}"/>
+                        <label string="Refund "
+                               attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;in_refund&apos;)]}"/>
                         <h1 class="mt0">
-                            <field name="number" class="oe_inline" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}"/>
+                            <field name="number" class="oe_inline"
+                                   attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}"/>
                         </h1>
                     </div>
                     <field name="type" invisible="1"/>
                     <group>
                         <group>
-                            <field string="Vendor" name="partner_id" context="{&apos;default_customer&apos;: 0, &apos;search_default_supplier&apos;: 1, &apos;default_supplier&apos;: 1}" domain="[(&apos;supplier&apos;, &apos;=&apos;, True)]"/>
+                            <field string="Vendor" name="partner_id"
+                                   context="{&apos;default_customer&apos;: 0, &apos;search_default_supplier&apos;: 1, &apos;default_supplier&apos;: 1}"
+                                   domain="[(&apos;supplier&apos;, &apos;=&apos;, True)]"/>
                             <field name="reference" string="Vendor Reference"/>
                         </group>
                         <group>
-                            <field name="origin" attrs="{&apos;invisible&apos;: [(&apos;origin&apos;, &apos;=&apos;, False)]}"/>
+                            <field name="origin"
+                                   attrs="{&apos;invisible&apos;: [(&apos;origin&apos;, &apos;=&apos;, False)]}"/>
                             <field name="date_invoice" string="Bill Date"/>
                             <field name="date_due"/>
                             <field name="move_name" invisible="1"/>
-                            <field name="currency_id" options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}" groups="base.group_multi_currency"/>
+                            <field name="currency_id" options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}"
+                                   groups="base.group_multi_currency"/>
                             <field name="company_currency_id" invisible="1"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Bill">
-                            <field context="{&apos;type&apos;: type, &apos;journal_id&apos;: journal_id}" name="invoice_line_ids">
+                            <field context="{&apos;type&apos;: type, &apos;journal_id&apos;: journal_id}"
+                                   name="invoice_line_ids">
                                 <tree string="Bill lines" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="product_id" context="{&apos;partner_id&apos;: parent.partner_id}"/>
                                     <field name="name"/>
                                     <field name="company_id" invisible="1"/>
-                                    <field name="account_id" groups="account.group_account_user" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id), (&apos;internal_type&apos;, &apos;=&apos;, &apos;other&apos;), (&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
-                                    <field name="account_analytic_id" groups="analytic.group_analytic_accounting" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"/>
-                                    <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting" widget="many2many_tags"/>
+                                    <field name="account_id" groups="account.group_account_user"
+                                           domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id), (&apos;internal_type&apos;, &apos;=&apos;, &apos;other&apos;), (&apos;deprecated&apos;, &apos;=&apos;, False)]"/>
+                                    <field name="account_analytic_id" groups="analytic.group_analytic_accounting"
+                                           domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"/>
+                                    <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting"
+                                           widget="many2many_tags"/>
                                     <field name="quantity"/>
                                     <field name="uom_id" groups="product.group_uom"/>
                                     <field name="price_unit"/>
                                     <field name="discount" groups="base.group_no_one"/>
-                                    <field name="invoice_line_tax_ids" widget="many2many_tags" context="{&apos;type&apos;:parent.type}" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;),(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" options="{&apos;no_create&apos;: True}"/>
+                                    <field name="invoice_line_tax_ids" widget="many2many_tags"
+                                           context="{&apos;type&apos;:parent.type}"
+                                           domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;),(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"
+                                           options="{&apos;no_create&apos;: True}"/>
                                     <field name="price_subtotal"/>
                                     <field name="currency_id" invisible="1"/>
                                 </tree>
@@ -238,7 +282,9 @@
                                                 <field name="sequence" invisible="1"/>
                                                 <field name="manual" invisible="1"/>
                                                 <field name="account_id" groups="account.group_account_invoice"/>
-                                                <field name="account_analytic_id" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" groups="analytic.group_analytic_accounting"/>
+                                                <field name="account_analytic_id"
+                                                       domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"
+                                                       groups="analytic.group_analytic_accounting"/>
                                                 <field name="amount"/>
                                                 <field name="currency_id" invisible="1"/>
                                             </tree>
@@ -250,9 +296,12 @@
                                     <field name="amount_tax"/>
                                     <field name="amount_total" class="oe_subtotal_footer_separator"/>
                                     <field name="payments_widget" colspan="2" nolabel="1" widget="payment"/>
-                                    <field name="residual" class="oe_subtotal_footer_separator" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}"/>
+                                    <field name="residual" class="oe_subtotal_footer_separator"
+                                           attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}"/>
                                     <field name="reconciled" invisible="1"/>
-                                    <field name="outstanding_credits_debits_widget" colspan="2" nolabel="1" widget="payment" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;not in&apos;, &apos;open&apos;)]}"/>
+                                    <field name="outstanding_credits_debits_widget" colspan="2" nolabel="1"
+                                           widget="payment"
+                                           attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;not in&apos;, &apos;open&apos;)]}"/>
                                 </group>
                             </group>
                             <div>
@@ -262,18 +311,28 @@
                         <page string="Other Info">
                             <group>
                                 <group>
-                                    <field name="journal_id" groups="account.group_account_user" options="{&apos;no_create&apos;: True}" attrs="{&apos;readonly&apos;:[(&apos;move_name&apos;,&apos;!=&apos;,False)]}"/>
-                                    <field domain="[(&apos;partner_id&apos;, &apos;=&apos;, partner_id)]" name="partner_bank_id" invisible="1"/>
+                                    <field name="journal_id" groups="account.group_account_user"
+                                           options="{&apos;no_create&apos;: True}"
+                                           attrs="{&apos;readonly&apos;:[(&apos;move_name&apos;,&apos;!=&apos;,False)]}"/>
+                                    <field domain="[(&apos;partner_id&apos;, &apos;=&apos;, partner_id)]"
+                                           name="partner_bank_id" invisible="1"/>
                                     <field name="user_id" string="Responsible"/>
-                                    <field domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id), (&apos;internal_type&apos;, &apos;=&apos;, &apos;payable&apos;), (&apos;deprecated&apos;, &apos;=&apos;, False)]" name="account_id" groups="account.group_account_manager"/>
+                                    <field domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id), (&apos;internal_type&apos;, &apos;=&apos;, &apos;payable&apos;), (&apos;deprecated&apos;, &apos;=&apos;, False)]"
+                                           name="account_id" groups="account.group_account_manager"/>
                                     <field name="name" invisible="1"/>
-                                    <field name="payment_term_id" options="{&apos;no_create&apos;: True}" attrs="{&apos;invisible&apos;: [(&apos;payment_term_id&apos;,&apos;=&apos;,False)]}"/>
+                                    <field name="payment_term_id" options="{&apos;no_create&apos;: True}"
+                                           attrs="{&apos;invisible&apos;: [(&apos;payment_term_id&apos;,&apos;=&apos;,False)]}"/>
                                 </group>
                                 <group>
-                                    <field name="fiscal_position_id" options="{&apos;no_create&apos;: True}" placeholder="Auto-detect"/>
-                                    <field name="move_id" groups="account.group_account_manager" attrs="{&apos;invisible&apos;: [(&apos;move_id&apos;, &apos;=&apos;, False)]}"/>
-                                    <field name="date" domain="[(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;), (&apos;company_id&apos;, &apos;=&apos;, company_id)]" groups="account.group_account_user"/>
-                                    <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
+                                    <field name="fiscal_position_id" options="{&apos;no_create&apos;: True}"
+                                           placeholder="Auto-detect"/>
+                                    <field name="move_id" groups="account.group_account_manager"
+                                           attrs="{&apos;invisible&apos;: [(&apos;move_id&apos;, &apos;=&apos;, False)]}"/>
+                                    <field name="date"
+                                           domain="[(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;), (&apos;company_id&apos;, &apos;=&apos;, company_id)]"
+                                           groups="account.group_account_user"/>
+                                    <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                           groups="base.group_multi_company"/>
                                 </group>
                             </group>
                         </page>
@@ -285,41 +344,68 @@
                 </div>
             </form>
         </view>
+
         <view id="account_invoice_form" model="AccountInvoice">
             <form string="Invoice">
                 <header>
-                    <button name="action_invoice_sent" type="object" string="Send by Email" attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,True), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}" class="oe_highlight" groups="base.group_user"/>
-                    <button name="invoice_print" string="Print" type="object" attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,True), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}" class="oe_highlight" groups="base.group_user"/>
-                    <button name="action_invoice_sent" type="object" string="Send by Email" attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,False), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}" groups="base.group_user"/>
-                    <button name="invoice_print" string="Print Invoice" type="object" attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,False), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}" groups="base.group_user"/>
-                    <button name="%(action_account_invoice_payment)d" type="action" states="open" string="Register Payment" groups="account.group_account_invoice" class="oe_highlight"/>
-                    <button name="action_invoice_open" type="object" states="draft" string="Validate" class="oe_highlight" groups="account.group_account_invoice"/>
-                    <button name="action_invoice_open" type="object" states="proforma2" string="Validate" groups="account.group_account_invoice"/>
-                    <button name="action_invoice_proforma2" type="object" states="draft" string="PRO-FORMA" groups="account.group_proforma_invoices"/>
-                    <button name="%(action_account_invoice_refund)d" type="action" string="Refund Invoice" groups="account.group_account_invoice" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;=&apos;, &apos;out_refund&apos;), (&apos;state&apos;, &apos;not in&apos;, (&apos;open&apos;,&apos;proforma2&apos;,&apos;paid&apos;))]}"/>
-                    <button name="action_invoice_cancel" type="object" states="draft,proforma2,open" string="Cancel Invoice" groups="base.group_no_one"/>
-                    <button name="action_invoice_draft" states="cancel" string="Reset to Draft" type="object" groups="account.group_account_invoice"/>
+                    <button name="action_invoice_sent" type="object" string="Send by Email"
+                            attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,True), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"
+                            class="oe_highlight" groups="base.group_user"/>
+                    <button name="invoice_print" string="Print" type="object"
+                            attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,True), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"
+                            class="oe_highlight" groups="base.group_user"/>
+                    <button name="action_invoice_sent" type="object" string="Send by Email"
+                            attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,False), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"
+                            groups="base.group_user"/>
+                    <button name="invoice_print" string="Print Invoice" type="object"
+                            attrs="{&apos;invisible&apos;:[&apos;|&apos;,(&apos;sent&apos;,&apos;=&apos;,False), (&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"
+                            groups="base.group_user"/>
+                    <button name="%(action_account_invoice_payment)d" type="action" states="open"
+                            string="Register Payment" groups="account.group_account_invoice" class="oe_highlight"/>
+                    <button name="action_invoice_open" type="object" states="draft" string="Validate"
+                            class="oe_highlight" groups="account.group_account_invoice"/>
+                    <button name="action_invoice_open" type="object" states="proforma2" string="Validate"
+                            groups="account.group_account_invoice"/>
+                    <button name="action_invoice_proforma2" type="object" states="draft" string="PRO-FORMA"
+                            groups="account.group_proforma_invoices"/>
+                    <button name="%(action_account_invoice_refund)d" type="action" string="Refund Invoice"
+                            groups="account.group_account_invoice"
+                            attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;type&apos;, &apos;=&apos;, &apos;out_refund&apos;), (&apos;state&apos;, &apos;not in&apos;, (&apos;open&apos;,&apos;proforma2&apos;,&apos;paid&apos;))]}"/>
+                    <button name="action_invoice_cancel" type="object" states="draft,proforma2,open"
+                            string="Cancel Invoice" groups="base.group_no_one"/>
+                    <button name="action_invoice_draft" states="cancel" string="Reset to Draft" type="object"
+                            groups="account.group_account_invoice"/>
                     <field name="state" widget="statusbar" nolabel="1" statusbar_visible="draft,open,paid"/>
                 </header>
-                <div class="alert alert-info" role="alert" style="margin-bottom:0px;" attrs="{&apos;invisible&apos;: [(&apos;has_outstanding&apos;,&apos;=&apos;,False)]}">
-                    You have 
+                <div class="alert alert-info" role="alert" style="margin-bottom:0px;"
+                     attrs="{&apos;invisible&apos;: [(&apos;has_outstanding&apos;,&apos;=&apos;,False)]}">
+                    You have
                     <bold>
                         <a class="alert-link" href="#outstanding" role="button">outstanding payments</a>
-                    </bold> for this customer. You can allocate them to mark this invoice as paid.
+                    </bold>
+                    for this customer. You can allocate them to mark this invoice as paid.
                 </div>
                 <field name="has_outstanding" invisible="1"/>
                 <sheet string="Invoice">
-                    <label string="Pro Forma Invoice" attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;not in&apos;,(&apos;proforma&apos;,&apos;proforma2&apos;))]}"/>
-                    <label string="Refund" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;,&apos;proforma&apos;,&apos;proforma2&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
+                    <label string="Pro Forma Invoice"
+                           attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;not in&apos;,(&apos;proforma&apos;,&apos;proforma2&apos;))]}"/>
+                    <label string="Refund"
+                           attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;,&apos;proforma&apos;,&apos;proforma2&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
                     <h1 class="mt0">
-                        <label string="Draft Invoice" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_invoice&apos;)]}"/>
-                        <label string="Draft Refund" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
-                        <field name="number" readonly="1" class="oe_inline" attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;))]}"/>
+                        <label string="Draft Invoice"
+                               attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_invoice&apos;)]}"/>
+                        <label string="Draft Refund"
+                               attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;state&apos;,&apos;not in&apos;,(&apos;draft&apos;)), (&apos;type&apos;,&apos;&lt;&gt;&apos;,&apos;out_refund&apos;)]}"/>
+                        <field name="number" readonly="1" class="oe_inline"
+                               attrs="{&apos;invisible&apos;: [(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;))]}"/>
                     </h1>
                     <field name="type" invisible="1"/>
                     <group>
                         <group>
-                            <field string="Customer" name="partner_id" context="{&apos;search_default_customer&apos;:1, &apos;show_address&apos;: 1}" options="{&quot;always_reload&quot;: True}" domain="[(&apos;customer&apos;, &apos;=&apos;, True)]"/>
+                            <field string="Customer" name="partner_id"
+                                   context="{&apos;search_default_customer&apos;:1, &apos;show_address&apos;: 1}"
+                                   options="{&quot;always_reload&quot;: True}"
+                                   domain="[(&apos;customer&apos;, &apos;=&apos;, True)]"/>
                             <field name="payment_term_id"/>
                         </group>
                         <group>
@@ -328,7 +414,9 @@
                             <field name="user_id" groups="base.group_user"/>
                             <label for="currency_id" groups="base.group_multi_currency"/>
                             <div groups="base.group_multi_currency">
-                                <field name="currency_id" options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}" class="oe_inline"/>
+                                <field name="currency_id"
+                                       options="{&apos;no_create&apos;: True, &apos;no_open&apos;: True}"
+                                       class="oe_inline"/>
                                 <field name="company_currency_id" invisible="1"/>
                             </div>
                         </group>
@@ -336,21 +424,28 @@
                     <field name="sent" invisible="1"/>
                     <notebook colspan="4">
                         <page string="Invoice Lines">
-                            <field name="invoice_line_ids" nolabel="1" widget="one2many_list" mode="tree,kanban" context="{&apos;type&apos;: type, &apos;journal_id&apos;: journal_id, &apos;default_invoice_id&apos;: id}">
+                            <field name="invoice_line_ids" nolabel="1" widget="one2many_list" mode="tree,kanban"
+                                   context="{&apos;type&apos;: type, &apos;journal_id&apos;: journal_id, &apos;default_invoice_id&apos;: id}">
                                 <tree string="Invoice Lines" editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="product_id"/>
                                     <field name="origin" invisible="1"/>
                                     <field name="name"/>
                                     <field name="company_id" invisible="1"/>
-                                    <field name="account_id" groups="account.group_account_user" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id), (&apos;internal_type&apos;, &apos;=&apos;, &apos;other&apos;)]"/>
-                                    <field name="account_analytic_id" groups="analytic.group_analytic_accounting" domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"/>
-                                    <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting" widget="many2many_tags"/>
+                                    <field name="account_id" groups="account.group_account_user"
+                                           domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id), (&apos;internal_type&apos;, &apos;=&apos;, &apos;other&apos;)]"/>
+                                    <field name="account_analytic_id" groups="analytic.group_analytic_accounting"
+                                           domain="[(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"/>
+                                    <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting"
+                                           widget="many2many_tags"/>
                                     <field name="quantity"/>
                                     <field name="uom_id" groups="product.group_uom"/>
                                     <field name="price_unit"/>
                                     <field name="discount" groups="base.group_no_one"/>
-                                    <field name="invoice_line_tax_ids" widget="many2many_tags" context="{&apos;type&apos;:parent.type}" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;),(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]" options="{&apos;no_create&apos;: True}"/>
+                                    <field name="invoice_line_tax_ids" widget="many2many_tags"
+                                           context="{&apos;type&apos;:parent.type}"
+                                           domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;),(&apos;company_id&apos;, &apos;=&apos;, parent.company_id)]"
+                                           options="{&apos;no_create&apos;: True}"/>
                                     <field name="price_subtotal"/>
                                     <field name="currency_id" invisible="1"/>
                                 </tree>
@@ -394,9 +489,11 @@
                                 <field name="amount_tax"/>
                                 <field name="amount_total" class="oe_subtotal_footer_separator"/>
                                 <field name="payments_widget" colspan="2" nolabel="1" widget="payment"/>
-                                <field name="residual" class="oe_subtotal_footer_separator" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}"/>
+                                <field name="residual" class="oe_subtotal_footer_separator"
+                                       attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;=&apos;, &apos;draft&apos;)]}"/>
                                 <field name="reconciled" invisible="1"/>
-                                <field name="outstanding_credits_debits_widget" colspan="2" nolabel="1" widget="payment" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;not in&apos;, &apos;open&apos;)]}"/>
+                                <field name="outstanding_credits_debits_widget" colspan="2" nolabel="1" widget="payment"
+                                       attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;not in&apos;, &apos;open&apos;)]}"/>
                             </group>
                             <field name="comment" placeholder="Terms and conditions..."/>
                         </page>
@@ -404,15 +501,22 @@
                             <group>
                                 <group>
                                     <field name="fiscal_position_id" options="{&apos;no_create&apos;: True}"/>
-                                    <field name="journal_id" groups="account.group_account_user" options="{&apos;no_create&apos;: True}" attrs="{&apos;readonly&apos;:[(&apos;move_name&apos;,&apos;!=&apos;,False)]}"/>
-                                    <field domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id),(&apos;internal_type&apos;,&apos;=&apos;, &apos;receivable&apos;), (&apos;deprecated&apos;, &apos;=&apos;, False)]" name="account_id" groups="account.group_account_manager"/>
-                                    <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
-                                    <field domain="[(&apos;partner_id.ref_company_ids&apos;, &apos;in&apos;, [company_id])]" name="partner_bank_id" invisible="1"/>
+                                    <field name="journal_id" groups="account.group_account_user"
+                                           options="{&apos;no_create&apos;: True}"
+                                           attrs="{&apos;readonly&apos;:[(&apos;move_name&apos;,&apos;!=&apos;,False)]}"/>
+                                    <field domain="[(&apos;company_id&apos;, &apos;=&apos;, company_id),(&apos;internal_type&apos;,&apos;=&apos;, &apos;receivable&apos;), (&apos;deprecated&apos;, &apos;=&apos;, False)]"
+                                           name="account_id" groups="account.group_account_manager"/>
+                                    <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                           groups="base.group_multi_company"/>
+                                    <field domain="[(&apos;partner_id.ref_company_ids&apos;, &apos;in&apos;, [company_id])]"
+                                           name="partner_bank_id" invisible="1"/>
                                     <field name="date_due" groups="base.group_no_one"/>
                                 </group>
                                 <group>
-                                    <field name="move_id" groups="account.group_account_manager" attrs="{&apos;invisible&apos;: [(&apos;move_id&apos;, &apos;=&apos;, False)]}"/>
-                                    <field name="origin" groups="base.group_user" attrs="{&apos;invisible&apos;: [(&apos;origin&apos;, &apos;=&apos;, False)]}"/>
+                                    <field name="move_id" groups="account.group_account_manager"
+                                           attrs="{&apos;invisible&apos;: [(&apos;move_id&apos;, &apos;=&apos;, False)]}"/>
+                                    <field name="origin" groups="base.group_user"
+                                           attrs="{&apos;invisible&apos;: [(&apos;origin&apos;, &apos;=&apos;, False)]}"/>
                                     <field name="name"/>
                                 </group>
                             </group>
@@ -438,17 +542,26 @@
                 </div>
             </form>
         </view>
+
         <view id="account_view_account_invoice_filter" model="AccountInvoice">
             <search string="Search Invoice">
-                <field name="number" string="Invoice" filter_domain="[&apos;|&apos;,&apos;|&apos;,&apos;|&apos;, (&apos;number&apos;,&apos;ilike&apos;,self), (&apos;origin&apos;,&apos;ilike&apos;,self), (&apos;reference&apos;, &apos;ilike&apos;, self), (&apos;partner_id&apos;, &apos;child_of&apos;, self)]"/>
+                <field name="number" string="Invoice"
+                       filter_domain="[&apos;|&apos;,&apos;|&apos;,&apos;|&apos;, (&apos;number&apos;,&apos;ilike&apos;,self), (&apos;origin&apos;,&apos;ilike&apos;,self), (&apos;reference&apos;, &apos;ilike&apos;, self), (&apos;partner_id&apos;, &apos;child_of&apos;, self)]"/>
                 <field name="journal_id"/>
-                <filter name="draft" string="Draft" domain="[(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;, &apos;proforma&apos;))]"/>
-                <filter name="proforma" string="Proforma" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;proforma2&apos;)]" groups="account.group_proforma_invoices"/>
-                <filter name="invoices" string="Invoices" domain="[&apos;&amp;&apos;, (&apos;state&apos;,&apos;in&apos;,[&apos;open&apos;,&apos;paid&apos;]),(&apos;type&apos;,&apos;in&apos;,(&apos;out_invoice&apos;,&apos;in_invoice&apos;))]"/>
-                <filter name="refunds" string="Refunds" domain="[&apos;&amp;&apos;, (&apos;state&apos;,&apos;in&apos;,[&apos;open&apos;,&apos;paid&apos;]),(&apos;type&apos;,&apos;in&apos;,(&apos;out_refund&apos;,&apos;in_refund&apos;))]"/>
+                <filter name="draft" string="Draft"
+                        domain="[(&apos;state&apos;,&apos;in&apos;,(&apos;draft&apos;, &apos;proforma&apos;))]"/>
+                <filter name="proforma" string="Proforma"
+                        domain="[(&apos;state&apos;,&apos;=&apos;,&apos;proforma2&apos;)]"
+                        groups="account.group_proforma_invoices"/>
+                <filter name="invoices" string="Invoices"
+                        domain="[&apos;&amp;&apos;, (&apos;state&apos;,&apos;in&apos;,[&apos;open&apos;,&apos;paid&apos;]),(&apos;type&apos;,&apos;in&apos;,(&apos;out_invoice&apos;,&apos;in_invoice&apos;))]"/>
+                <filter name="refunds" string="Refunds"
+                        domain="[&apos;&amp;&apos;, (&apos;state&apos;,&apos;in&apos;,[&apos;open&apos;,&apos;paid&apos;]),(&apos;type&apos;,&apos;in&apos;,(&apos;out_refund&apos;,&apos;in_refund&apos;))]"/>
                 <separator/>
                 <filter name="unpaid" string="Not Paid" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;open&apos;)]"/>
-                <filter name="late" string="Overdue" domain="[&apos;&amp;&apos;, (&apos;date_due&apos;, &apos;&lt;&apos;, time.strftime(&apos;%%Y-%%m-%%d&apos;)), (&apos;state&apos;, &apos;=&apos;, &apos;open&apos;)]" help="Overdue invoices, maturity date passed"/>
+                <filter name="late" string="Overdue"
+                        domain="[&apos;&amp;&apos;, (&apos;date_due&apos;, &apos;&lt;&apos;, time.strftime(&apos;%%Y-%%m-%%d&apos;)), (&apos;state&apos;, &apos;=&apos;, &apos;open&apos;)]"
+                        help="Overdue invoices, maturity date passed"/>
                 <separator/>
                 <field name="partner_id" operator="child_of"/>
                 <field name="user_id" string="Salesperson"/>
@@ -456,7 +569,8 @@
                 <separator/>
                 <filter domain="[(&apos;user_id&apos;,&apos;=&apos;,uid)]" help="My Invoices"/>
                 <group expand="0" string="Group By">
-                    <filter name="group_by_partner_id" string="Partner" context="{&apos;group_by&apos;:&apos;commercial_partner_id&apos;}"/>
+                    <filter name="group_by_partner_id" string="Partner"
+                            context="{&apos;group_by&apos;:&apos;commercial_partner_id&apos;}"/>
                     <filter string="Salesperson" context="{&apos;group_by&apos;:&apos;user_id&apos;}"/>
                     <filter name="status" string="Status" context="{&apos;group_by&apos;:&apos;state&apos;}"/>
                     <separator/>
@@ -465,44 +579,64 @@
                 </group>
             </search>
         </view>
-        <action id="account_action_invoice_tree" type="ir.actions.act_window" name="Invoices" model="AccountInvoice" view_mode="tree,form,calendar,graph" view_id="account_invoice_tree" search_view_id="account_view_account_invoice_filter"/>
-        <action id="account_action_invoice_refund_out_tree" type="ir.actions.act_window" name="Invoices" model="AccountInvoice" view_mode="tree,form,kanban,calendar,graph,pivot" view_id="account_invoice_tree" search_view_id="account_view_account_invoice_filter"/>
-        <action id="account_action_invoice_tree_pending_invoice" type="ir.actions.act_window" name="Pending Invoice" model="AccountInvoice" view_mode="tree,form,calendar,graph" view_id="account_invoice_tree"/>
-        <action id="account_action_invoice_tree1" type="ir.actions.act_window" name="Customer Invoices" model="AccountInvoice" view_mode="tree,kanban,form,calendar,pivot,graph" search_view_id="account_view_account_invoice_filter">
+
+        <action id="account_action_invoice_tree" type="ir.actions.act_window" name="Invoices" model="AccountInvoice"
+                view_mode="tree,form,calendar,graph" view_id="account_invoice_tree"
+                search_view_id="account_view_account_invoice_filter"/>
+
+        <action id="account_action_invoice_refund_out_tree" type="ir.actions.act_window" name="Invoices"
+                model="AccountInvoice" view_mode="tree,form,kanban,calendar,graph,pivot" view_id="account_invoice_tree"
+                search_view_id="account_view_account_invoice_filter"/>
+
+        <action id="account_action_invoice_tree_pending_invoice" type="ir.actions.act_window" name="Pending Invoice"
+                model="AccountInvoice" view_mode="tree,form,calendar,graph" view_id="account_invoice_tree"/>
+
+        <action id="account_action_invoice_tree1" type="ir.actions.act_window" name="Customer Invoices"
+                model="AccountInvoice" view_mode="tree,kanban,form,calendar,pivot,graph"
+                search_view_id="account_view_account_invoice_filter">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to create a customer invoice.
-              </p>
+                    Click to create a customer invoice.
+                </p>
                 <p>
-                Hexya&apos;s electronic invoicing allows to ease and fasten the
-                collection of customer payments. Your customer receives the
-                invoice by email and he can pay online and/or import it
-                in his own system.
-              </p>
+                    Hexya&apos;s electronic invoicing allows to ease and fasten the
+                    collection of customer payments. Your customer receives the
+                    invoice by email and he can pay online and/or import it
+                    in his own system.
+                </p>
                 <p>
-                The discussions with your customer are automatically displayed at
-                the bottom of each invoice.
-              </p>
+                    The discussions with your customer are automatically displayed at
+                    the bottom of each invoice.
+                </p>
             </help>
             <view id="account_invoice_tree" type="tree"/>
             <view id="account_invoice_form" type="form"/>
         </action>
-        <action id="account_action_invoice_tree2" type="ir.actions.act_window" name="Vendor Bills" model="AccountInvoice" view_mode="tree,kanban,form,calendar,pivot,graph" search_view_id="account_view_account_invoice_filter">
+
+        <action id="account_action_invoice_tree2" type="ir.actions.act_window" name="Vendor Bills"
+                model="AccountInvoice" view_mode="tree,kanban,form,calendar,pivot,graph"
+                search_view_id="account_view_account_invoice_filter">
             <help>
                 <p class="oe_view_nocontent_create">
-                Click to record a new vendor bill.
-              </p>
+                    Click to record a new vendor bill.
+                </p>
                 <p>
-                You can control the invoice from your vendor according to
-                what you purchased or received.
-              </p>
+                    You can control the invoice from your vendor according to
+                    what you purchased or received.
+                </p>
             </help>
             <view id="account_invoice_supplier_tree" type="tree"/>
             <view id="account_invoice_supplier_form" type="form"/>
         </action>
+
         <action id="account_act_account_journal_2_account_invoice_opened" name="Unpaid Invoices" model="AccountInvoice"
                 src_model="AccountJournal" view_mode="tree,form"/>
-        <menuitem id="account_menu_action_invoice_tree1" sequence="1" parent="account_menu_finance_receivables" action="account_action_invoice_tree1"/>
-        <menuitem id="account_menu_action_invoice_tree2" sequence="1" parent="account_menu_finance_payables" action="account_action_invoice_tree2"/>
+
+        <menuitem id="account_menu_action_invoice_tree1" sequence="1" parent="account_menu_finance_receivables"
+                  action="account_action_invoice_tree1"/>
+
+        <menuitem id="account_menu_action_invoice_tree2" sequence="1" parent="account_menu_finance_payables"
+                  action="account_action_invoice_tree2"/>
+
     </data>
 </hexya>

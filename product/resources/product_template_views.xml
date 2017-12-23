@@ -16,7 +16,7 @@
             </tree>
         </view>
 
-        <view id="product_product_template_only_form_view" model="ProductTemplate">
+        <view id="productçproduct_template_only_form_view" inherit_id="product_product_template_form_view" priority="8">
             <xpath expr="//form" position="attributes">
                 <attribute name="name">Product Template</attribute>
             </xpath>

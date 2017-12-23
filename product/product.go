@@ -142,7 +142,7 @@ func init() {
 			Help:    "If unchecked, it will allow you to hide the product without removing it."},
 		"ProductTmpl": models.Many2OneField{String: "Product Template", RelationModel: pool.ProductTemplate(),
 			Index: true, OnDelete: models.Cascade, Required: true, Embed: true},
-		"Barcode": models.CharField{String: "Barcode", NoCopy: true, Unique: true,
+		"Barcode": models.CharField{String: "Barcode", NoCopy: true, /*Unique: true,*/
 			Help: "International Article Number used for product identification."},
 		"AttributeValues": models.Many2ManyField{String: "Attributes", RelationModel: pool.ProductAttributeValue(),
 			JSON:       "attribute_value_ids", /*, OnDelete: models.Restrict*/

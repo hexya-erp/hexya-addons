@@ -10,6 +10,9 @@ import (
 
 func init() {
 
+	pool.AccountReportPartnerLedger().DeclareTransientModel()
+	pool.AccountReportPartnerLedger().InheritModel(pool.AccountCommonPartnerReport())
+
 	pool.AccountCommonPartnerReport().AddFields(map[string]models.FieldDefinition{
 		"AmountCurrency": models.BooleanField{String: "With Currency" /*["With Currency"]*/, Help: "It adds the currency column on report if the currency differs from the company currency."},
 		"Reconciled":     models.BooleanField{String: "Reconciled Entries')" /*['Reconciled Entries']*/},

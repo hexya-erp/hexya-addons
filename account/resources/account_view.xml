@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <view id="account_view_account_form" model="AccountAccount">
             <form string="Account">
                 <sheet>
@@ -127,6 +128,7 @@
                 </sheet>
             </form>
         </view>
+
         <view id="account_view_account_list" model="AccountAccount">
             <tree string="Chart of accounts" toolbar="1">
                 <field name="code"/>
@@ -136,6 +138,7 @@
                 <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
             </tree>
         </view>
+
         <view id="account_view_account_search" model="AccountAccount">
             <search string="Accounts">
                 <field name="name"
@@ -151,6 +154,7 @@
                 </group>
             </search>
         </view>
+
         <action id="account_action_account_form" type="ir.actions.act_window" name="Chart of Accounts"
                 model="AccountAccount" view_mode="tree,form" search_view_id="account_view_account_search"
                 view_id="account_view_account_list">
@@ -168,7 +172,8 @@
                 </p>
             </help>
         </action>
-        <view id="account_view_account_journal_tree" model="AccountJournal">
+
+        <view id="account_view_account_journal_tree" model="AccountJournal" priority="1">
             <tree string="Account Journal">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
@@ -177,7 +182,8 @@
                 <field name="company_id" groups="base.group_multi_company"/>
             </tree>
         </view>
-        <view id="account_view_account_journal_search" model="AccountJournal">
+
+        <view id="account_view_account_journal_search" model="AccountJournal" priority="1">
             <search string="Search Account Journal">
                 <field name="name"
                        filter_domain="[&apos;|&apos;, (&apos;name&apos;,&apos;ilike&apos;,self), (&apos;code&apos;,&apos;ilike&apos;,self)]"
@@ -192,7 +198,8 @@
                         domain="[(&apos;show_on_dashboard&apos;, &apos;=&apos;, True)]"/>
             </search>
         </view>
-        <view id="account_view_account_journal_form" model="AccountJournal">
+
+        <view id="account_view_account_journal_form" model="AccountJournal" priority="1">
             <form string="Account Journal">
                 <sheet>
                     <div class="oe_title">
@@ -274,14 +281,16 @@
                 </sheet>
             </form>
         </view>
-        <view id="account_view_account_bank_journal_tree" model="AccountJournal">
+
+        <view id="account_view_account_bank_journal_tree" model="AccountJournal" priority="10">
             <tree string="Account Journal">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="company_id" groups="base.group_multi_company"/>
             </tree>
         </view>
-        <view id="account_view_account_bank_journal_form" model="AccountJournal">
+
+        <view id="account_view_account_bank_journal_form" model="AccountJournal" priority="10">
             <form string="Bank Account">
                 <sheet>
                     <field name="type" invisible="1"/>
@@ -304,6 +313,7 @@
                 </sheet>
             </form>
         </view>
+
         <action id="account_action_account_bank_journal_form" type="ir.actions.act_window" name="Bank Accounts"
                 model="AccountJournal" view_mode="tree,form">
             <help>
@@ -311,7 +321,10 @@
                     Click to add a bank account.
                 </p>
             </help>
+            <view id="account_view_account_bank_journal_tree" type="tree"/>
+            <view id="account_view_account_bank_journal_form" type="form"/>
         </action>
+
         <action id="account_action_account_journal_form" type="ir.actions.act_window" name="Journals"
                 model="AccountJournal" view_mode="tree,form">
             <help>
@@ -329,6 +342,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_account_tag_view_form" model="AccountAccountTag">
             <form string="Tags">
                 <group>
@@ -336,6 +350,7 @@
                 </group>
             </form>
         </view>
+
         <action id="account_account_tag_action" type="ir.actions.act_window" name="Accounts Tags"
                 model="AccountAccountTag" view_mode="tree,form">
             <help>
@@ -344,6 +359,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_view_account_bnk_stmt_cashbox" model="AccountBankStatementCashbox">
             <form>
                 <group>
@@ -361,9 +377,11 @@
                 </footer>
             </form>
         </view>
+
         <action id="account_action_view_account_bnk_stmt_cashbox" type="ir.actions.act_window" name="Cash Control"
                 model="AccountBankStatementCashbox" view_mode="tree,form"
                 view_id="account_view_account_bnk_stmt_cashbox"/>
+
         <view id="account_view_account_bnk_stmt_check" model="AccountBankStatementClosebalance">
             <form>
                 <div>
@@ -378,9 +396,11 @@
                 </div>
             </form>
         </view>
+
         <action id="account_action_view_account_bnk_stmt_check" type="ir.actions.act_window"
                 name="Check Closing Balance" model="AccountBankStatementClosebalance" view_mode="tree,form"
                 view_id="account_view_account_bnk_stmt_check"/>
+
         <view id="account_view_bank_statement_tree" model="AccountBankStatement">
             <tree decoration-danger="not is_difference_zero and state==&apos;open&apos;"
                   decoration-info="state==&apos;open&apos; and is_difference_zero" string="Statements">
@@ -395,6 +415,7 @@
                 <field name="is_difference_zero" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_bank_statement_search" model="AccountBankStatement">
             <search string="Search Bank Statements">
                 <field name="name" string="Bank Statement"/>
@@ -409,7 +430,8 @@
                 </group>
             </search>
         </view>
-        <view id="account_view_bank_statement_form" model="AccountBankStatement">
+
+        <view id="account_view_bank_statement_form" model="AccountBankStatement" priority="1">
             <form string="Bank Statement">
                 <header>
                     <field name="all_lines_reconciled" invisible="1"/>
@@ -516,6 +538,7 @@
                 </sheet>
             </form>
         </view>
+
         <action id="account_action_bank_statement_tree" type="ir.actions.act_window" name="Bank Statements"
                 model="AccountBankStatement" view_mode="tree,form,pivot,graph"
                 search_view_id="account_view_bank_statement_search">
@@ -534,6 +557,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_view_bank_statement_line_search" model="AccountBankStatementLine">
             <search string="Search Bank Statements Line">
                 <field name="name"/>
@@ -544,7 +568,8 @@
                        domain="[(&apos;type&apos;, &apos;in&apos;, (&apos;bank&apos;, &apos;cash&apos;))]"/>
             </search>
         </view>
-        <view id="account_view_bank_statement_line_form" model="AccountBankStatementLine">
+
+        <view id="account_view_bank_statement_line_form" model="AccountBankStatementLine" priority="8">
             <form string="Statement Line" create="false">
                 <group col="4">
                     <field name="statement_id"/>
@@ -559,7 +584,8 @@
                 </group>
             </form>
         </view>
-        <view id="account_view_bank_statement_line_tree" model="AccountBankStatementLine">
+
+        <view id="account_view_bank_statement_line_tree" model="AccountBankStatementLine" priority="8">
             <tree string="Statement lines" create="false">
                 <field name="sequence" readonly="1" invisible="1"/>
                 <field name="statement_id"/>
@@ -572,6 +598,7 @@
                 <field name="journal_currency_id" invisible="1"/>
             </tree>
         </view>
+
         <action id="account_action_bank_statement_line" type="ir.actions.act_window" name="Bank Statement Lines"
                 model="AccountBankStatementLine" view_mode="tree,form"
                 search_view_id="account_view_bank_statement_line_search">
@@ -585,8 +612,10 @@
                 </p>
             </help>
         </action>
+
         <action id="account_action_bank_statement_draft_tree" type="ir.actions.act_window" name="Draft statements"
                 model="AccountBankStatement" view_mode="tree,form"/>
+
         <view id="account_view_account_reconcile_model_form" model="AccountReconcileModel">
             <form string="Operation Templates">
                 <sheet>
@@ -648,6 +677,7 @@
                 </sheet>
             </form>
         </view>
+
         <view id="account_view_account_reconcile_model_tree" model="AccountReconcileModel">
             <tree string="Bank Reconciliation Move Presets">
                 <field name="sequence" widget="handle"/>
@@ -657,6 +687,7 @@
                 <field name="journal_id" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_account_reconcile_model_search" model="AccountReconcileModel">
             <search string="Bank Reconciliation Move preset">
                 <filter string="With tax" domain="[(&apos;tax_id&apos;,&apos;!=&apos;,False)]"/>
@@ -664,6 +695,7 @@
                 <field name="journal_id"/>
             </search>
         </view>
+
         <action id="account_action_account_reconcile_model" type="ir.actions.act_window" name="Reconciliation Models"
                 model="AccountReconcileModel" view_mode="tree,form"
                 search_view_id="account_view_account_reconcile_model_search">
@@ -677,6 +709,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_view_account_type_search" model="AccountAccountType">
             <search string="Account Type">
                 <field name="name"
@@ -684,12 +717,14 @@
                        string="Account Type"/>
             </search>
         </view>
+
         <view id="account_view_account_type_tree" model="AccountAccountType">
             <tree string="Account Type">
                 <field name="name"/>
                 <field name="type"/>
             </tree>
         </view>
+
         <view id="account_view_account_type_form" model="AccountAccountType">
             <form string="Account Type">
                 <group>
@@ -705,6 +740,7 @@
                 <field name="note"/>
             </form>
         </view>
+
         <action id="account_action_account_type_form" type="ir.actions.act_window" name="Account Types"
                 model="AccountAccountType" view_mode="tree,form" search_view_id="account_view_account_type_search">
             <help>
@@ -720,6 +756,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_view_tax_tree" model="AccountTax">
             <tree string="Account Tax">
                 <field name="sequence" widget="handle"/>
@@ -729,6 +766,7 @@
                 <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
             </tree>
         </view>
+
         <view id="account_view_account_tax_search" model="AccountTax">
             <search string="Search Taxes">
                 <field name="name"
@@ -746,6 +784,7 @@
                 </group>
             </search>
         </view>
+
         <view id="account_view_tax_form" model="AccountTax">
             <form string="Account Tax">
                 <sheet>
@@ -816,9 +855,11 @@
                 </sheet>
             </form>
         </view>
+
         <action id="account_action_tax_form" type="ir.actions.act_window" name="Taxes" model="AccountTax"
                 view_mode="tree,form" view_id="account_view_tax_tree"/>
-        <view id="account_view_move_line_form" model="AccountMoveLine">
+
+        <view id="account_view_move_line_form" model="AccountMoveLine" priority="2">
             <form string="Journal Item">
                 <sheet>
                     <group>
@@ -889,7 +930,8 @@
                 </sheet>
             </form>
         </view>
-        <view id="account_view_move_line_form2" model="AccountMoveLine">
+
+        <view id="account_view_move_line_form2" model="AccountMoveLine" priority="9">
             <form string="Journal Item">
                 <notebook colspan="4">
                     <page string="Information">
@@ -927,6 +969,7 @@
                 </notebook>
             </form>
         </view>
+
         <view id="account_view_move_line_pivot" model="AccountMoveLine">
             <pivot string="Journal Items">
                 <field name="journal_id" type="row"/>
@@ -934,7 +977,8 @@
                 <field name="balance" type="measure"/>
             </pivot>
         </view>
-        <view id="account_view_move_line_tree" model="AccountMoveLine">
+
+        <view id="account_view_move_line_tree" model="AccountMoveLine" priority="1">
             <tree string="Journal Items" create="false">
                 <field name="date"/>
                 <field name="move_id" required="0"/>
@@ -957,18 +1001,21 @@
                 <field name="company_id" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_account_move_line_graph_date" model="AccountMoveLine">
             <graph string="Account Statistics" type="bar">
                 <field name="date"/>
                 <field name="balance" operator="+" type="measure"/>
             </graph>
         </view>
+
         <view id="account_account_move_line_graph_date_cash_basis" model="AccountMoveLine">
             <graph string="Account Statistics" type="bar">
                 <field name="date"/>
                 <field name="balance_cash_basis" operator="+" type="measure"/>
             </graph>
         </view>
+
         <view id="account_view_account_move_line_filter" model="AccountMoveLine">
             <search string="Search Journal Items">
                 <field name="name"
@@ -1007,20 +1054,27 @@
                 </group>
             </search>
         </view>
+
         <action id="account_action_account_moves_all_a" type="ir.actions.act_window" name="Journal Items"
                 model="AccountMoveLine" view_id="account_view_move_line_tree" view_mode="tree,form,pivot"/>
+
         <action id="account_action_account_moves_all_tree" type="ir.actions.act_window" name="Journal Items"
                 model="AccountMoveLine" view_id="account_view_move_line_tree" view_mode="tree,form"/>
+
         <action id="account_action_move_line_graph" type="ir.actions.act_window" name="Journal Items"
                 view_mode="graph,pivot" view_id="account_account_move_line_graph_date" model="AccountMoveLine"/>
+
         <action id="account_action_move_line_graph_posted" type="ir.actions.act_window" name="Journal Items"
                 view_mode="graph,pivot" view_id="account_account_move_line_graph_date" model="AccountMoveLine"/>
+
         <action id="account_action_move_line_graph_cash_basis" type="ir.actions.act_window" name="Journal Items"
                 view_mode="graph,pivot" view_id="account_account_move_line_graph_date_cash_basis"
                 model="AccountMoveLine"/>
+
         <action id="account_action_move_line_graph_cash_basis_posted" type="ir.actions.act_window" name="Journal Items"
                 view_mode="graph,pivot" view_id="account_account_move_line_graph_date_cash_basis"
                 model="AccountMoveLine"/>
+
         <view id="account_view_move_tree" model="AccountMove">
             <tree decoration-info="state == &apos;draft&apos;" string="Journal Entries">
                 <field name="date"/>
@@ -1033,6 +1087,7 @@
                 <field name="currency_id" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_move_form" model="AccountMove">
             <form string="Account Entry">
                 <header>
@@ -1095,6 +1150,7 @@
                 </sheet>
             </form>
         </view>
+
         <view id="account_view_account_move_filter" model="AccountMove">
             <search string="Search Move">
                 <field name="name"
@@ -1130,6 +1186,7 @@
                 </group>
             </search>
         </view>
+
         <action id="account_action_move_journal_line" type="ir.actions.act_window" name="Journal Entries"
                 model="AccountMove" view_mode="tree,form" view_id="account_view_move_tree"
                 search_view_id="account_view_account_move_filter">
@@ -1149,9 +1206,11 @@
                 </p>
             </help>
         </action>
+
         <action id="account_action_move_line_form" type="ir.actions.act_window" name="Entries" model="AccountMove"
                 view_id="account_view_move_tree" search_view_id="account_view_account_move_filter"
                 view_mode="tree,form"/>
+
         <view id="account_view_full_reconcile_form" model="AccountFullReconcile">
             <form string="Matching">
                 <group>
@@ -1165,6 +1224,7 @@
                 </group>
             </form>
         </view>
+
         <view id="account_view_payment_term_line_tree" model="AccountPaymentTermLine">
             <tree string="Payment Terms">
                 <field name="sequence" widget="handle"/>
@@ -1175,6 +1235,7 @@
                 <field name="option" string=""/>
             </tree>
         </view>
+
         <view id="account_view_payment_term_line_form" model="AccountPaymentTermLine">
             <form string="Payment Terms">
                 <group>
@@ -1203,12 +1264,14 @@
                 </group>
             </form>
         </view>
+
         <view id="account_view_payment_term_search" model="AccountPaymentTerm">
             <search string="Payment Terms">
                 <field name="name" string="Payment Terms"/>
                 <field name="active"/>
             </search>
         </view>
+
         <view id="account_view_payment_term_form" model="AccountPaymentTerm">
             <form string="Payment Terms">
                 <group col="4">
@@ -1226,8 +1289,10 @@
                 <field name="line_ids"/>
             </form>
         </view>
+
         <action id="account_action_payment_term_form" type="ir.actions.act_window" name="Payment Terms"
                 model="AccountPaymentTerm" view_mode="tree,form" search_view_id="account_view_payment_term_search"/>
+
         <view id="account_view_account_template_form" model="AccountAccountTemplate">
             <form string="Account Template">
                 <group col="4">
@@ -1248,6 +1313,7 @@
                 <field name="note" placeholder="Internal notes..."/>
             </form>
         </view>
+
         <view id="account_view_account_template_tree" model="AccountAccountTemplate">
             <tree string="Account Template">
                 <field name="code"/>
@@ -1255,6 +1321,7 @@
                 <field name="user_type_id" invisible="1"/>
             </tree>
         </view>
+
         <view id="account_view_account_template_search" model="AccountAccountTemplate">
             <search string="Search Account Templates">
                 <field name="name"
@@ -1267,9 +1334,11 @@
                 </group>
             </search>
         </view>
+
         <action id="account_action_account_template_form" type="ir.actions.act_window" name="Account Templates"
                 model="AccountAccountTemplate" view_mode="tree,form"
                 search_view_id="account_view_account_template_search"/>
+
         <view id="account_view_account_chart_template_form" model="AccountChartTemplate">
             <form string="Chart of Accounts Template">
                 <group col="4">
@@ -1296,6 +1365,7 @@
                 </group>
             </form>
         </view>
+
         <view id="account_view_account_chart_template_seacrh" model="AccountChartTemplate">
             <search string="Search Chart of Account Templates">
                 <field name="name" string="Account Template"/>
@@ -1313,6 +1383,7 @@
                 </group>
             </search>
         </view>
+
         <view id="account_view_account_chart_template_tree" model="AccountChartTemplate">
             <tree string="Chart of Accounts Template">
                 <field name="name"/>
@@ -1323,8 +1394,10 @@
                 <field name="property_account_income_categ_id" invisible="1"/>
             </tree>
         </view>
+
         <action id="account_action_account_chart_template_form" type="ir.actions.act_window"
                 name="Chart of Accounts Templates" model="AccountChartTemplate" view_mode="tree,form"/>
+
         <view id="account_view_account_tax_template_form" model="AccountTaxTemplate">
             <form string="Account Tax Template">
                 <group>
@@ -1393,12 +1466,14 @@
                 </notebook>
             </form>
         </view>
+
         <view id="account_view_account_tax_template_tree" model="AccountTaxTemplate">
             <tree string="Account Tax Template">
                 <field name="name"/>
                 <field name="description"/>
             </tree>
         </view>
+
         <view id="account_view_account_tax_template_search" model="AccountTaxTemplate">
             <search string="Search Tax Templates">
                 <field name="name"
@@ -1411,61 +1486,66 @@
                 <field name="chart_template_id"/>
             </search>
         </view>
+
         <action id="account_action_account_tax_template_form" type="ir.actions.act_window" name="Tax Templates"
                 model="AccountTaxTemplate" view_mode="tree,form"
                 search_view_id="account_view_account_tax_template_search"/>
-        <view id="account_view_wizard_multi_chart" model="WizardMultiChartsAccounts">
-            <form position="attributes">
-                <attribute name="string">Accounting Application Configuration</attribute>
-            </form>
-            <group name="res_config_contents" position="replace">
-                <field name="only_one_chart_template" invisible="1"/>
-                <field name="complete_tax_set" invisible="1"/>
-                <group col="1">
-                    <group>
-                        <field name="chart_template_id" widget="selection"
-                               domain="[(&apos;visible&apos;,&apos;=&apos;, True)]"/>
-                    </group>
-                    <group invisible="1">
-                        <field name="company_id" options="{&apos;no_create&apos;: True}"/>
-                        <!-- we assume that this wizard will be run only by administrators and as this field may cause problem if hidden (because of the default company of the user removed from the selection because already configured), we simply choosed to remove the group "multi company" of it -->
-                        <field name="currency_id" class="oe_inline"/>
-                        <field name="use_anglo_saxon"/>
-                        <field name="sale_tax_id"
-                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}"
-                               domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"/>
-                        <label for="sale_tax_rate" string="Sale Tax"
-                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>
-                        <div attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}">
-                            <field name="sale_tax_rate" class="oe_inline"/>
-                            %%
-                        </div>
-                        <field name="purchase_tax_id"
-                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}"
-                               domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"/>
-                        <label for="purchase_tax_rate" string="Purchase Tax"
-                               attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>
-                        <div attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}">
-                            <field name="purchase_tax_rate" class="oe_inline"/>
-                            %%
-                        </div>
-                        <field name="transfer_account_id"/>
-                    </group>
-                    <group groups="account.group_account_user" invisible="1">
-                        <field name="code_digits"/>
-                        <field name="bank_account_code_prefix"/>
-                        <field name="cash_account_code_prefix"/>
-                    </group>
-                </group>
-            </group>
-        </view>
-        <action id="account_action_wizard_multi_chart" type="ir.actions.act_window" name="Choose Accounting Template"
-                model="WizardMultiChartsAccounts" view_id="account_view_wizard_multi_chart" view_mode="form"/>
+
+        <!--<view inherit_id="base_res_config_view_base">-->
+        <!--<form position="attributes">-->
+        <!--<attribute name="string">Accounting Application Configuration</attribute>-->
+        <!--</form>-->
+        <!--<group name="res_config_contents" position="replace">-->
+        <!--<field name="only_one_chart_template" invisible="1"/>-->
+        <!--<field name="complete_tax_set" invisible="1"/>-->
+        <!--<group col="1">-->
+        <!--<group>-->
+        <!--<field name="chart_template_id" widget="selection"-->
+        <!--domain="[(&apos;visible&apos;,&apos;=&apos;, True)]"/>-->
+        <!--</group>-->
+        <!--<group invisible="1">-->
+        <!--<field name="company_id" options="{&apos;no_create&apos;: True}"/>-->
+        <!--&lt;!&ndash; we assume that this wizard will be run only by administrators and as this field may cause problem if hidden (because of the default company of the user removed from the selection because already configured), we simply choosed to remove the group "multi company" of it &ndash;&gt;-->
+        <!--<field name="currency_id" class="oe_inline"/>-->
+        <!--<field name="use_anglo_saxon"/>-->
+        <!--<field name="sale_tax_id"-->
+        <!--attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}"-->
+        <!--domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"/>-->
+        <!--<label for="sale_tax_rate" string="Sale Tax"-->
+        <!--attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>-->
+        <!--<div attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}">-->
+        <!--<field name="sale_tax_rate" class="oe_inline"/>-->
+        <!--%%-->
+        <!--</div>-->
+        <!--<field name="purchase_tax_id"-->
+        <!--attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;!=&apos;, True)]}"-->
+        <!--domain="[(&apos;chart_template_id&apos;, &apos;=&apos;, chart_template_id),(&apos;parent_id&apos;,&apos;=&apos;,False),(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;purchase&apos;)]"/>-->
+        <!--<label for="purchase_tax_rate" string="Purchase Tax"-->
+        <!--attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}"/>-->
+        <!--<div attrs="{&apos;invisible&apos;: [(&apos;complete_tax_set&apos;, &apos;=&apos;, True)]}">-->
+        <!--<field name="purchase_tax_rate" class="oe_inline"/>-->
+        <!--%%-->
+        <!--</div>-->
+        <!--<field name="transfer_account_id"/>-->
+        <!--</group>-->
+        <!--<group groups="account.group_account_user" invisible="1">-->
+        <!--<field name="code_digits"/>-->
+        <!--<field name="bank_account_code_prefix"/>-->
+        <!--<field name="cash_account_code_prefix"/>-->
+        <!--</group>-->
+        <!--</group>-->
+        <!--</group>-->
+        <!--</view>-->
+
+        <!--<action id="account_action_wizard_multi_chart" type="ir.actions.act_window" name="Choose Accounting Template"-->
+        <!--model="WizardMultiChartsAccounts" view_id="account_view_wizard_multi_chart" view_mode="form"/>-->
+
         <view id="account_view_account_position_template_search" model="AccountFiscalPositionTemplate">
             <search string="Fiscal Position">
                 <field name="name" string="Fiscal Position Template"/>
             </search>
         </view>
+
         <view id="account_view_account_position_template_form" model="AccountFiscalPositionTemplate">
             <form string="Fiscal Position Template">
                 <group col="4">
@@ -1494,14 +1574,17 @@
                 </field>
             </form>
         </view>
+
         <view id="account_view_account_position_template_tree" model="AccountFiscalPositionTemplate">
             <tree string="Fiscal Position">
                 <field name="name"/>
             </tree>
         </view>
+
         <action id="account_action_account_fiscal_position_template_form" type="ir.actions.act_window"
                 name="Fiscal Position" model="AccountFiscalPositionTemplate" view_mode="tree,form"
                 search_view_id="account_view_account_position_template_search"/>
+
         <view id="account_account_bank_statement_pivot" model="AccountBankStatement">
             <pivot string="Account Statistics">
                 <field name="date" type="row"/>
@@ -1509,6 +1592,7 @@
                 <field name="balance_end" type="measure"/>
             </pivot>
         </view>
+
         <view id="account_account_bank_statement_graph" model="AccountBankStatement">
             <graph string="Account Statistics" type="bar">
                 <field name="date"/>
@@ -1516,6 +1600,7 @@
                 <field name="balance_end" operator="+"/>
             </graph>
         </view>
+
         <action id="account_action_view_bank_statement_tree" type="ir.actions.act_window" name="Cash Registers"
                 model="AccountBankStatement" view_mode="tree,form,pivot,graph"
                 view_id="account_view_bank_statement_tree" search_view_id="account_view_bank_statement_search">
@@ -1532,6 +1617,7 @@
                 </p>
             </help>
         </action>
+
         <view id="account_view_account_financial_report_form" model="AccountFinancialReport">
             <form string="Account Report">
                 <group col="4">
@@ -1559,6 +1645,7 @@
                 </notebook>
             </form>
         </view>
+
         <view id="account_view_account_financial_report_tree" model="AccountFinancialReport">
             <tree string="Account Report">
                 <field name="name"/>
@@ -1567,6 +1654,7 @@
                 <field name="account_report_id"/>
             </tree>
         </view>
+
         <view id="account_view_account_financial_report_search" model="AccountFinancialReport">
             <search string="Account Report">
                 <field name="name" string="Account Report"/>
@@ -1578,11 +1666,14 @@
                 </group>
             </search>
         </view>
+
         <action id="account_action_account_financial_report_tree" type="ir.actions.act_window" name="Financial Reports"
                 model="AccountFinancialReport" view_mode="tree,form"
                 search_view_id="account_view_account_financial_report_search"
                 view_id="account_view_account_financial_report_tree"/>
-        <view id="account_view_account_report_tree_hierarchy" model="AccountFinancialReport">
+
+        <view id="account_view_account_report_tree_hierarchy" model="AccountFinancialReport"
+              field_parent="children_ids">
             <tree string="Account Reports Hierarchy">
                 <field name="name"/>
                 <field name="type"/>
@@ -1590,42 +1681,60 @@
                 <field name="account_report_id"/>
             </tree>
         </view>
+
         <action id="account_action_account_report_tree_hierarchy" type="ir.actions.act_window"
                 name="Financial Reports Hierarchy" model="AccountFinancialReport"
                 view_id="account_view_account_report_tree_hierarchy" view_mode="tree,form"/>
+
         <action id="account_act_account_partner_ledger_payable" name="Partner Ledger: Payable" model="AccountMoveLine"
                 src_model="Partner" view_mode="tree,form"/>
+
         <action id="account_act_account_partner_ledger_payable_no_partner" name="Unknown Partner Ledger"
                 model="AccountMoveLine"
                 src_model="Partner" view_mode="tree,form"/>
+
         <action id="account_act_account_partner_ledger_receivable" name="Partner Ledger: Receivable"
                 model="AccountMoveLine" src_model="Partner" view_mode="tree,form"/>
+
         <action id="account_act_account_partner_ledger_receivable_no_partner" name="Unknown Partner Ledger"
                 model="AccountMoveLine" src_model="Partner" view_mode="tree,form"/>
+
         <action id="account_act_account_acount_move_line_open_unreconciled" name="Unreconciled Entries"
                 model="AccountMoveLine" src_model="AccountAccount" view_mode="tree,form"/>
+
         <action id="account_action_move_line_select" name="Journal Items" model="AccountMoveLine"
                 src_model="AccountAccount" view_mode="tree,form"/>
+
         <action id="account_action_move_select" name="Journal Entries" model="AccountMove" view_mode="tree,form"
         />
+
         <action id="account_action_move_line_select_by_type" name="Journal Items" model="AccountMoveLine"
                 src_model="AccountAccountType" view_mode="tree,form"/>
+
         <action id="account_action_move_line_select_by_partner" name="Journal Items" model="AccountMoveLine"
                 src_model="Partner" view_mode="tree,form"/>
+
         <action id="account_act_account_tax_net" name="Net Tax Lines" model="AccountMoveLine" src_model="AccountTax"
                 view_mode="tree,form"/>
+
         <action id="account_act_account_tax_tax" name="Tax Lines" model="AccountMoveLine" src_model="AccountTax"
                 view_mode="tree,form"/>
+
         <action id="account_act_account_tax_net_posted" name="Net Tax Lines" model="AccountMoveLine"
                 src_model="AccountTax" view_mode="tree,form"/>
+
         <action id="account_act_account_tax_tax_posted" name="Tax Lines" model="AccountMoveLine" src_model="AccountTax"
                 view_mode="tree,form"/>
+
         <action id="account_act_account_journal_2_account_bank_statement" name="Bank statements"
                 model="AccountBankStatement" src_model="AccountJournal" view_mode="tree,form"/>
+
         <action id="account_act_account_journal_2_account_move_line" name="Journal Items" model="AccountMoveLine"
                 src_model="AccountJournal" view_mode="tree,form"/>
+
         <action id="account_act_account_move_to_account_move_line_open" name="Journal Items" model="AccountMoveLine"
                 src_model="AccountMove" view_mode="tree,form"/>
+
         <menuitem id="account_menu_action_account_form" sequence="20" parent="account_menu_finance_entries"
                   action="account_action_account_form"/>
         <menuitem id="account_menu_action_account_bank_journal_form" parent="account_account_account_menu"
@@ -1658,5 +1767,6 @@
                 tag="manual_reconciliation_view"/>
         <menuitem id="account_menu_action_manual_reconciliation" name="Manual Payments &amp; Invoices Matching"
                   sequence="25" parent="account_menu_finance_entries" action="account_action_manual_reconciliation"/>
+
     </data>
 </hexya>

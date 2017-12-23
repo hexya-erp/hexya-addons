@@ -11,7 +11,9 @@ import (
 
 func init() {
 
-	pool.AccountCommonAccountReport().DeclareTransientModel()
+	pool.AccountCommonAccountReport().DeclareMixinModel()
+	pool.AccountCommonAccountReport().InheritModel(pool.AccountCommonReport())
+
 	pool.AccountCommonAccountReport().AddFields(map[string]models.FieldDefinition{
 		"DisplayAccount": models.SelectionField{String: "Display Accounts", Selection: types.Selection{
 			"all":      "All",

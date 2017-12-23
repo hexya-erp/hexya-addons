@@ -11,14 +11,17 @@ import (
 
 func init() {
 
-	pool.AccountCommonJournalReport().AddFields(map[string]models.FieldDefinition{
+	pool.AccountPrintJournal().DeclareTransientModel()
+	pool.AccountPrintJournal().InheritModel(pool.AccountCommonJournalReport())
+
+	pool.AccountPrintJournal().AddFields(map[string]models.FieldDefinition{
 		"SortSelection": models.SelectionField{String: "Entries Sorted by", Selection: types.Selection{
 			"date":      "Date",
 			"move_name": "Journal Entry Number",
 			/*[('date', 'Date'  ('move_name', 'Journal Entry Number' ]*/}, /*[]*/ /*['Entries Sorted by']*/ Required: true, Default: models.DefaultValue("move_name")},
 		"Journals": models.Many2ManyField{String: "Journals", RelationModel: pool.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*[ required True]*/ /*[ default lambda self: self.env['account.journal'].search([('type']*/ /*[ 'in']*/ /*[ ['sale']*/ /*[ 'purchase'])]]*/},
 	})
-	pool.AccountCommonJournalReport().Methods().PrintReport().DeclareMethod(
+	pool.AccountPrintJournal().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
 		func(rs pool.AccountCommonJournalReportSet, args struct {
 			Data interface{}

@@ -3,28 +3,42 @@
         <view id="sale_view_sale_advance_payment_inv" model="SaleAdvancePaymentInv">
             <form string="Invoice Sales Order">
                 <p class="oe_grey">
-                        Invoices will be created in draft so that you can review
-                        them before validation.
-                    </p>
+                    Invoices will be created in draft so that you can review
+                    them before validation.
+                </p>
                 <group>
                     <field name="count" invisible="[(&apos;count&apos;,&apos;=&apos;,1)]" readonly="True"/>
-                    <field name="advance_payment_method" class="oe_inline" widget="radio" attrs="{&apos;invisible&apos;: [(&apos;count&apos;,&apos;&gt;&apos;,1)]}"/>
-                    <field name="product_id" context="{&apos;search_default_services&apos;: 1, &apos;default_type&apos;: &apos;service&apos;, &apos;default_invoice_policy&apos;: &apos;order&apos;}" class="oe_inline" attrs="{&apos;invisible&apos;: 1}"/>
-                    <label for="amount" attrs="{&apos;invisible&apos;: [(&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;,&apos;percentage&apos;))]}"/>
+                    <field name="advance_payment_method" class="oe_inline" widget="radio"
+                           attrs="{&apos;invisible&apos;: [(&apos;count&apos;,&apos;&gt;&apos;,1)]}"/>
+                    <field name="product_id"
+                           context="{&apos;search_default_services&apos;: 1, &apos;default_type&apos;: &apos;service&apos;, &apos;default_invoice_policy&apos;: &apos;order&apos;}"
+                           class="oe_inline" invisible="1"/>
+                    <label for="amount"
+                           attrs="{&apos;invisible&apos;: [(&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;,&apos;percentage&apos;))]}"/>
                     <div attrs="{&apos;invisible&apos;: [(&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;,&apos;percentage&apos;))]}">
-                        <field name="amount" attrs="{&apos;required&apos;: [(&apos;advance_payment_method&apos;, &apos;in&apos;, (&apos;fixed&apos;,&apos;percentage&apos;))]}" class="oe_inline" widget="monetary"/>
-                        <label string="%%" attrs="{&apos;invisible&apos;: [(&apos;advance_payment_method&apos;, &apos;!=&apos;, &apos;percentage&apos;)]}" class="oe_inline"/>
+                        <field name="amount"
+                               attrs="{&apos;required&apos;: [(&apos;advance_payment_method&apos;, &apos;in&apos;, (&apos;fixed&apos;,&apos;percentage&apos;))]}"
+                               class="oe_inline" widget="monetary"/>
+                        <label string="%%"
+                               attrs="{&apos;invisible&apos;: [(&apos;advance_payment_method&apos;, &apos;!=&apos;, &apos;percentage&apos;)]}"
+                               class="oe_inline"/>
                     </div>
-                    <field name="deposit_account_id" class="oe_inline" attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;, &apos;percentage&apos;)), (&apos;product_id&apos;, &apos;!=&apos;, False)]}" groups="account.group_account_manager"/>
-                    <field name="deposit_taxes_id" class="oe_inline" widget="many2many_tags" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]" attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;, &apos;percentage&apos;)), (&apos;product_id&apos;, &apos;!=&apos;, False)]}"/>
+                    <field name="deposit_account_id" class="oe_inline"
+                           attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;, &apos;percentage&apos;)), (&apos;product_id&apos;, &apos;!=&apos;, False)]}"
+                           groups="account.group_account_manager"/>
+                    <field name="deposit_taxes_id" class="oe_inline" widget="many2many_tags"
+                           domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;)]"
+                           attrs="{&apos;invisible&apos;: [&apos;|&apos;, (&apos;advance_payment_method&apos;, &apos;not in&apos;, (&apos;fixed&apos;, &apos;percentage&apos;)), (&apos;product_id&apos;, &apos;!=&apos;, False)]}"/>
                 </group>
                 <footer>
-                    <button name="create_invoices" string="Create and View Invoices" type="object" context="{&apos;open_invoices&apos;: True}" class="btn-primary"/>
+                    <button name="create_invoices" string="Create and View Invoices" type="object"
+                            context="{&apos;open_invoices&apos;: True}" class="btn-primary"/>
                     <button name="create_invoices" string="Create Invoices" type="object" class="btn-primary"/>
                     <button string="Cancel" class="btn-default" special="cancel"/>
                 </footer>
             </form>
         </view>
-        <action id="sale_action_view_sale_advance_payment_inv" type="ir.actions.act_window" name="Invoice Order" model="SaleAdvancePaymentInv" view_mode="form"/>
+        <action id="sale_action_view_sale_advance_payment_inv" type="ir.actions.act_window" name="Invoice Order"
+                model="SaleAdvancePaymentInv" view_mode="form" target="new"/>
     </data>
 </hexya>

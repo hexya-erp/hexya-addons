@@ -1,23 +1,27 @@
 <hexya>
     <data>
+
         <view id="sale_view_sale_order_calendar" model="SaleOrder">
             <calendar string="Sales Orders" color="state" date_start="date_order">
                 <field name="partner_id"/>
                 <field name="amount_total" widget="monetary"/>
             </calendar>
         </view>
+
         <view id="sale_view_sale_order_graph" model="SaleOrder">
             <graph string="Sales Orders">
                 <field name="partner_id"/>
                 <field name="amount_total" type="measure"/>
             </graph>
         </view>
+
         <view id="sale_view_sale_order_pivot" model="SaleOrder">
             <pivot string="Sales Orders">
                 <field name="date_order" type="row"/>
                 <field name="amount_total" type="measure"/>
             </pivot>
         </view>
+
         <view id="sale_view_sale_order_kanban" model="SaleOrder">
             <kanban class="o_kanban_mobile">
                 <field name="name"/>
@@ -52,7 +56,8 @@
                                 </div>
                                 <div class="col-xs-6">
                                     <span class="pull-right text-right">
-                                        <field name="state" widget="kanban_label_selection" options="{&apos;classes&apos;: {&apos;draft&apos;: &apos;default&apos;, &apos;cancel&apos;: &apos;default&apos;,
+                                        <field name="state" widget="kanban_label_selection"
+                                               options="{&apos;classes&apos;: {&apos;draft&apos;: &apos;default&apos;, &apos;cancel&apos;: &apos;default&apos;,
                                             &apos;done&apos;: &apos;success&apos;}}"/>
                                     </span>
                                 </div>
@@ -62,8 +67,10 @@
                 </templates>
             </kanban>
         </view>
-        <view id="sale_view_order_tree" model="SaleOrder">
-            <tree string="Sales Orders" decoration-muted="state==&apos;cancel&apos;"> <!--decoration-bf="message_needaction==True" -->
+
+        <view id="sale_view_order_tree" model="SaleOrder" priority="2">
+            <tree string="Sales Orders"
+                  decoration-muted="state==&apos;cancel&apos;"> <!--decoration-bf="message_needaction==True" -->
                 <!--<field name="message_needaction" invisible="1"/>-->
                 <field name="name" string="Order Number"/>
                 <field name="date_order"/>
@@ -75,8 +82,10 @@
                 <field name="state" invisible="1"/>
             </tree>
         </view>
-        <view id="sale_view_quotation_tree" model="SaleOrder">
-            <tree string="Quotation" class="o_sale_order" decoration-muted="state==&apos;cancel&apos;"><!--decoration-bf="message_needaction==True" -->
+
+        <view id="sale_view_quotation_tree" model="SaleOrder" priority="4">
+            <tree string="Quotation" class="o_sale_order"
+                  decoration-muted="state==&apos;cancel&apos;"><!--decoration-bf="message_needaction==True" -->
                 <!--<field name="message_needaction" invisible="1"/>-->
                 <field name="name" string="Quotation Number"/>
                 <field name="date_order"/>
@@ -87,25 +96,42 @@
                 <field name="state"/>
             </tree>
         </view>
+
         <view id="sale_view_order_form" model="SaleOrder">
             <form string="Sales Order" class="o_sale_order">
                 <header>
-                    <button name="%(action_view_sale_advance_payment_inv)d" string="Create Invoice" type="action" class="btn-primary" attrs="{&apos;invisible&apos;: [(&apos;invoice_status&apos;, &apos;!=&apos;, &apos;to invoice&apos;)]}"/>
-                    <button name="%(action_view_sale_advance_payment_inv)d" string="Create Invoice" type="action" context="{&apos;default_advance_payment_method&apos;: &apos;percentage&apos;}" attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;invoice_status&apos;, &apos;!=&apos;, &apos;no&apos;), (&apos;state&apos;, &apos;!=&apos;, &apos;sale&apos;)]}"/>
-                    <button name="action_quotation_send" string="Send by Email" type="object" states="draft" class="btn-primary"/>
-                    <button name="print_quotation" string="Print" type="object" states="draft" class="btn-primary"/>
-                    <button name="action_confirm" states="sent" string="Confirm Sale" class="btn-primary o_sale_confirm" type="object"/>
-                    <button name="action_confirm" states="draft" string="Confirm Sale" class="o_sale_confirm" type="object"/>
-                    <button name="print_quotation" string="Print" type="object" states="sent,sale"/>
-                    <button name="action_quotation_send" string="Send by Email" type="object" states="sent,sale"/>
-                    <button name="action_cancel" states="draft,sent,sale" type="object" string="Cancel"/>
-                    <button name="action_draft" states="cancel" type="object" string="Set to Quotation"/>
-                    <button name="action_done" type="object" string="Lock" states="sale" help="If the sale is locked, you can not modify it anymore. However, you will still be able to invoice or deliver."/>
+                    <button name="sale_action_view_sale_advance_payment_inv" string="Create Invoice" type="action"
+                            class="btn-primary"
+                            attrs="{&apos;invisible&apos;: [(&apos;invoice_status&apos;, &apos;!=&apos;, &apos;to invoice&apos;)]}"/>
+                    <button name="sale_action_view_sale_advance_payment_inv" string="Create Invoice" type="action"
+                            context="{&apos;default_advance_payment_method&apos;: &apos;percentage&apos;}"
+                            attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;invoice_status&apos;, &apos;!=&apos;, &apos;no&apos;), (&apos;state&apos;, &apos;!=&apos;, &apos;sale&apos;)]}"/>
+                    <button name="action_quotation_send" string="Send by Email" type="object"
+                            attrs="{'invisible': [('state', 'not in', ('draft'))]}" class="btn-primary"/>
+                    <button name="print_quotation" string="Print" type="object"
+                            attrs="{'invisible': [('state', 'not in', ('draft'))]}" class="btn-primary"/>
+                    <button name="action_confirm" attrs="{'invisible': [('state', 'not in', ('sent'))]}"
+                            string="Confirm Sale" class="btn-primary o_sale_confirm" type="object"/>
+                    <button name="action_confirm" attrs="{'invisible': [('state', 'not in', ('draft'))]}"
+                            string="Confirm Sale" class="o_sale_confirm" type="object"/>
+                    <button name="print_quotation" string="Print" type="object"
+                            attrs="{'invisible': [('state', 'not in', ('sent','sale'))]}"/>
+                    <button name="action_quotation_send" string="Send by Email" type="object"
+                            attrs="{'invisible': [('state', 'not in', ('sent','sale'))]}"/>
+                    <button name="action_cancel" attrs="{'invisible': [('state', 'not in', ('draft','sent','sale'))]}"
+                            type="object" string="Cancel"/>
+                    <button name="action_draft" attrs="{'invisible': [('state', 'not in', ('cancel'))]}" type="object"
+                            string="Set to Quotation"/>
+                    <button name="action_done" type="object" string="Lock"
+                            attrs="{'invisible': [('state', 'not in', ('sale'))]}"
+                            help="If the sale is locked, you can not modify it anymore. However, you will still be able to invoice or deliver."/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,sent,sale"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_view_invoice" type="object" class="oe_stat_button" icon="fa-pencil-square-o" attrs="{&apos;invisible&apos;: [(&apos;invoice_count&apos;, &apos;=&apos;, 0)]}">
+                        <button name="action_view_invoice" type="object" class="oe_stat_button"
+                                icon="fa-pencil-square-o"
+                                attrs="{&apos;invisible&apos;: [(&apos;invoice_count&apos;, &apos;=&apos;, 0)]}">
                             <field name="invoice_count" widget="statinfo" string="Invoices"/>
                         </button>
                     </div>
@@ -116,27 +142,37 @@
                     </div>
                     <group>
                         <group>
-                            <field name="partner_id" domain="[(&apos;customer&apos;,&apos;=&apos;,True)]" context="{&apos;search_default_customer&apos;:1, &apos;show_address&apos;: 1}" options="{&quot;always_reload&quot;: True}"/>
-                            <field name="partner_invoice_id" groups="sale.group_delivery_invoice_address" context="{&apos;default_type&apos;:&apos;invoice&apos;}"/>
-                            <field name="partner_shipping_id" groups="sale.group_delivery_invoice_address" context="{&apos;default_type&apos;:&apos;delivery&apos;}"/>
+                            <field name="partner_id" domain="[(&apos;customer&apos;,&apos;=&apos;,True)]"
+                                   context="{&apos;search_default_customer&apos;:1, &apos;show_address&apos;: 1}"
+                                   options="{&quot;always_reload&quot;: True}"/>
+                            <field name="partner_invoice_id" groups="sale_group_delivery_invoice_address"
+                                   context="{&apos;default_type&apos;:&apos;invoice&apos;}"/>
+                            <field name="partner_shipping_id" groups="sale_group_delivery_invoice_address"
+                                   context="{&apos;default_type&apos;:&apos;delivery&apos;}"/>
                         </group>
                         <group>
-                            <field name="date_order" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;in&apos;, [&apos;sale&apos;, &apos;done&apos;, &apos;cancel&apos;])]}"/>
-                            <field name="validity_date" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;in&apos;, [&apos;sale&apos;, &apos;done&apos;])]}"/>
-                            <field name="confirmation_date" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;in&apos;, [&apos;draft&apos;, &apos;sent&apos;, &apos;cancel&apos;])]}"/>
-                            <field name="pricelist_id" groups="product.group_sale_pricelist"/>
+                            <field name="date_order"
+                                   attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;in&apos;, [&apos;sale&apos;, &apos;done&apos;, &apos;cancel&apos;])]}"/>
+                            <field name="validity_date"
+                                   attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;in&apos;, [&apos;sale&apos;, &apos;done&apos;])]}"/>
+                            <field name="confirmation_date"
+                                   attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;in&apos;, [&apos;draft&apos;, &apos;sent&apos;, &apos;cancel&apos;])]}"/>
+                            <field name="pricelist_id" groups="product_group_sale_pricelist"/>
                             <field name="currency_id" invisible="1"/>
                             <field name="payment_term_id" options="{&apos;no_create&apos;: True}"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Order Lines">
-                            <field name="OrderLine" mode="tree,kanban" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;in&apos;, (&apos;done&apos;,&apos;cancel&apos;))]}">
+                            <field name="OrderLine" mode="tree,kanban"
+                                   attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;in&apos;, (&apos;done&apos;,&apos;cancel&apos;))]}">
                                 <form string="Sales Order Lines">
                                     <group>
                                         <group>
-                                            <field name="product_id" context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom, &apos;company_id&apos;: parent.company_id}" attrs="{&apos;readonly&apos;: [&apos;|&apos;, (&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0), (&apos;procurement_ids&apos;, &apos;!=&apos;, [])]}"/>
-                                            <field name="layout_category_id" groups="sale.group_sale_layout"/>
+                                            <field name="product_id"
+                                                   context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom_id, &apos;company_id&apos;: parent.company_id}"
+                                                   attrs="{&apos;readonly&apos;: [&apos;|&apos;, (&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0), (&apos;procurement_ids&apos;, &apos;!=&apos;, [])]}"/>
+                                            <field name="layout_category_id" groups="sale_group_sale_layout"/>
                                             <field name="invoice_status" invisible="1"/>
                                             <field name="qty_to_invoice" invisible="1"/>
                                             <field name="qty_delivered_updateable" invisible="1"/>
@@ -144,59 +180,84 @@
                                             <field name="price_subtotal" invisible="1"/>
                                             <label for="product_uom_qty" string="Ordered Quantity"/>
                                             <div>
-                                                <field context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom, &apos;uom_qty_change&apos;:True, &apos;company_id&apos;: parent.company_id}" name="product_uom_qty" class="oe_inline"/>
-                                                <field name="product_uom_id" groups="product.group_uom" class="oe_inline oe_no_button" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;in&apos;, (&apos;sale&apos;,&apos;done&apos;, &apos;cancel&apos;))]}"/>
+                                                <field context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom_id, &apos;uom_qty_change&apos;:True, &apos;company_id&apos;: parent.company_id}"
+                                                       name="product_uom_qty" class="oe_inline"/>
+                                                <field name="product_uom_id" groups="product_group_uom"
+                                                       class="oe_inline oe_no_button"
+                                                       attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;in&apos;, (&apos;sale&apos;,&apos;done&apos;, &apos;cancel&apos;))]}"/>
                                             </div>
-                                            <label for="qty_delivered" string="Delivered Quantity" invisible="context.get(&apos;hide_sale&apos;)"/>
+                                            <label for="qty_delivered" string="Delivered Quantity"
+                                                   invisible="context.get(&apos;hide_sale&apos;)"/>
                                             <div invisible="context.get(&apos;hide_sale&apos;)">
-                                                <field name="qty_delivered" attrs="{&apos;readonly&apos;: [(&apos;qty_delivered_updateable&apos;, &apos;=&apos;, False)]}"/>
+                                                <field name="qty_delivered"
+                                                       attrs="{&apos;readonly&apos;: [(&apos;qty_delivered_updateable&apos;, &apos;=&apos;, False)]}"/>
                                             </div>
-                                            <label for="qty_invoiced" string="Invoiced Quantity" invisible="context.get(&apos;hide_sale&apos;)"/>
+                                            <label for="qty_invoiced" string="Invoiced Quantity"
+                                                   invisible="context.get(&apos;hide_sale&apos;)"/>
                                             <div invisible="context.get(&apos;hide_sale&apos;)">
-                                                <field name="qty_invoiced" invisible="context.get(&apos;hide_sale&apos;)"/>
+                                                <field name="qty_invoiced"
+                                                       invisible="context.get(&apos;hide_sale&apos;)"/>
                                             </div>
                                             <field name="price_unit"/>
-                                            <label for="discount" groups="sale.group_discount_per_so_line"/>
-                                            <div name="discount" groups="sale.group_discount_per_so_line">
-                                                <field name="discount" class="oe_inline"/> %%
+                                            <label for="discount" groups="sale_group_discount_per_so_line"/>
+                                            <div name="discount" groups="sale_group_discount_per_so_line">
+                                                <field name="discount" class="oe_inline"/>
+                                                %%
                                             </div>
                                         </group>
                                         <group>
-                                            <field name="tax_id" widget="many2many_tags" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;),(&apos;company_id&apos;,&apos;=&apos;,parent.company_id)]" attrs="{&apos;readonly&apos;: [(&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0)]}"/>
+                                            <field name="tax_id" widget="many2many_tags"
+                                                   domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;),(&apos;company_id&apos;,&apos;=&apos;,parent.company_id)]"
+                                                   attrs="{&apos;readonly&apos;: [(&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0)]}"/>
                                             <label for="customer_lead"/>
                                             <div>
-                                                <field name="customer_lead" class="oe_inline"/> days
+                                                <field name="customer_lead" class="oe_inline"/>
+                                                days
                                             </div>
                                             <label for="analytic_tag_ids" groups="analytic.group_analytic_accounting"/>
                                             <div>
-                                                <field name="analytic_tag_ids" widget="many2many_tags" groups="analytic.group_analytic_accounting"/>
+                                                <field name="analytic_tag_ids" widget="many2many_tags"
+                                                       groups="analytic.group_analytic_accounting"/>
                                             </div>
                                         </group>
                                     </group>
                                     <label for="name"/>
                                     <field name="name"/>
-                                    <div groups="base.group_no_one">
+                                    <div groups="base_group_no_one">
                                         <label for="invoice_lines"/>
                                         <field name="invoice_lines"/>
                                     </div>
                                     <field name="state" invisible="1"/>
                                 </form>
-                                <tree string="Sales Order Lines" editable="bottom" decoration-info="invoice_status==&apos;to invoice&apos;">
+                                <tree string="Sales Order Lines" editable="bottom"
+                                      decoration-info="invoice_status==&apos;to invoice&apos;">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="product_id" attrs="{&apos;readonly&apos;: [&apos;|&apos;, (&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0), (&apos;procurement_ids&apos;, &apos;!=&apos;, [])]}" context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom, &apos;company_id&apos;: parent.company_id}"/>
-                                    <field name="layout_category_id" groups="sale.group_sale_layout"/>
+                                    <field name="product_id"
+                                           attrs="{&apos;readonly&apos;: [&apos;|&apos;, (&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0), (&apos;procurement_ids&apos;, &apos;!=&apos;, [])]}"
+                                           context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom_id, &apos;company_id&apos;: parent.company_id}"/>
+                                    <field name="layout_category_id" groups="sale_group_sale_layout"/>
                                     <field name="name"/>
-                                    <field name="product_uom_qty" string="Ordered Qty" context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom, &apos;company_id&apos;: parent.company_id}"/>
-                                    <field name="qty_delivered" invisible="context.get(&apos;hide_sale&apos;)" attrs="{&apos;readonly&apos;: [(&apos;qty_delivered_updateable&apos;, &apos;=&apos;, False)]}"/>
+                                    <field name="product_uom_qty" string="Ordered Qty"
+                                           context="{&apos;partner_id&apos;:parent.partner_id, &apos;quantity&apos;:product_uom_qty, &apos;pricelist&apos;:parent.pricelist_id, &apos;uom&apos;:product_uom_id, &apos;company_id&apos;: parent.company_id}"/>
+                                    <field name="qty_delivered" invisible="context.get(&apos;hide_sale&apos;)"
+                                           attrs="{&apos;readonly&apos;: [(&apos;qty_delivered_updateable&apos;, &apos;=&apos;, False)]}"/>
                                     <field name="qty_invoiced" invisible="context.get(&apos;hide_sale&apos;)"/>
                                     <field name="qty_to_invoice" invisible="1"/>
-                                    <field name="product_uom_id" attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;in&apos;, (&apos;sale&apos;,&apos;done&apos;, &apos;cancel&apos;))]}" context="{&apos;company_id&apos;: parent.company_id}" groups="product.group_uom" options="{&quot;no_open&quot;: True}"/>
-                                    <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting" widget="many2many_tags"/>
-                                    <field name="price_unit" attrs="{&apos;readonly&apos;: [(&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0)]}"/>
-                                    <field name="tax_id" widget="many2many_tags" domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;),(&apos;company_id&apos;,&apos;=&apos;,parent.company_id)]" attrs="{&apos;readonly&apos;: [(&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0)]}"/>
-                                    <field name="discount" groups="sale.group_discount_per_so_line"/>
-                                    <field name="price_subtotal" widget="monetary" groups="sale.group_show_price_subtotal"/>
-                                    <field name="price_total" widget="monetary" groups="sale.group_show_price_total"/>
+                                    <field name="product_uom_id"
+                                           attrs="{&apos;readonly&apos;: [(&apos;state&apos;, &apos;in&apos;, (&apos;sale&apos;,&apos;done&apos;, &apos;cancel&apos;))]}"
+                                           context="{&apos;company_id&apos;: parent.company_id}"
+                                           groups="product_group_uom" options="{&quot;no_open&quot;: True}"/>
+                                    <field name="analytic_tag_ids" groups="analytic.group_analytic_accounting"
+                                           widget="many2many_tags"/>
+                                    <field name="price_unit"
+                                           attrs="{&apos;readonly&apos;: [(&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0)]}"/>
+                                    <field name="tax_id" widget="many2many_tags"
+                                           domain="[(&apos;type_tax_use&apos;,&apos;=&apos;,&apos;sale&apos;),(&apos;company_id&apos;,&apos;=&apos;,parent.company_id)]"
+                                           attrs="{&apos;readonly&apos;: [(&apos;qty_invoiced&apos;, &apos;&gt;&apos;, 0)]}"/>
+                                    <field name="discount" groups="sale_group_discount_per_so_line"/>
+                                    <field name="price_subtotal" widget="monetary"
+                                           groups="sale_group_show_price_subtotal"/>
+                                    <field name="price_total" widget="monetary" groups="sale_group_show_price_total"/>
                                     <field name="qty_delivered_updateable" invisible="1"/>
                                     <field name="procurement_ids" invisible="1"/>
                                     <field name="state" invisible="1"/>
@@ -207,7 +268,7 @@
                                 <kanban class="o_kanban_mobile">
                                     <field name="product_id"/>
                                     <field name="product_uom_qty"/>
-                                    <field name="product_uom_id" groups="product.group_uom"/>
+                                    <field name="product_uom_id" groups="product_group_uom"/>
                                     <field name="price_subtotal"/>
                                     <templates>
                                         <t t-name="kanban-box">
@@ -225,7 +286,7 @@
                                                     <div class="col-xs-8 text-muted">
                                                         <span>
                                                             <t t-esc="record.product_uom_qty.value"/>
-                                                            <t t-esc="record.product_uom.value"/>
+                                                            <t t-esc="record.product_uom_id.value"/>
                                                         </span>
                                                     </div>
                                                     <div class="col-xs-4 text-muted">
@@ -240,15 +301,22 @@
                                 </kanban>
                             </field>
                             <group class="oe_subtotal_footer oe_right" colspan="2" name="sale_total">
-                                <field name="amount_untaxed" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
-                                <field name="amount_tax" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                                <field name="amount_untaxed" widget="monetary"
+                                       options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                                <field name="amount_tax" widget="monetary"
+                                       options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
                                 <div class="oe_subtotal_footer_separator oe_inline o_td_label">
                                     <label for="amount_total"/>
-                                    <button name="button_dummy" states="draft,sent" string="(update)" type="object" class="oe_edit_only oe_link"/>
+                                    <button name="button_dummy"
+                                            attrs="{'invisible': [('state', 'not in', ('draft','sent'))]}"
+                                            string="(update)" type="object" class="oe_edit_only oe_link"/>
                                 </div>
-                                <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator" widget="monetary" options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
+                                <field name="amount_total" nolabel="1" class="oe_subtotal_footer_separator"
+                                       widget="monetary"
+                                       options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
                             </group>
-                            <field name="note" class="oe_inline" placeholder="Setup default terms and conditions in your company settings."/>
+                            <field name="note" class="oe_inline"
+                                   placeholder="Setup default terms and conditions in your company settings."/>
                             <div class="oe_clear"/>
                         </page>
                         <page string="Other Information">
@@ -257,16 +325,24 @@
                                     <field name="user_id"/>
                                     <field name="team_id" options="{&apos;no_create&apos;: True}"/>
                                     <field name="client_order_ref"/>
-                                    <field name="company_id" options="{&apos;no_create&apos;: True}" groups="base.group_multi_company"/>
-                                    <field name="project_id" attrs="{&apos;invisible&apos;:[(&apos;state&apos;,&apos;=&apos;,&apos;sale&apos;)]}" context="{&apos;default_partner_id&apos;:partner_invoice_id, &apos;default_name&apos;:name}" groups="analytic.group_analytic_accounting"/>
-                                    <field name="related_project_id" attrs="{&apos;readonly&apos;: [&apos;|&apos;,(&apos;project_id&apos;,&apos;!=&apos;,False),(&apos;invoice_count&apos;,&apos;!=&apos;,0),(&apos;state&apos;,&apos;=&apos;,&apos;sale&apos;)],&apos;invisible&apos;:[(&apos;state&apos;,&apos;!=&apos;,&apos;sale&apos;)]}" context="{&apos;default_partner_id&apos;:partner_invoice_id, &apos;default_name&apos;:name}" groups="analytic.group_analytic_accounting"/>
+                                    <field name="company_id" options="{&apos;no_create&apos;: True}"
+                                           groups="base_group_multi_company"/>
+                                    <field name="project_id"
+                                           attrs="{&apos;invisible&apos;:[(&apos;state&apos;,&apos;=&apos;,&apos;sale&apos;)]}"
+                                           context="{&apos;default_partner_id&apos;:partner_invoice_id, &apos;default_name&apos;:name}"
+                                           groups="analytic.group_analytic_accounting"/>
+                                    <field name="related_project_id"
+                                           attrs="{&apos;readonly&apos;: [&apos;|&apos;,(&apos;project_id&apos;,&apos;!=&apos;,False),(&apos;invoice_count&apos;,&apos;!=&apos;,0),(&apos;state&apos;,&apos;=&apos;,&apos;sale&apos;)],&apos;invisible&apos;:[(&apos;state&apos;,&apos;!=&apos;,&apos;sale&apos;)]}"
+                                           context="{&apos;default_partner_id&apos;:partner_invoice_id, &apos;default_name&apos;:name}"
+                                           groups="analytic.group_analytic_accounting"/>
                                 </group>
                                 <group name="sale_pay" string="Invoicing">
                                     <field name="fiscal_position_id" options="{&apos;no_create&apos;: True}"/>
-                                    <field name="invoice_status" attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;not in&apos;, (&apos;sale&apos;,&apos;done&apos;))]}"/>
+                                    <field name="invoice_status"
+                                           attrs="{&apos;invisible&apos;: [(&apos;state&apos;, &apos;not in&apos;, (&apos;sale&apos;,&apos;done&apos;))]}"/>
                                 </group>
-                                <group string="Reporting" name="technical" groups="base.group_no_one">
-                                    <field groups="base.group_no_one" name="origin"/>
+                                <group string="Reporting" name="technical" groups="base_group_no_one">
+                                    <field groups="base_group_no_one" name="origin"/>
                                 </group>
                             </group>
                         </page>
@@ -278,47 +354,63 @@
                 </div>
             </form>
         </view>
-        <view id="sale_view_order_form_editable_list" model="SaleOrder">
+
+        <view inherit_id="sale_view_order_form">
             <xpath expr="//field[@name=&apos;OrderLine&apos;]/tree" position="attributes">
                 <attribute name="editable"/>
             </xpath>
         </view>
+
         <view id="sale_view_sales_order_filter" model="SaleOrder">
             <search string="Search Sales Order">
-                <field name="name" string="Sales Order" filter_domain="[&apos;|&apos;,(&apos;name&apos;,&apos;ilike&apos;,self),(&apos;client_order_ref&apos;,&apos;ilike&apos;,self)]"/>
+                <field name="name" string="Sales Order"
+                       filter_domain="[&apos;|&apos;,(&apos;name&apos;,&apos;ilike&apos;,self),(&apos;client_order_ref&apos;,&apos;ilike&apos;,self)]"/>
                 <field name="partner_id" operator="child_of"/>
                 <field name="user_id"/>
                 <field name="team_id" string="Sales Team"/>
                 <field name="project_id"/>
                 <field name="product_id"/>
-                <filter string="My Orders" domain="[(&apos;user_id&apos;,&apos;=&apos;,uid)]" name="my_sale_orders_filter"/>
+                <filter string="My Orders" domain="[(&apos;user_id&apos;,&apos;=&apos;,uid)]"
+                        name="my_sale_orders_filter"/>
                 <separator/>
                 <!--<filter string="Unread Messages" name="message_needaction" domain="[(&apos;message_needaction&apos;,&apos;=&apos;,True)]"/>-->
                 <group expand="0" string="Group By">
                     <filter string="Salesperson" domain="[]" context="{&apos;group_by&apos;:&apos;user_id&apos;}"/>
-                    <filter name="customer" string="Customer" domain="[]" context="{&apos;group_by&apos;:&apos;partner_id&apos;}"/>
+                    <filter name="customer" string="Customer" domain="[]"
+                            context="{&apos;group_by&apos;:&apos;partner_id&apos;}"/>
                     <filter string="Order Month" domain="[]" context="{&apos;group_by&apos;:&apos;date_order&apos;}"/>
                 </group>
             </search>
         </view>
-        <view id="sale_sale_order_view_search_inherit_quotation" model="SaleOrder">
+
+        <view id="sale_sale_order_view_search_inherit_quotation" model="SaleOrder"
+              inherit_id="sale_view_sales_order_filter">
             <xpath expr="//filter[@name=&apos;my_sale_orders_filter&apos;]" position="after">
                 <separator/>
-                <filter string="Quotations" name="draft" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]"/>
-                <filter string="Quotations Sent" name="sent" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;sent&apos;)]"/>
-                <filter string="Sales" name="sales" domain="[(&apos;state&apos;,&apos;in&apos;,(&apos;sale&apos;,&apos;done&apos;))]"/>
+                <filter string="Quotations" name="draft"
+                        domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]"/>
+                <filter string="Quotations Sent" name="sent"
+                        domain="[(&apos;state&apos;,&apos;=&apos;,&apos;sent&apos;)]"/>
+                <filter string="Sales" name="sales"
+                        domain="[(&apos;state&apos;,&apos;in&apos;,(&apos;sale&apos;,&apos;done&apos;))]"/>
             </xpath>
         </view>
-        <view id="sale_sale_order_view_search_inherit_sale" model="SaleOrder">
+
+        <view id="sale_sale_order_view_search_inherit_sale" model="SaleOrder" inherit_id="sale_view_sales_order_filter">
             <xpath expr="//filter[@name=&apos;my_sale_orders_filter&apos;]" position="after">
                 <separator/>
-                <filter string="Sales" name="sales" domain="[(&apos;state&apos;,&apos;in&apos;,(&apos;progress&apos;,&apos;done&apos;))]"/>
+                <filter string="Sales" name="sales"
+                        domain="[(&apos;state&apos;,&apos;in&apos;,(&apos;progress&apos;,&apos;done&apos;))]"/>
                 <separator/>
-                <filter string="To Invoice" domain="[(&apos;invoice_status&apos;,&apos;=&apos;,&apos;to invoice&apos;)]"/>
+                <filter string="To Invoice"
+                        domain="[(&apos;invoice_status&apos;,&apos;=&apos;,&apos;to invoice&apos;)]"/>
                 <filter string="Upselling" domain="[(&apos;invoice_status&apos;,&apos;=&apos;,&apos;upselling&apos;)]"/>
             </xpath>
         </view>
-        <action id="sale_action_orders" type="ir.actions.act_window" name="Sales Orders" model="SaleOrder" view_mode="tree,kanban,form,calendar,pivot,graph" search_view_id="sale_sale_order_view_search_inherit_sale">
+
+        <action id="sale_action_orders" type="ir.actions.act_window" name="Sales Orders" model="SaleOrder"
+                view_mode="tree,kanban,form,calendar,pivot,graph"
+                search_view_id="sale_sale_order_view_search_inherit_sale">
             <help>
                 <p class="oe_view_nocontent_create">
                     Create a Quotation, the first step of a new sale.
@@ -326,53 +418,65 @@
                 <p>
                     Once the quotation is confirmed, it becomes a sales order.
                     You&apos;ll be able to invoice it and collect payments.
-                    From the 
-                    <i>Sales Orders</i> menu, you can track delivery
+                    From the
+                    <i>Sales Orders</i>
+                    menu, you can track delivery
                     orders or services.
                 </p>
             </help>
         </action>
-        <action id="sale_action_orders_to_invoice" type="ir.actions.act_window" name="Sales to Invoice" model="SaleOrder" view_mode="tree,form,calendar,graph,pivot" search_view_id="sale_view_sales_order_filter">
+
+        <action id="sale_action_orders_to_invoice" type="ir.actions.act_window" name="Sales to Invoice"
+                model="SaleOrder" view_mode="tree,form,calendar,graph,pivot"
+                search_view_id="sale_view_sales_order_filter">
             <help>
                 <p>
-                You will find here all orders that are ready to be invoiced.
-              </p>
+                    You will find here all orders that are ready to be invoiced.
+                </p>
                 <p>
-                You can select all orders and invoice them in batch, or check
-                every order and invoice them one by one.
-              </p>
-            </help>
-        </action>
-        <action id="sale_action_orders_upselling" type="ir.actions.act_window" name="Orders to Upsell" model="SaleOrder" view_mode="tree,form,calendar,graph,pivot" search_view_id="sale_view_sales_order_filter">
-            <help>
-                <p>
-                Orders to upsell are orders having products with an invoicing
-                policy based on 
-                    <i>ordered quantities</i> for which you have
-                delivered more than what have been ordered.
-              </p>
-                <p>
-                    <i>Example: pre-paid service offers for which the customer have
-                to buy an extra pack of hours, because he used all his support
-                hours.</i>
+                    You can select all orders and invoice them in batch, or check
+                    every order and invoice them one by one.
                 </p>
             </help>
         </action>
-        <action id="sale_action_quotations" type="ir.actions.act_window" name="Quotations" model="SaleOrder" view_id="sale_view_quotation_tree" view_mode="tree,kanban,form,calendar,pivot,graph" search_view_id="sale_sale_order_view_search_inherit_quotation">
+
+        <action id="sale_action_orders_upselling" type="ir.actions.act_window" name="Orders to Upsell" model="SaleOrder"
+                view_mode="tree,form,calendar,graph,pivot" search_view_id="sale_view_sales_order_filter">
             <help>
-                <p class="oe_view_nocontent_create">
-                Create a Quotation, the first step of a new sale.
-              </p>
                 <p>
-                Your next actions should flow efficiently: confirm the Quotation
-                to a Sale Order, then create the Invoice and collect the Payment.
-              </p>
+                    Orders to upsell are orders having products with an invoicing
+                    policy based on
+                    <i>ordered quantities</i>
+                    for which you have
+                    delivered more than what have been ordered.
+                </p>
                 <p>
-                Note that once a Quotation becomes a Sale Order, it will be moved
-                from the Quotations list to the Sales Order list.
-              </p>
+                    <i>Example: pre-paid service offers for which the customer have
+                        to buy an extra pack of hours, because he used all his support
+                        hours.
+                    </i>
+                </p>
             </help>
         </action>
+
+        <action id="sale_action_quotations" type="ir.actions.act_window" name="Quotations" model="SaleOrder"
+                view_id="sale_view_quotation_tree" view_mode="tree,kanban,form,calendar,pivot,graph"
+                search_view_id="sale_sale_order_view_search_inherit_quotation">
+            <help>
+                <p class="oe_view_nocontent_create">
+                    Create a Quotation, the first step of a new sale.
+                </p>
+                <p>
+                    Your next actions should flow efficiently: confirm the Quotation
+                    to a Sale Order, then create the Invoice and collect the Payment.
+                </p>
+                <p>
+                    Note that once a Quotation becomes a Sale Order, it will be moved
+                    from the Quotations list to the Sales Order list.
+                </p>
+            </help>
+        </action>
+
         <view id="sale_view_order_line_tree" model="SaleOrderLine">
             <tree string="Sales Order Lines" create="false">
                 <field name="product_id" invisible="1"/>
@@ -384,15 +488,18 @@
                 <field name="qty_delivered"/>
                 <field name="qty_invoiced"/>
                 <field name="qty_to_invoice"/>
-                <field name="product_uom_id" string="Unit of Measure" groups="product.group_uom"/>
+                <field name="product_uom_id" string="Unit of Measure" groups="product_group_uom"/>
                 <field name="price_subtotal" sum="Total" widget="monetary"/>
             </tree>
         </view>
+
         <view id="sale_view_sales_order_line_filter" model="SaleOrderLine">
             <search string="Search Sales Order">
-                <filter string="To Invoice" domain="[(&apos;qty_to_invoice&apos;,&apos;&lt;&gt;&apos;, 0)]" help="Sales Order Lines ready to be invoiced"/>
+                <filter string="To Invoice" domain="[(&apos;qty_to_invoice&apos;,&apos;&lt;&gt;&apos;, 0)]"
+                        help="Sales Order Lines ready to be invoiced"/>
                 <separator/>
-                <filter string="My Sales Order Lines" domain="[(&apos;salesman_id&apos;,&apos;=&apos;,uid)]" help="Sales Order Lines related to a Sales Order of mine"/>
+                <filter string="My Sales Order Lines" domain="[(&apos;salesman_id&apos;,&apos;=&apos;,uid)]"
+                        help="Sales Order Lines related to a Sales Order of mine"/>
                 <field name="order_id"/>
                 <field name="order_partner_id" operator="child_of"/>
                 <field name="product_id"/>
@@ -404,28 +511,34 @@
                 </group>
             </search>
         </view>
-        <action id="sale_action_product_sale_list" type="ir.actions.act_window" name="Sale Order Lines" model="SaleOrderLine" view_mode="tree,form"/>
-        <view id="sale_product_form_view_sale_order_button" model="ProductProduct">
+
+        <action id="sale_action_product_sale_list" type="ir.actions.act_window" name="Sale Order Lines"
+                model="SaleOrderLine" view_mode="tree,form"/>
+
+        <view inherit_id="product_product_normal_form_view">
             <div name="button_box" position="inside">
-                <button class="oe_stat_button" name="%(action_product_sale_list)d" type="action" icon="fa-usd">
+                <button class="oe_stat_button" name="sale_action_product_sale_list" type="action" icon="fa-usd">
                     <field string="Sales" name="sales_count" widget="statinfo"/>
                 </button>
             </div>
         </view>
-        <view id="sale_product_template_form_view_sale_order_button" model="ProductTemplate">
+
+        <view inherit_id="product_product_template_only_form_view">
             <div name="button_box" position="inside">
                 <button class="oe_stat_button" name="action_view_sales" type="object" icon="fa-usd">
                     <field string="Sales" name="sales_count" widget="statinfo"/>
                 </button>
             </div>
             <group name="description" position="after">
-                <group string="Warning when Selling this Product" colspan="2" groups="sale.group_warning_sale">
+                <group string="Warning when Selling this Product" colspan="2" groups="sale_group_warning_sale">
                     <field name="sale_line_warn" nolabel="1"/>
-                    <field name="sale_line_warn_msg" colspan="3" nolabel="1" attrs="{&apos;required&apos;:[(&apos;sale_line_warn&apos;,&apos;!=&apos;,&apos;no-message&apos;)],&apos;readonly&apos;:[(&apos;sale_line_warn&apos;,&apos;=&apos;,&apos;no-message&apos;)], &apos;invisible&apos;:[(&apos;sale_line_warn&apos;,&apos;=&apos;,&apos;no-message&apos;)]}"/>
+                    <field name="sale_line_warn_msg" colspan="3" nolabel="1"
+                           attrs="{&apos;required&apos;:[(&apos;sale_line_warn&apos;,&apos;!=&apos;,&apos;no-message&apos;)],&apos;readonly&apos;:[(&apos;sale_line_warn&apos;,&apos;=&apos;,&apos;no-message&apos;)], &apos;invisible&apos;:[(&apos;sale_line_warn&apos;,&apos;=&apos;,&apos;no-message&apos;)]}"/>
                 </group>
             </group>
         </view>
-        <view id="sale_product_template_form_view_invoice_policy" model="ProductTemplate">
+
+        <view inherit_id="product_product_template_form_view">
             <page name="invoicing" position="inside">
                 <separator string="Invoicing Policy"/>
                 <group>
@@ -434,7 +547,8 @@
                 </group>
             </page>
         </view>
-        <view id="sale_account_invoice_groupby_inherit" model="AccountInvoice">
+
+        <view inherit_id="account_view_account_invoice_filter">
             <xpath expr="//field[@name=&apos;user_id&apos;]" position="after">
                 <field name="team_id"/>
             </xpath>
@@ -442,114 +556,152 @@
                 <filter string="Sales Team" domain="[]" context="{&apos;group_by&apos;:&apos;team_id&apos;}"/>
             </xpath>
         </view>
-        <view id="sale_account_invoice_form" model="AccountInvoice">
+
+        <view inherit_id="account_invoice_form">
             <data>
                 <xpath expr="//field[@name=&apos;user_id&apos;]" position="after">
                     <field name="team_id"/>
                 </xpath>
                 <xpath expr="//field[@name=&apos;partner_id&apos;]" position="after">
-                    <field name="partner_shipping_id" groups="sale.group_delivery_invoice_address"/>
+                    <field name="partner_shipping_id" groups="sale_group_delivery_invoice_address"/>
                 </xpath>
-                <xpath expr="//page/field[@name=&apos;invoice_line_ids&apos;]/tree/field[@name=&apos;product_id&apos;]" position="after">
-                    <field name="layout_category_id" groups="sale.group_sale_layout"/>
+                <xpath expr="//page/field[@name=&apos;invoice_line_ids&apos;]/tree/field[@name=&apos;product_id&apos;]"
+                       position="after">
+                    <field name="layout_category_id" groups="sale_group_sale_layout"/>
                 </xpath>
                 <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale.group_discount_per_so_line</attribute>
+                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
                 </xpath>
             </data>
         </view>
-        <view id="sale_account_invoice_line_tree" model="AccountInvoiceLine">
+
+        <view inherit_id="account_view_invoice_line_tree">
             <data>
                 <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale.group_discount_per_so_line</attribute>
+                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
                 </xpath>
             </data>
         </view>
-        <view id="sale_account_invoice_line_form" model="AccountInvoiceLine">
+
+        <view inherit_id="account_view_invoice_line_form">
             <data>
                 <xpath expr="//group/group/field[@name=&apos;product_id&apos;]" position="after">
-                    <field name="layout_category_id" groups="sale.group_sale_layout"/>
+                    <field name="layout_category_id" groups="sale_group_sale_layout"/>
                 </xpath>
                 <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale.group_discount_per_so_line</attribute>
+                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
                 </xpath>
             </data>
         </view>
-        <view id="sale_account_invoice_supplier_form" model="AccountInvoice">
+
+        <view inherit_id="account_invoice_supplier_form">
             <data>
                 <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale.group_discount_per_so_line</attribute>
+                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
                 </xpath>
             </data>
         </view>
-        <view id="sale_product_pricelist_view_tree" model="ProductPricelist">
+
+        <view inherit_id="product_product_pricelist_view_tree">
             <field name="currency_id" position="before">
-                <field name="discount_policy" groups="sale.group_discount_per_so_line"/>
+                <field name="discount_policy" groups="sale_group_discount_per_so_line"/>
             </field>
         </view>
-        <view id="sale_product_pricelist_view_form" model="ProductPricelist">
+
+        <view inherit_id="product_product_pricelist_view">
             <field name="currency_id" position="before">
-                <field name="discount_policy" groups="sale.group_discount_per_so_line" widget="radio"/>
+                <field name="discount_policy" groups="sale_group_discount_per_so_line" widget="radio"/>
             </field>
         </view>
-        <action id="sale_action_orders_salesteams" type="ir.actions.act_window" name="Sales Orders" model="SaleOrder" view_mode="tree,form,calendar,graph" search_view_id="sale_sale_order_view_search_inherit_sale">
+
+        <action id="sale_action_orders_salesteams" type="ir.actions.act_window" name="Sales Orders" model="SaleOrder"
+                view_mode="tree,form,calendar,graph" search_view_id="sale_sale_order_view_search_inherit_sale">
             <help>
                 <p class="oe_view_nocontent_create">
-                Create a Quotation, the first step of a new sale.
-              </p>
+                    Create a Quotation, the first step of a new sale.
+                </p>
                 <p>
-                Your next actions should flow efficiently: confirm the Quotation to a Sale Order, then create the Invoice and collect the Payment.
-              </p>
+                    Your next actions should flow efficiently: confirm the Quotation to a Sale Order, then create the
+                    Invoice and collect the Payment.
+                </p>
                 <p>
-                Note that once a Quotation becomes a Sale Order, it will be moved from the Quotations list to the Sales Order list.
-              </p>
+                    Note that once a Quotation becomes a Sale Order, it will be moved from the Quotations list to the
+                    Sales Order list.
+                </p>
             </help>
         </action>
-        <action id="sale_action_orders_to_invoice_salesteams" type="ir.actions.act_window" name="Sales Orders" model="SaleOrder" view_mode="tree,form,calendar,graph" search_view_id="sale_sale_order_view_search_inherit_sale"/>
-        <action id="sale_action_quotations_salesteams" type="ir.actions.act_window" name="Quotations" model="SaleOrder" view_id="sale_view_quotation_tree" view_mode="tree,form,calendar,graph" search_view_id="sale_sale_order_view_search_inherit_quotation">
+
+        <action id="sale_action_orders_to_invoice_salesteams" type="ir.actions.act_window" name="Sales Orders"
+                model="SaleOrder" view_mode="tree,form,calendar,graph"
+                search_view_id="sale_sale_order_view_search_inherit_sale"/>
+
+        <action id="sale_action_quotations_salesteams" type="ir.actions.act_window" name="Quotations" model="SaleOrder"
+                view_id="sale_view_quotation_tree" view_mode="tree,form,calendar,graph"
+                search_view_id="sale_sale_order_view_search_inherit_quotation">
             <help>
                 <p class="oe_view_nocontent_create">
-                Create a Quotation, the first step of a new sale.
-              </p>
+                    Create a Quotation, the first step of a new sale.
+                </p>
                 <p>
-                Your next actions should flow efficiently: confirm the Quotation
-                to a Sale Order, then create the Invoice and collect the Payment.
-              </p>
+                    Your next actions should flow efficiently: confirm the Quotation
+                    to a Sale Order, then create the Invoice and collect the Payment.
+                </p>
                 <p>
-                Note that once a Quotation becomes a Sale Order, it will be moved
-                from the Quotations list to the Sales Order list.
-              </p>
+                    Note that once a Quotation becomes a Sale Order, it will be moved
+                    from the Quotations list to the Sales Order list.
+                </p>
             </help>
         </action>
-        <action id="sale_action_invoice_salesteams" type="ir.actions.act_window" name="Invoices" model="AccountInvoice" view_mode="tree,form,calendar,graph" view_id="account_invoice_tree" search_view_id="account_view_account_invoice_filter"/>
-        <action id="sale_action_order_report_quotation_salesteam" type="ir.actions.act_window" name="Quotations Analysis" model="SaleReport" view_mode="graph">
-            <help/>
-        </action>
-        <action id="sale_action_order_report_so_salesteam" type="ir.actions.act_window" name="Sales Analysis" model="SaleReport" view_mode="graph">
-            <help/>
-        </action>
-        <action id="sale_action_account_invoice_report_salesteam" type="ir.actions.act_window" name="Invoices Analysis" model="AccountInvoiceReport" view_mode="graph">
-            <help/>
-        </action>
+
+        <action id="sale_action_invoice_salesteams" type="ir.actions.act_window" name="Invoices" model="AccountInvoice"
+                view_mode="tree,form,calendar,graph" view_id="account_invoice_tree"
+                search_view_id="account_view_account_invoice_filter"/>
+
+        <action id="sale_action_order_report_quotation_salesteam" type="ir.actions.act_window"
+                name="Quotations Analysis" model="SaleReport" view_mode="graph"/>
+
+        <action id="sale_action_order_report_so_salesteam" type="ir.actions.act_window" name="Sales Analysis"
+                model="SaleReport" view_mode="graph"/>
+
+        <action id="sale_action_account_invoice_report_salesteam" type="ir.actions.act_window" name="Invoices Analysis"
+                model="AccountInvoiceReport" view_mode="graph"/>
+
         <menuitem id="sale_teams_menu_base_partner" name="Sales"/>
-        <menuitem id="sale_menu_sales_config" name="Sales" sequence="1" parent="sale_teams_menu_sale_config" groups="sale_teams.group_sale_manager,sale_teams.group_sale_salesman,account.group_account_manager,account.group_account_user"/>
-        <menuitem id="sale_menu_product" name="Product Variants" sequence="9" parent="sale_teams_menu_base_partner" groups="product.group_product_variant"/>
+        <menuitem id="sale_menu_sales_config" name="Sales" sequence="1" parent="sale_teams_menu_sale_config"
+                  groups="sale_teams_group_sale_manager,sale_teams_group_sale_salesman,account_group_account_manager,account_group_account_user"/>
+        <menuitem id="sale_menu_product" name="Product Variants" sequence="9" parent="sale_teams_menu_base_partner"
+                  groups="product_group_product_variant"/>
         <menuitem id="sale_teams_menu_sales" name="Sales" sequence="4" parent="sale_teams_menu_base_partner"/>
-        <menuitem id="sale_menu_product_template_action" sequence="13" parent="sale_teams_menu_sales" action="product_product_template_action"/>
+        <menuitem id="sale_menu_product_template_action" sequence="13" parent="sale_teams_menu_sales"
+                  action="product_product_template_action"/>
         <menuitem id="sale_prod_config_main" name="Products" sequence="2" parent="sale_teams_menu_sale_config"/>
-        <menuitem id="sale_menu_attribute_action" sequence="4" parent="sale_prod_config_main" action="product_attribute_action" groups="product.group_product_variant"/>
-        <menuitem id="sale_menu_variants_action" sequence="5" parent="sale_prod_config_main" action="product_variants_action" groups="product.group_product_variant"/>
-        <menuitem id="sale_menu_products" sequence="99" parent="sale_teams_menu_sales" action="product_product_normal_action_sell" groups="product.group_product_variant"/>
-        <menuitem id="sale_menu_product_category_action_form" sequence="2" parent="sale_prod_config_main" action="product_product_category_action_form" groups="base.group_no_one"/>
-        <menuitem id="sale_next_id_16" name="Units of Measure" sequence="30" parent="sale_prod_config_main" groups="product.group_uom"/>
-        <menuitem id="sale_menu_product_uom_form_action" sequence="6" parent="sale_prod_config_main" action="product_product_uom_form_action" groups="product.group_uom"/>
-        <menuitem id="sale_menu_product_uom_categ_form_action" sequence="7" parent="sale_prod_config_main" action="product_product_uom_categ_form_action" groups="base.group_no_one"/>
-        <menuitem id="sale_menu_product_pricelist_main" name="Pricelists" sequence="3" parent="sale_teams_menu_sale_config" groups="product.group_sale_pricelist"/>
-        <menuitem id="sale_menu_product_pricelist_action2" sequence="1" parent="sale_menu_product_pricelist_main" action="product_product_pricelist_action2" groups="product.group_sale_pricelist"/>
-        <menuitem id="sale_menu_sale_order" sequence="12" parent="sale_teams_menu_sales" action="sale_action_orders" groups="sale_teams.group_sale_salesman,sale_teams.group_sale_manager"/>
+        <menuitem id="sale_menu_attribute_action" sequence="4" parent="sale_prod_config_main"
+                  action="product_attribute_action" groups="product_group_product_variant"/>
+        <menuitem id="sale_menu_variants_action" sequence="5" parent="sale_prod_config_main"
+                  action="product_variants_action" groups="product_group_product_variant"/>
+        <menuitem id="sale_menu_products" sequence="99" parent="sale_teams_menu_sales"
+                  action="product_product_normal_action_sell" groups="product_group_product_variant"/>
+        <menuitem id="sale_menu_product_category_action_form" sequence="2" parent="sale_prod_config_main"
+                  action="product_product_category_action_form" groups="base_group_no_one"/>
+        <menuitem id="sale_next_id_16" name="Units of Measure" sequence="30" parent="sale_prod_config_main"
+                  groups="product_group_uom"/>
+        <menuitem id="sale_menu_product_uom_form_action" sequence="6" parent="sale_prod_config_main"
+                  action="product_product_uom_form_action" groups="product_group_uom"/>
+        <menuitem id="sale_menu_product_uom_categ_form_action" sequence="7" parent="sale_prod_config_main"
+                  action="product_product_uom_categ_form_action" groups="base_group_no_one"/>
+        <menuitem id="sale_menu_product_pricelist_main" name="Pricelists" sequence="3"
+                  parent="sale_teams_menu_sale_config" groups="product_group_sale_pricelist"/>
+        <menuitem id="sale_menu_product_pricelist_action2" sequence="1" parent="sale_menu_product_pricelist_main"
+                  action="product_product_pricelist_action2" groups="product_group_sale_pricelist"/>
+        <menuitem id="sale_menu_sale_order" sequence="12" parent="sale_teams_menu_sales" action="sale_action_orders"
+                  groups="sale_teams_group_sale_salesman,sale_teams_group_sale_manager"/>
         <menuitem id="sale_menu_sale_invoicing" name="Invoicing" sequence="5" parent="sale_teams_menu_base_partner"/>
-        <menuitem id="sale_menu_sale_order_invoice" sequence="2" parent="sale_menu_sale_invoicing" action="sale_action_orders_to_invoice"/>
-        <menuitem id="sale_menu_sale_order_upselling" sequence="5" parent="sale_menu_sale_invoicing" action="sale_action_orders_upselling"/>
-        <menuitem id="sale_menu_sale_quotations" sequence="11" parent="sale_teams_menu_sales" action="sale_action_quotations"/>
+        <menuitem id="sale_menu_sale_order_invoice" sequence="2" parent="sale_menu_sale_invoicing"
+                  action="sale_action_orders_to_invoice"/>
+        <menuitem id="sale_menu_sale_order_upselling" sequence="5" parent="sale_menu_sale_invoicing"
+                  action="sale_action_orders_upselling"/>
+        <menuitem id="sale_menu_sale_quotations" sequence="11" parent="sale_teams_menu_sales"
+                  action="sale_action_quotations"/>
+
     </data>
 </hexya>

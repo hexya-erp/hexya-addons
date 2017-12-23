@@ -1,5 +1,6 @@
 <hexya>
     <data>
+
         <action id="sale_act_res_partner_2_sale_order" type="ir.actions.act_window" name="Quotations and Sales" model="SaleOrder" view_mode="tree,form,graph">
             <help>
                 <p class="oe_view_nocontent_create">
@@ -13,7 +14,8 @@
               </p>
             </help>
         </action>
-        <view id="sale_crm_lead_partner_kanban_view" model="ResPartner">
+
+        <view inherit_id="sale_crm_lead_partner_kanban_view">
             <field name="mobile" position="after">
                 <field name="sale_order_count"/>
             </field>
@@ -24,7 +26,8 @@
                 </span>
             </xpath>
         </view>
-        <view id="sale_res_partner_view_buttons" model="ResPartner">
+
+        <view inherit_id="base_view_partner_form">
             <div name="button_box" position="inside">
                 <button class="oe_stat_button" type="action" name="%(sale.act_res_partner_2_sale_order)d" attrs="{&apos;invisible&apos;: [(&apos;customer&apos;, &apos;=&apos;, False)]}" icon="fa-usd">
                     <field string="Sales" name="sale_order_count" widget="statinfo"/>
@@ -38,5 +41,6 @@
                 </group>
             </page>
         </view>
+
     </data>
 </hexya>

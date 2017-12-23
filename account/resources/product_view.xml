@@ -1,6 +1,7 @@
 <hexya>
     <data>
-        <view id="account_product_template_form_view" model="ProductTemplate">
+
+        <view inherit_id="product_product_template_form_view">
             <page name="sales" position="after">
                 <page string="Invoicing" name="invoicing" groups="account.group_account_invoice">
                     <group name="properties">
@@ -17,7 +18,8 @@
                 </page>
             </page>
         </view>
-        <view id="account_view_category_property_form" model="ProductCategory">
+
+        <view inherit_id="product_product_category_form_view">
             <group name="first" position="after">
                 <group name="account_property" groups="account.group_account_manager">
                     <group string="Account Properties">
@@ -27,5 +29,6 @@
                 </group>
             </group>
         </view>
+
     </data>
 </hexya>
