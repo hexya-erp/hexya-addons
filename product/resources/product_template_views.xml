@@ -16,7 +16,7 @@
             </tree>
         </view>
 
-        <view id="productçproduct_template_only_form_view" inherit_id="product_product_template_form_view" priority="8">
+        <view id="product_product_template_only_form_view" inherit_id="product_product_template_form_view" priority="8">
             <xpath expr="//form" position="attributes">
                 <attribute name="name">Product Template</attribute>
             </xpath>
@@ -27,7 +27,7 @@
                        attrs="{&apos;invisible&apos;: [(&apos;product_variant_count&apos;, &apos;&gt;&apos;, 1)]}"/>
             </field>
             <div name="button_box" position="inside">
-                <button name="%(product.product_variant_action)d" type="action" icon="fa-sitemap" class="oe_stat_button"
+                <button name="product_product_variant_action" type="action" icon="fa-sitemap" class="oe_stat_button"
                         attrs="{&apos;invisible&apos;: [(&apos;product_variant_count&apos;, &apos;&lt;=&apos;, 1)]}"
                         groups="product.group_product_variant">
                     <field string="Variants" name="product_variant_count" widget="statinfo"/>

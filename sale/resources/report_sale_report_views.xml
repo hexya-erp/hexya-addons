@@ -20,7 +20,7 @@
             <search string="Sales Analysis">
                 <field name="date"/>
                 <filter string="This Year" name="year" invisible="1"
-                        domain="[(&apos;date&apos;,&apos;&lt;=&apos;, time.strftime(&apos;%%Y-12-31&apos;)),(&apos;date&apos;,&apos;&gt;=&apos;,time.strftime(&apos;%%Y-01-01&apos;))]"/>
+                        domain="[(&apos;date&apos;,&apos;&lt;=&apos;, time.strftime(&apos;%Y-12-31&apos;)),(&apos;date&apos;,&apos;&gt;=&apos;,time.strftime(&apos;%Y-01-01&apos;))]"/>
                 <filter name="Quotations" string="Quotations"
                         domain="[(&apos;state&apos;,&apos;in&apos;, (&apos;draft&apos;, &apos;sent&apos;))]"/>
                 <filter name="Sales" string="Sales"

@@ -3,16 +3,16 @@
 
         <view id="account_account_report_print_journal_view" model="AccountPrintJournal"
               inherit_id="account_account_common_report_view">
-            <data>
-                <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
-                    <field name="amount_currency" groups="base.group_multi_currency"/>
-                    <field name="sort_selection" widget="radio"/>
-                    <newline/>
-                </xpath>
-                <xpath expr="//field[@name=&apos;journal_ids&apos;]" position="attributes">
-                    <attribute name="domain">[(&apos;type&apos;, &apos;in&apos;, (&apos;sale&apos;, &apos;purchase&apos;))]</attribute>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
+                <field name="amount_currency" groups="base.group_multi_currency"/>
+                <field name="sort_selection" widget="radio"/>
+                <newline/>
+            </xpath>
+            <xpath expr="//field[@name=&apos;journal_ids&apos;]" position="attributes">
+                <attribute name="domain">[(&apos;type&apos;, &apos;in&apos;, (&apos;sale&apos;,
+                    &apos;purchase&apos;))]
+                </attribute>
+            </xpath>
         </view>
 
         <action id="account_action_account_print_journal_menu" type="ir.actions.act_window" name="Sale/Purchase Journal"

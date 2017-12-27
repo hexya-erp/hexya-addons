@@ -435,7 +435,7 @@
             <form string="Bank Statement">
                 <header>
                     <field name="all_lines_reconciled" invisible="1"/>
-                    <button name="%(action_bank_reconcile_bank_statements)d" string="Reconcile" type="action"
+                    <button name="account_action_bank_reconcile_bank_statements" string="Reconcile" type="action"
                             class="oe_highlight"
                             attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;all_lines_reconciled&apos;,&apos;=&apos;,True),(&apos;line_ids&apos;,&apos;=&apos;,[]),(&apos;state&apos;, &apos;!=&apos;, &apos;open&apos;)]}"/>
                     <button name="check_confirm_bank" string="Validate" type="object" class="oe_highlight"
@@ -475,7 +475,7 @@
                             <div>
                                 <field class="oe_inline" name="balance_start"/>
                                 <button class="oe_inline oe_link oe_edit_only"
-                                        name="%(action_view_account_bnk_stmt_cashbox)d" string="→ Count" type="action"
+                                        name="account_action_view_account_bnk_stmt_cashbox" string="→ Count" type="action"
                                         attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_start_id&apos;,&apos;!=&apos;,False)]}"
                                         context="{&apos;balance&apos;:&apos;start&apos;}"/>
                                 <button name="open_cashbox_id"
@@ -487,7 +487,7 @@
                             <div>
                                 <field class="oe_inline" name="balance_end_real"/>
                                 <button class="oe_inline oe_link oe_edit_only"
-                                        name="%(action_view_account_bnk_stmt_cashbox)d" string="→ Count" type="action"
+                                        name="account_action_view_account_bnk_stmt_cashbox" string="→ Count" type="action"
                                         attrs="{&apos;invisible&apos;:[&apos;|&apos;,&apos;|&apos;,(&apos;state&apos;,&apos;!=&apos;,&apos;open&apos;),(&apos;journal_type&apos;,&apos;!=&apos;,&apos;cash&apos;),(&apos;cashbox_end_id&apos;,&apos;!=&apos;,False)]}"
                                         context="{&apos;balance&apos;:&apos;close&apos;}"/>
                                 <button name="open_cashbox_id"
@@ -1093,7 +1093,7 @@
                 <header>
                     <button name="post" states="draft" string="Post" type="object" class="oe_highlight"
                             groups="account.group_account_invoice"/>
-                    <button name="%(action_view_account_move_reversal)d" states="posted" string="Reverse Entry"
+                    <button name="account_action_view_account_move_reversal" states="posted" string="Reverse Entry"
                             type="action" groups="account.group_account_invoice"/>
                     <button name="button_cancel" states="posted" string="Cancel Entry" type="object"
                             groups="account.group_account_invoice"/>

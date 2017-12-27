@@ -83,7 +83,7 @@
             <form string="Procurement group">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button name="%(do_view_procurements)d" string="Procurements" type="action"/>
+                        <button name="procurement_do_view_procurements" string="Procurements" type="action"/>
                     </div>
                     <group>
                         <field name="name"/>

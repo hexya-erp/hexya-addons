@@ -19,7 +19,7 @@
                         <field name="amount"
                                attrs="{&apos;required&apos;: [(&apos;advance_payment_method&apos;, &apos;in&apos;, (&apos;fixed&apos;,&apos;percentage&apos;))]}"
                                class="oe_inline" widget="monetary"/>
-                        <label string="%%"
+                        <label string="%"
                                attrs="{&apos;invisible&apos;: [(&apos;advance_payment_method&apos;, &apos;!=&apos;, &apos;percentage&apos;)]}"
                                class="oe_inline"/>
                     </div>

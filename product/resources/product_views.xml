@@ -4,7 +4,7 @@
         <view id="product_product_template_form_view" model="ProductTemplate">
             <form string="Product">
                 <header>
-                    <button string="Variant Prices" type="action" name="%(product_attribute_value_action)d"
+                    <button string="Variant Prices" type="action" name="product_product_attribute_value_action"
                             attrs="{&apos;invisible&apos;: [(&apos;product_variant_count&apos;, &apos;&lt;=&apos;, 1)]}"
                             groups="product.group_product_variant"/>
                 </header>
@@ -352,7 +352,7 @@
             <form class="oe_form_configuration">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
-                        <button class="oe_stat_button" name="%(product_template_action_all)d" icon="fa-th-list"
+                        <button class="oe_stat_button" name="product_product_template_action_all" icon="fa-th-list"
                                 type="action" context="{&apos;search_default_categ_id&apos;: active_id}">
                             <div class="o_form_field o_stat_info">
                                 <span class="o_stat_value">
@@ -461,9 +461,9 @@
                 <field name="name"/>
                 <field name="product_tmpl_id"/>
                 <filter string="Active" name="active"
-                        domain="[(&apos;date_end&apos;, &apos;&gt;=&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%%Y-%%m-%%d&apos;))]"/>
+                        domain="[(&apos;date_end&apos;, &apos;&gt;=&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%Y-%m-%d&apos;))]"/>
                 <filter string="Archived" name="archived"
-                        domain="[(&apos;date_end&apos;, &apos;&lt;&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%%Y-%%m-%%d&apos;))]"/>
+                        domain="[(&apos;date_end&apos;, &apos;&lt;&apos;,  (context_today() - datetime.timedelta(days=1)).strftime(&apos;%Y-%m-%d&apos;))]"/>
                 <group expand="0" string="Group By">
                     <filter string="Product" name="groupby_product" domain="[]"
                             context="{&apos;group_by&apos;: &apos;product_tmpl_id&apos;}"/>

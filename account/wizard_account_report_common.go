@@ -13,18 +13,22 @@ func init() {
 
 	pool.AccountCommonReport().DeclareMixinModel()
 	pool.AccountCommonReport().AddFields(map[string]models.FieldDefinition{
-		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/ /* readonly=true */, Default: func(models.Environment, models.FieldMap) interface{} {
-			/*lambda self: self.env.user.company_id*/
-			return 0
-		}},
-		"Journals": models.Many2ManyField{String: "Journals", RelationModel: pool.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*[ required True]*/ /*[ default lambda self: self.env['account.journal'].search([]]*/},
-		"DateFrom": models.DateField{String: "DateFrom" /*[string 'Start Date']*/},
-		"DateTo":   models.DateField{String: "DateTo" /*[string 'End Date']*/},
+		"Company": models.Many2OneField{RelationModel: pool.Company(), JSON: "company_id",
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.User().NewSet(env).CurrentUser().Company()
+			}},
+		"Journals": models.Many2ManyField{RelationModel: pool.AccountJournal(), JSON: "journal_ids",
+			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+				return pool.AccountJournal().NewSet(env).SearchAll()
+			}},
+		"DateFrom": models.DateField{String: "Start Date"},
+		"DateTo":   models.DateField{String: "End Date"},
 		"TargetMove": models.SelectionField{String: "Target Moves", Selection: types.Selection{
 			"posted": "All Posted Entries",
 			"all":    "All Entries",
-			/*[('posted', 'All Posted Entries'  ('all', 'All Entries'  ]*/}, /*[]*/ Required: true, Default: models.DefaultValue("posted")},
+		}, Required: true, Default: models.DefaultValue("posted")},
 	})
+
 	pool.AccountCommonReport().Methods().BuildContexts().DeclareMethod(
 		`BuildContexts`,
 		func(rs pool.AccountCommonReportSet, args struct {
@@ -41,6 +45,7 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountCommonReport().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
 		func(rs pool.AccountCommonReportSet, args struct {
@@ -51,6 +56,7 @@ func init() {
 
 			*/
 		})
+
 	pool.AccountCommonReport().Methods().CheckReport().DeclareMethod(
 		`CheckReport`,
 		func(rs pool.AccountCommonReportSet) {

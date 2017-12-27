@@ -49,7 +49,7 @@
                                        options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
                             </div>
                             <div attrs="{&apos;invisible&apos;:[(&apos;compute_price&apos;, &apos;!=&apos;, &apos;percentage&apos;)]}">
-                                <field name="percent_price" nolabel="1" class="oe_inline"/>%%
+                                <field name="percent_price" nolabel="1" class="oe_inline"/>%
                             </div>
                         </div>
                     </group>
@@ -75,7 +75,7 @@
                     <label for="price_discount"/>
                     <div class="o_row">
                         <field name="price_discount"/>
-                        <span>%%</span>
+                        <span>%</span>
                     </div>
                     <label string=" + " for="price_surcharge"/>
                     <field name="price_surcharge" nolabel="1"/>

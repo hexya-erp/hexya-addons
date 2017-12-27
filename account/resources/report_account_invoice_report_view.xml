@@ -20,7 +20,7 @@
             <search string="Invoices Analysis">
                 <field name="date"/>
                 <filter string="This Year" name="thisyear"
-                        domain="[&apos;|&apos;, (&apos;date&apos;, &apos;=&apos;, False), &apos;&amp;&apos;,(&apos;date&apos;,&apos;&lt;=&apos;, time.strftime(&apos;%%Y-12-31&apos;)),(&apos;date&apos;,&apos;&gt;=&apos;,time.strftime(&apos;%%Y-01-01&apos;))]"
+                        domain="[&apos;|&apos;, (&apos;date&apos;, &apos;=&apos;, False), &apos;&amp;&apos;,(&apos;date&apos;,&apos;&lt;=&apos;, time.strftime(&apos;%Y-12-31&apos;)),(&apos;date&apos;,&apos;&gt;=&apos;,time.strftime(&apos;%%Y-01-01&apos;))]"
                         help="Journal invoices with period in current year"/>
                 <separator/>
                 <filter string="To Invoice" domain="[(&apos;state&apos;,&apos;=&apos;,&apos;draft&apos;)]"

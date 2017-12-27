@@ -2,15 +2,13 @@
     <data>
         <view id="account_account_report_partner_ledger_view" model="AccountReportPartnerLedger"
               inherit_id="account_account_common_report_view">
-            <data>
-                <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
-                    <field name="result_selection"/>
-                    <field name="amount_currency" groups="base.group_multi_currency"/>
-                    <newline/>
-                    <field name="reconciled"/>
-                    <newline/>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
+                <field name="result_selection"/>
+                <field name="amount_currency" groups="base.group_multi_currency"/>
+                <newline/>
+                <field name="reconciled"/>
+                <newline/>
+            </xpath>
         </view>
 
         <action id="account_action_account_partner_ledger_menu" type="ir.actions.act_window" name="Partner Ledger"

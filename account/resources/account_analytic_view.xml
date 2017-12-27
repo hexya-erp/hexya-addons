@@ -2,43 +2,37 @@
     <data>
 
         <view inherit_id="analytic_view_account_analytic_line_form">
-            <data>
-                <xpath expr="//field[@name=&apos;account_id&apos;]" position="after">
-                    <field name="general_account_id"/>
-                    <field name="ref"/>
-                    <field name="partner_id"/>
-                    <field name="move_id" readonly="1"/>
-                </xpath>
-                <xpath expr="//field[@name=&apos;amount&apos;]" position="after">
-                    <field name="company_currency_id" invisible="1"/>
-                    <field name="amount_currency" invisible="1"/>
-                    <field name="analytic_amount_currency"/>
-                    <field name="product_id"/>
-                    <field name="product_uom_id" class="oe_inline"/>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;account_id&apos;]" position="after">
+                <field name="general_account_id"/>
+                <field name="ref"/>
+                <field name="partner_id"/>
+                <field name="move_id" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name=&apos;amount&apos;]" position="after">
+                <field name="company_currency_id" invisible="1"/>
+                <field name="amount_currency" invisible="1"/>
+                <field name="analytic_amount_currency"/>
+                <field name="product_id"/>
+                <field name="product_uom_id" class="oe_inline"/>
+            </xpath>
         </view>
 
         <view inherit_id="analytic_view_account_analytic_line_tree">
-            <data>
-                <xpath expr="//field[@name=&apos;date&apos;]" position="after">
-                    <field name="ref" invisible="context.get(&apos;to_invoice&apos;, False)"/>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;date&apos;]" position="after">
+                <field name="ref" invisible="context.get(&apos;to_invoice&apos;, False)"/>
+            </xpath>
         </view>
 
         <view inherit_id="analytic_view_account_analytic_line_filter">
-            <data>
-                <xpath expr="//field[@name=&apos;date&apos;]" position="after">
-                    <field name="product_id"/>
-                    <field name="partner_id" filter_domain="[(&apos;partner_id&apos;,&apos;child_of&apos;,self)]"/>
-                </xpath>
-                <xpath expr="//group[@name=&apos;groupby&apos;]" position="after">
-                    <filter string="Financial Account" context="{&apos;group_by&apos;:&apos;general_account_id&apos;}"/>
-                    <filter string="Product" context="{&apos;group_by&apos;:&apos;product_id&apos;}"/>
-                    <filter string="Partner" context="{&apos;group_by&apos;:&apos;partner_id&apos;}"/>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;date&apos;]" position="after">
+                <field name="product_id"/>
+                <field name="partner_id" filter_domain="[(&apos;partner_id&apos;,&apos;child_of&apos;,self)]"/>
+            </xpath>
+            <xpath expr="//group[@name=&apos;groupby&apos;]" position="after">
+                <filter string="Financial Account" context="{&apos;group_by&apos;:&apos;general_account_id&apos;}"/>
+                <filter string="Product" context="{&apos;group_by&apos;:&apos;product_id&apos;}"/>
+                <filter string="Partner" context="{&apos;group_by&apos;:&apos;partner_id&apos;}"/>
+            </xpath>
         </view>
 
         <view inherit_id="analytic_view_account_analytic_line_pivot">

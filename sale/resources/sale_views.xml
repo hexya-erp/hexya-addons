@@ -202,7 +202,7 @@
                                             <label for="discount" groups="sale_group_discount_per_so_line"/>
                                             <div name="discount" groups="sale_group_discount_per_so_line">
                                                 <field name="discount" class="oe_inline"/>
-                                                %%
+                                                %
                                             </div>
                                         </group>
                                         <group>
@@ -558,48 +558,40 @@
         </view>
 
         <view inherit_id="account_invoice_form">
-            <data>
-                <xpath expr="//field[@name=&apos;user_id&apos;]" position="after">
-                    <field name="team_id"/>
-                </xpath>
-                <xpath expr="//field[@name=&apos;partner_id&apos;]" position="after">
-                    <field name="partner_shipping_id" groups="sale_group_delivery_invoice_address"/>
-                </xpath>
-                <xpath expr="//page/field[@name=&apos;invoice_line_ids&apos;]/tree/field[@name=&apos;product_id&apos;]"
-                       position="after">
-                    <field name="layout_category_id" groups="sale_group_sale_layout"/>
-                </xpath>
-                <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;user_id&apos;]" position="after">
+                <field name="team_id"/>
+            </xpath>
+            <xpath expr="//field[@name=&apos;partner_id&apos;]" position="after">
+                <field name="partner_shipping_id" groups="sale_group_delivery_invoice_address"/>
+            </xpath>
+            <xpath expr="//page/field[@name=&apos;invoice_line_ids&apos;]/tree/field[@name=&apos;product_id&apos;]"
+                   position="after">
+                <field name="layout_category_id" groups="sale_group_sale_layout"/>
+            </xpath>
+            <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
+                <attribute name="groups">sale_group_discount_per_so_line</attribute>
+            </xpath>
         </view>
 
         <view inherit_id="account_view_invoice_line_tree">
-            <data>
-                <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
+                <attribute name="groups">sale_group_discount_per_so_line</attribute>
+            </xpath>
         </view>
 
         <view inherit_id="account_view_invoice_line_form">
-            <data>
-                <xpath expr="//group/group/field[@name=&apos;product_id&apos;]" position="after">
-                    <field name="layout_category_id" groups="sale_group_sale_layout"/>
-                </xpath>
-                <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
-                </xpath>
-            </data>
+            <xpath expr="//group/group/field[@name=&apos;product_id&apos;]" position="after">
+                <field name="layout_category_id" groups="sale_group_sale_layout"/>
+            </xpath>
+            <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
+                <attribute name="groups">sale_group_discount_per_so_line</attribute>
+            </xpath>
         </view>
 
         <view inherit_id="account_invoice_supplier_form">
-            <data>
-                <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
-                    <attribute name="groups">sale_group_discount_per_so_line</attribute>
-                </xpath>
-            </data>
+            <xpath expr="//field[@name=&apos;discount&apos;]" position="attributes">
+                <attribute name="groups">sale_group_discount_per_so_line</attribute>
+            </xpath>
         </view>
 
         <view inherit_id="product_product_pricelist_view_tree">

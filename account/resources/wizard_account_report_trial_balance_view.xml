@@ -3,13 +3,11 @@
 
         <view id="account_account_report_balance_view" model="AccountBalanceReport"
               inherit_id="account_account_common_report_view">
-            <data>
-                <field name="journal_ids" position="replace"/>
-                <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
-                    <field name="display_account" widget="radio"/>
-                    <newline/>
-                </xpath>
-            </data>
+            <field name="journal_ids" position="replace"/>
+            <xpath expr="//field[@name=&apos;target_move&apos;]" position="after">
+                <field name="display_account" widget="radio"/>
+                <newline/>
+            </xpath>
         </view>
 
         <action id="account_action_account_balance_menu" type="ir.actions.act_window" name="Trial Balance"
