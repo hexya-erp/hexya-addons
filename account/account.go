@@ -4,6 +4,10 @@
 package account
 
 import (
+	"log"
+	"math"
+	"sort"
+
 	"github.com/hexya-erp/hexya-addons/account/accounttypes"
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
@@ -761,7 +765,7 @@ used to manually fill some data in the tax declaration`},
 		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTax(), JSON: "children_tax_ids",
 			M2MTheirField: "ChildTax", M2MOurField: "ParentTax",
 			Constraint: pool.AccountTax().Methods().CheckChildrenScope()},
-		"Sequence": models.IntegerField{Required: true, Default: models.DefaultValue(1),
+		"Sequence": models.IntegerField{Required: true, GoType: new(int), Default: models.DefaultValue(1),
 			Help: "The sequence field is used to define order in which the tax lines are applied."},
 		"Amount": models.FloatField{Required: true, Digits: nbutils.Digits{Precision: 16, Scale: 4},
 			OnChange: pool.AccountTax().Methods().OnchangeAmount()},
@@ -927,35 +931,37 @@ to the same analytic account as the invoice line (if any)`},
 		})
 
 	pool.AccountTax().Methods().ComputeAmount().DeclareMethod(
-		`ComputeAmount`,
-		func(rs pool.AccountTaxSet, baseAmount, priceUnit, quantity float64, product pool.ProductProductSet, partner pool.PartnerSet) float64 {
-			/*def _compute_amount(self, base_amount, price_unit, quantity=1.0, product=None, partner=None):
-			  """ Returns the amount of a single tax. base_amount is the actual amount on which the tax is applied, which is
-			      price_unit * quantity eventually affected by previous taxes (if tax is include_base_amount XOR price_include)
-			  """
-			  self.ensure_one()
-			  if self.amount_type == 'fixed':
-			      # Use copysign to take into account the sign of the base amount which includes the sign
-			      # of the quantity and the sign of the price_unit
-			      # Amount is the fixed price for the tax, it can be negative
-			      # Base amount included the sign of the quantity and the sign of the unit price and when
-			      # a product is returned, it can be done either by changing the sign of quantity or by changing the
-			      # sign of the price unit.
-			      # When the price unit is equal to 0, the sign of the quantity is absorbed in base_amount then
-			      # a "else" case is needed.
-			      if base_amount:
-			          return math.copysign(quantity, base_amount) * self.amount
-			      else:
-			          return quantity * self.amount
-			  if (self.amount_type == 'percent' and not self.price_include) or (self.amount_type == 'division' and self.price_include):
-			      return base_amount * self.amount / 100
-			  if self.amount_type == 'percent' and self.price_include:
-			      return base_amount - (base_amount / (1 + self.amount / 100))
-			  if self.amount_type == 'division' and not self.price_include:
-			      return base_amount / (1 - self.amount / 100) - base_amount
+		`ComputeAmount returns the amount of a single tax.
 
-			*/
-			return 0
+		baseAmount is the actual amount on which the tax is applied, which is priceUnit * quantity eventually
+		affected by previous taxes (if tax is include_base_amount XOR price_include)`,
+		func(rs pool.AccountTaxSet, baseAmount, priceUnit, quantity float64, product pool.ProductProductSet, partner pool.PartnerSet) float64 {
+			rs.EnsureOne()
+			if rs.AmountType() == "fixed" {
+				// Use Copysign to take into account the sign of the base amount which includes the sign
+				// of the quantity and the sign of the priceUnit
+				// Amount is the fixed price for the tax, it can be negative
+				// Base amount included the sign of the quantity and the sign of the unit price and when
+				// a product is returned, it can be done either by changing the sign of quantity or by changing the
+				// sign of the price unit.
+				// When the price unit is equal to 0, the sign of the quantity is absorbed in base_amount then
+				// a "else" case is needed.
+				if baseAmount != 0 {
+					return math.Copysign(quantity, baseAmount) * rs.Amount()
+				}
+				return quantity * rs.Amount()
+			}
+			if (rs.AmountType() == "percent" && !rs.PriceInclude()) || (rs.AmountType() == "division" && rs.PriceInclude()) {
+				return baseAmount * rs.Amount() / 100
+			}
+			if rs.AmountType() == "percent" && rs.PriceInclude() {
+				return baseAmount - (baseAmount / (1 + rs.Amount()/100))
+			}
+			if rs.AmountType() == "division" && !rs.PriceInclude() {
+				return baseAmount/(1-rs.Amount()/100) - baseAmount
+			}
+			log.Fatal("Unhandled tax type", "tax", rs.ID(), "type", rs.AmountType(), "priceInclude", rs.PriceInclude())
+			panic("Unhandled tax type")
 		})
 
 	pool.AccountTax().Methods().JSONFriendlyComputeAll().DeclareMethod(
@@ -983,123 +989,125 @@ to the same analytic account as the invoice line (if any)`},
 			          [G, B([A, D, F]), E, C] will be computed as [A, D, F, C, E, G]
 
 			  RETURN:
+
                    0.0,                 # Base
+
 			       0.0,                 # Total without taxes
+
 			       0.0,                 # Total with taxes
-                   struct               # One struct for each tax in rs and their children
+
+                   []AppliedTaxData     # One struct for each tax in rs and their children
 			  } `,
 		func(rs pool.AccountTaxSet, priceUnit float64, currency pool.CurrencySet, quantity float64,
 			product pool.ProductProductSet, partner pool.PartnerSet) (float64, float64, float64, []accounttypes.AppliedTaxData) {
-			//@api.multi
-			/*def compute_all(self, price_unit, currency=None, quantity=1.0, product=None, partner=None):
-			  """ Returns all information required to apply taxes (in self + their children in case of a tax goup).
-			      We consider the sequence of the parent for group of taxes.
-			          Eg. considering letters as taxes and alphabetic order as sequence :
-			          [G, B([A, D, F]), E, C] will be computed as [A, D, F, C, E, G]
 
-			  RETURN: {
-			      'total_excluded': 0.0,    # Total without taxes
-			      'total_included': 0.0,    # Total with taxes
-			      'taxes': [{               # One dict for each tax in self and their children
-			          'id': int,
-			          'name': str,
-			          'amount': float,
-			          'sequence': int,
-			          'account_id': int,
-			          'refund_account_id': int,
-			          'analytic': boolean,
-			      }]
-			  } """
-			  if len(self) == 0:
-			      company_id = self.env.user.company_id
-			  else:
-			      company_id = self[0].company_id
-			  if not currency:
-			      currency = company_id.currency_id
-			  taxes = []
-			  # By default, for each tax, tax amount will first be computed
-			  # and rounded at the 'Account' decimal precision for each
-			  # PO/SO/invoice line and then these rounded amounts will be
-			  # summed, leading to the total amount for that tax. But, if the
-			  # company has tax_calculation_rounding_method = round_globally,
-			  # we still follow the same method, but we use a much larger
-			  # precision when we round the tax amount for each line (we use
-			  # the 'Account' decimal precision + 5), and that way it's like
-			  # rounding after the sum of the tax amounts of each line
-			  prec = currency.decimal_places
+			company := rs.Company()
+			if rs.IsEmpty() {
+				company = pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			}
+			if currency.IsEmpty() {
+				currency = company.Currency()
+			}
+			var taxes []accounttypes.AppliedTaxData
+			// By default, for each tax, tax amount will first be computed
+			// and rounded at the 'Account' decimal precision for each
+			// PO/SO/invoice line and then these rounded amounts will be
+			// summed, leading to the total amount for that tax. But, if the
+			// company has tax_calculation_rounding_method = round_globally,
+			// we still follow the same method, but we use a much larger
+			// precision when we round the tax amount for each line (we use
+			// the 'Account' decimal precision + 5), and that way it's like
+			// rounding after the sum of the tax amounts of each line
 
-			  # In some cases, it is necessary to force/prevent the rounding of the tax and the total
-			  # amounts. For example, in SO/PO line, we don't want to round the price unit at the
-			  # precision of the currency.
-			  # The context key 'round' allows to force the standard behavior.
-			  round_tax = False if company_id.tax_calculation_rounding_method == 'round_globally' else True
-			  round_total = True
-			  if 'round' in self.env.context:
-			      round_tax = bool(self.env.context['round'])
-			      round_total = bool(self.env.context['round'])
+			dp := currency.DecimalPlaces()
+			// In some cases, it is necessary to force/prevent the rounding of the tax and the total
+			// amounts. For example, in SO/PO line, we don't want to round the price unit at the
+			// precision of the currency.
+			// The context key 'round' allows to force the standard behavior.
+			roundTax := true
+			if company.TaxCalculationRoundingMethod() == "round_globally" {
+				roundTax = false
+			}
+			roundTotal := true
+			if rs.Env().Context().HasKey("round") {
+				roundTax = rs.Env().Context().GetBool("round")
+				roundTotal = rs.Env().Context().GetBool("round")
+			}
+			if !roundTax {
+				dp += 5
+			}
+			prec := math.Pow10(-dp)
+			totalExcluded := nbutils.Round(priceUnit*quantity, prec)
+			totalIncluded := nbutils.Round(priceUnit*quantity, prec)
+			base := nbutils.Round(priceUnit*quantity, prec)
+			baseValues := rs.Env().Context().GetFloatSlice("base_values")
+			if len(baseValues) != 0 {
+				totalExcluded = baseValues[0]
+				totalIncluded = baseValues[1]
+				base = baseValues[2]
+			}
+			// Sorting key is mandatory in this case. When no key is provided, sorted() will perform a
+			// search. However, the search method is overridden in account.tax in order to add a domain
+			// depending on the context. This domain might filter out some taxes from self, e.g. in the
+			// case of group taxes.
+			taxRecords := rs.Records()
+			sort.Slice(taxRecords, func(i, j int) bool {
+				return taxRecords[i].Sequence() < taxRecords[j].Sequence()
+			})
+			for _, tax := range taxRecords {
+				if tax.AmountType() == "group" {
+					children := tax.ChildrenTaxes().WithContext("base_values", []float64{totalExcluded, totalIncluded, base})
+					retBase, retExcl, retIncl, retTaxes := children.ComputeAll(priceUnit, currency, quantity, product, partner)
+					totalExcluded = retExcl
+					if tax.IncludeBaseAmount() {
+						base = retBase
+					}
+					totalIncluded = retIncl
+					taxes = append(taxes, retTaxes...)
+					continue
+				}
 
-			  if not round_tax:
-			      prec += 5
+				taxAmount := tax.ComputeAmount(base, priceUnit, quantity, product, partner)
+				if roundTax {
+					taxAmount = nbutils.Round(taxAmount, prec)
+				} else {
+					taxAmount = currency.Round(taxAmount)
+				}
 
-			  base_values = self.env.context.get('base_values')
-			  if not base_values:
-			      total_excluded = total_included = base = round(price_unit * quantity, prec)
-			  else:
-			      total_excluded, total_included, base = base_values
+				if tax.PriceInclude() {
+					totalExcluded -= taxAmount
+					base -= taxAmount
+				} else {
+					totalIncluded += taxAmount
+				}
 
-			  # Sorting key is mandatory in this case. When no key is provided, sorted() will perform a
-			  # search. However, the search method is overridden in account.tax in order to add a domain
-			  # depending on the context. This domain might filter out some taxes from self, e.g. in the
-			  # case of group taxes.
-			  for tax in self.sorted(key=lambda r: r.sequence):
-			      if tax.amount_type == 'group':
-			          children = tax.children_tax_ids.with_context(base_values=(total_excluded, total_included, base))
-			          ret = children.compute_all(price_unit, currency, quantity, product, partner)
-			          total_excluded = ret['total_excluded']
-			          base = ret['base'] if tax.include_base_amount else base
-			          total_included = ret['total_included']
-			          tax_amount = total_included - total_excluded
-			          taxes += ret['taxes']
-			          continue
+				// Keep base amount used for the current tax
+				taxBase := base
 
-			      tax_amount = tax._compute_amount(base, price_unit, quantity, product, partner)
-			      if not round_tax:
-			          tax_amount = round(tax_amount, prec)
-			      else:
-			          tax_amount = currency.round(tax_amount)
+				if tax.IncludeBaseAmount() {
+					base += taxAmount
+				}
 
-			      if tax.price_include:
-			          total_excluded -= tax_amount
-			          base -= tax_amount
-			      else:
-			          total_included += tax_amount
+				taxes = append(taxes, accounttypes.AppliedTaxData{
+					ID:              tax.ID(),
+					Name:            tax.WithContext("lang", partner.Lang()).Name(),
+					Amount:          taxAmount,
+					Base:            taxBase,
+					Sequence:        tax.Sequence(),
+					AccountID:       tax.Account().ID(),
+					RefundAccountID: tax.RefundAccount().ID(),
+					Analytic:        tax.Analytic(),
+				})
+			}
 
-			      # Keep base amount used for the current tax
-			      tax_base = base
-
-			      if tax.include_base_amount:
-			          base += tax_amount
-
-			      taxes.append({
-			          'id': tax.id,
-			          'name': tax.with_context(**{'lang': partner.lang} if partner else {}).name,
-			          'amount': tax_amount,
-			          'base': tax_base,
-			          'sequence': tax.sequence,
-			          'account_id': tax.account_id.id,
-			          'refund_account_id': tax.refund_account_id.id,
-			          'analytic': tax.analytic,
-			      })
-
-			  return {
-			      'taxes': sorted(taxes, key=lambda k: k['sequence']),
-			      'total_excluded': currency.round(total_excluded) if round_total else total_excluded,
-			      'total_included': currency.round(total_included) if round_total else total_included,
-			      'base': base,
-			  }
-
-			*/
-			return 0, 0, 0, []accounttypes.AppliedTaxData{}
+			if roundTotal {
+				totalIncluded = currency.Round(totalIncluded)
+				totalExcluded = currency.Round(totalExcluded)
+			}
+			sort.Slice(taxes, func(i, j int) bool {
+				return taxes[i].Sequence < taxes[j].Sequence
+			})
+			return base, totalExcluded, totalIncluded, taxes
 		})
 
 	pool.AccountTax().Methods().FixTaxIncludedPrice().DeclareMethod(

@@ -901,7 +901,7 @@ based on the template if online quotation is installed.`},
 			  - invoiced: the quantity invoiced is larger or equal to the quantity ordered.`,
 		func(rs pool.SaleOrderLineSet) (*pool.SaleOrderLineData, []models.FieldNamer) {
 			precision := decimalPrecision.GetPrecision("Product Unit of Measure").ToPrecision()
-			var invoiceStatus string
+			invoiceStatus := "no"
 			for _, line := range rs.Records() {
 				switch {
 				case line.State() != "sale" && line.State() != "done":

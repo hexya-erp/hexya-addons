@@ -34,4 +34,5 @@ type AppliedTaxData struct {
 	AccountID       int64   `json:"account_id"`
 	RefundAccountID int64   `json:"refund_account_id"`
 	Analytic        bool    `json:"analytic"`
+	Base            float64 `json:"base"`
 }
