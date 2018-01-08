@@ -3,6 +3,7 @@ package account
 import (
 	"log"
 
+	"github.com/hexya-erp/hexya-base/base"
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/operator"
@@ -335,8 +336,8 @@ credit or if you click the "Done" button.`},
 			"bad":    "Bad Debtor",
 		}, Default: models.DefaultValue("normal") /*[ company_dependent True]*/},
 		// TODO update hexya generate to master the Selection case below
-		//"InvoiceWarn": models.SelectionField{Selection: base.WarningMessage, String: "Invoice",
-		//	Help: base.WarningHelp, Required: true, Default: models.DefaultValue("no-message")},
+		"InvoiceWarn": models.SelectionField{Selection: base.WarningMessage, String: "Invoice",
+			/*Help: base.WarningHelp*/ Required: true, Default: models.DefaultValue("no-message")},
 		"InvoiceWarnMsg": models.TextField{String: "Message for Invoice"},
 	})
 

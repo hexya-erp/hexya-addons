@@ -439,17 +439,21 @@ based on the template if online quotation is installed.`},
 			return invoiceVals
 		})
 
-	//pool.SaleOrder().Methods().PrintQuotation().DeclareMethod(
-	//	`PrintQuotation returns the action to print the quotation report`,
-	//	func(rs pool.SaleOrderSet) *actions.Action{
-	//		//@api.multi
-	//		/*def print_quotation(self):
-	//		  self.filtered(lambda s: s.state == 'draft').write({'state': 'sent'})
-	//		  return self.env['report'].get_action(self, 'sale.report_saleorder')
-	//
-	//		*/
-	//		// TODO Implement reports first
-	//	})
+	pool.SaleOrder().Methods().PrintQuotation().DeclareMethod(
+		`PrintQuotation returns the action to print the quotation report`,
+		func(rs pool.SaleOrderSet) *actions.Action {
+			//@api.multi
+			/*def print_quotation(self):
+			  self.filtered(lambda s: s.state == 'draft').write({'state': 'sent'})
+			  return self.env['report'].get_action(self, 'sale.report_saleorder')
+
+			*/
+			// TODO Implement reports first
+			rs.Search(pool.SaleOrder().State().Equals("draft")).SetState("sent")
+			return &actions.Action{
+				Type: actions.ActionCloseWindow,
+			}
+		})
 
 	pool.SaleOrder().Methods().ActionViewInvoice().DeclareMethod(
 		`ActionViewInvoice returns an action to view the invoice(s) related to this order.
@@ -648,6 +652,8 @@ based on the template if online quotation is installed.`},
 			//		  }
 			//
 			//		*/
+			// FIXME: Next line for demo only
+			rs.Search(pool.SaleOrder().State().Equals("draft")).SetState("sent")
 			return &actions.Action{
 				Type: actions.ActionCloseWindow,
 			}
@@ -673,11 +679,6 @@ based on the template if online quotation is installed.`},
 	pool.SaleOrder().Methods().ActionDone().DeclareMethod(
 		`ActionDone sets the state of this sale order to done`,
 		func(rs pool.SaleOrderSet) bool {
-			//@api.multi
-			/*def action_done(self):
-			  return self.write({'state': 'done'})
-
-			*/
 			rs.SetState("done")
 			return true
 		})

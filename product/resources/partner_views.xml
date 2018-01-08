@@ -3,7 +3,7 @@
 
         <view inherit_id="base_view_partner_form">
             <group name="sale" position="inside">
-                <field name="property_product_pricelist" groups="product.group_sale_pricelist"
+                <field name="property_product_pricelist_id" groups="product.group_sale_pricelist"
                        attrs="{&apos;invisible&apos;: [(&apos;is_company&apos;,&apos;=&apos;,False),(&apos;parent_id&apos;,&apos;!=&apos;,False)]}"/>
                 <div name="parent_pricelists" groups="product.group_sale_pricelist" colspan="2"
                      attrs="{&apos;invisible&apos;: [&apos;|&apos;,(&apos;is_company&apos;,&apos;=&apos;,True),(&apos;parent_id&apos;,&apos;=&apos;,False)]}">
