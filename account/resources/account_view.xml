@@ -267,8 +267,9 @@
                               attrs="{&apos;invisible&apos;: [(&apos;type&apos;, &apos;!=&apos;, &apos;bank&apos;)]}">
                             <group>
                                 <group>
-                                    <field name="bank_acc_number"/>
-                                    <field name="bank_id"/>
+                                    <!--<field name="bank_acc_number"/>-->
+                                    <!--<field name="bank_id"/>-->
+                                    <field name="bank_account_id"/>
                                     <field name="display_on_footer"/>
                                 </group>
                                 <group>

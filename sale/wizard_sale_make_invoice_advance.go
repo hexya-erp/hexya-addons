@@ -4,6 +4,7 @@
 package sale
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/hexya-erp/hexya-addons/decimalPrecision"
@@ -182,9 +183,10 @@ func init() {
 			default:
 				// Create deposit product if necessary
 				if rs.Product().IsEmpty() {
-					vals := rs.PrepareDepositProduct()
-					rs.SetProduct(pool.ProductProduct().Create(rs.Env(), vals))
-					// self.env['ir.values'].sudo().set_default('sale.config.settings', 'deposit_product_id_setting', self.product_id.id)
+					depositProduct := pool.ProductProduct().Create(rs.Env(), rs.PrepareDepositProduct())
+					rs.SetProduct(depositProduct)
+					pool.ConfigParameter().NewSet(rs.Env()).SetParam("deposit_product_id_setting",
+						fmt.Sprintf("%d", depositProduct.ID()))
 				}
 
 				for _, order := range saleOrders.Records() {

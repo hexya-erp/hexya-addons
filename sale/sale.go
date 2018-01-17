@@ -216,8 +216,8 @@ based on the template if online quotation is installed.`},
 			switch {
 			case rs.State() != "sale" && rs.State() != "done":
 				invoiceStatus = "no"
-			case lineInvoiceStatus["to_invoice"]:
-				invoiceStatus = "to_invoice"
+			case lineInvoiceStatus["to invoice"]:
+				invoiceStatus = "to invoice"
 			case len(lineInvoiceStatus) == 1 && lineInvoiceStatus["invoiced"]:
 				invoiceStatus = "invoiced"
 			case len(lineInvoiceStatus) <= 2 && (lineInvoiceStatus["invoiced"] || lineInvoiceStatus["upselling"]):
@@ -503,8 +503,11 @@ based on the template if online quotation is installed.`},
 				if grouped {
 					groupKey = keyStruct{OrderID: order.ID()}
 				}
-				for _, line := range pool.SaleOrderLine().Search(rs.Env(),
-					pool.SaleOrderLine().ID().In(order.OrderLine().Ids())).OrderBy("QtyToInvoice").Records() {
+				lines := order.OrderLine().Records()
+				sort.Slice(lines, func(i, j int) bool {
+					return lines[i].QtyToInvoice() < lines[j].QtyToInvoice()
+				})
+				for _, line := range lines {
 					if nbutils.IsZero(line.QtyToInvoice(), precision) {
 						continue
 					}
@@ -549,7 +552,7 @@ based on the template if online quotation is installed.`},
 				}
 			}
 			if len(invoices) == 0 {
-				panic(rs.T("There is no invoicable line."))
+				panic(rs.T("There is no invoicable line"))
 			}
 
 			res := pool.AccountInvoice().NewSet(rs.Env())
@@ -908,7 +911,7 @@ based on the template if online quotation is installed.`},
 				case line.State() != "sale" && line.State() != "done":
 					invoiceStatus = "no"
 				case !nbutils.IsZero(line.QtyToInvoice(), precision):
-					invoiceStatus = "to_invoice"
+					invoiceStatus = "to invoice"
 				case line.State() == "sale" && line.Product().InvoicePolicy() == "order" &&
 					nbutils.Compare(line.QtyDelivered(), line.ProductUomQty(), precision) > 0:
 					invoiceStatus = "upselling"

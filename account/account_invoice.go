@@ -19,6 +19,13 @@ var ReferenceType = types.Selection{
 	"none": "Free Reference",
 }
 
+var Type2Journal = map[string]string{
+	"out_invoice": "sale",
+	"in_invoice":  "purchase",
+	"out_refund":  "sale",
+	"in_refund":   "purchase",
+}
+
 func init() {
 
 	pool.AccountInvoice().DeclareModel()
@@ -219,21 +226,21 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 	pool.AccountInvoice().Methods().DefaultJournal().DeclareMethod(
 		`DefaultJournal`,
 		func(rs pool.AccountInvoiceSet) pool.AccountJournalSet {
-			//@api.model
-			/*def _default_journal(self):
-			  if self._context.get('default_journal_id', False):
-			      return self.env['account.journal'].browse(self._context.get('default_journal_id'))
-			  inv_type = self._context.get('type', 'out_invoice')
-			  inv_types = inv_type if isinstance(inv_type, list) else [inv_type]
-			  company_id = self._context.get('company_id', self.env.user.company_id.id)
-			  domain = [
-			      ('type', 'in', filter(None, map(TYPE2JOURNAL.get, inv_types))),
-			      ('company_id', '=', company_id),
-			  ]
-			  return self.env['account.journal'].search(domain, limit=1)
-
-			*/
-			return pool.AccountJournal().NewSet(rs.Env())
+			if rs.Env().Context().HasKey("default_journal_id") {
+				return pool.AccountJournal().Browse(rs.Env(),
+					[]int64{rs.Env().Context().GetInteger("default_journal_id")})
+			}
+			invType := "out_invoice"
+			if rs.Env().Context().HasKey("type") {
+				invType = rs.Env().Context().GetString("type")
+			}
+			company := pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			if rs.Env().Context().HasKey("company_id") {
+				company = pool.Company().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("company_id")})
+			}
+			jType := Type2Journal[invType]
+			cond := pool.AccountJournal().Type().Equals(jType).And().Company().Equals(company)
+			return pool.AccountJournal().Search(rs.Env(), cond)
 		})
 
 	pool.AccountInvoice().Methods().ComputeResidual().DeclareMethod(

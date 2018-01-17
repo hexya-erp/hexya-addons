@@ -4,9 +4,12 @@
 package account
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/hexya-erp/hexya-addons/account/accounttypes"
 	"github.com/hexya-erp/hexya/hexya/actions"
@@ -350,8 +353,8 @@ to manage payments outside of the software.`},
 		"BankStatementsSource": models.SelectionField{String: "Bank Feeds", Selection: types.Selection{
 			"manual": "Record Manually",
 		}},
-		"BankAccNumber": models.CharField{Related: "BankAccount.Name"},
-		"Bank":          models.Many2OneField{RelationModel: pool.Bank(), Related: "BankAccount.Bank"},
+		//"BankAccNumber": models.CharField{Related: "BankAccount.Name"},
+		//"Bank":          models.Many2OneField{RelationModel: pool.Bank(), Related: "BankAccount.Bank"},
 	})
 
 	pool.AccountJournal().AddSQLConstraint("code_company_uniq", "unique (code, name, company_id)",
@@ -485,124 +488,132 @@ to manage payments outside of the software.`},
 		})
 
 	pool.AccountJournal().Methods().GetSequencePrefix().DeclareMethod(
-		`GetSequencePrefix`,
+		`GetSequencePrefix returns the prefix of the sequence for the given code.`,
 		func(rs pool.AccountJournalSet, code string, refund bool) string {
-			//@api.model
-			/*def _get_sequence_prefix(self, code, refund=False):
-						  prefix = code.upper()
-						  if refund:
-						      prefix = 'R' + prefix
-						  return prefix + '/%(range_year)s/'
-
-			x			*/
-			return ""
+			prefix := strings.ToUpper(code)
+			if refund {
+				prefix = "R" + prefix
+			}
+			return prefix + "/%(range_year)%/"
 		})
 
 	pool.AccountJournal().Methods().CreateSequence().DeclareMethod(
-		`CreateSequence`,
-		func(rs pool.AccountJournalSet, refund bool, vals *pool.AccountJournalData, fieldsToReset ...models.FieldNamer) {
-			//@api.model
-			/*def _create_sequence(self, vals, refund=False):
-			  """ Create new no_gap entry sequence for every new Journal"""
-			  prefix = self._get_sequence_prefix(vals['code'], refund)
-			  seq = {
-			      'name': refund and vals['name'] + _(': Refund') or vals['name'],
-			      'implementation': 'no_gap',
-			      'prefix': prefix,
-			      'padding': 4,
-			      'number_increment': 1,
-			      'use_date_range': True,
-			  }
-			  if 'company_id' in vals:
-			      seq['company_id'] = vals['company_id']
-			  return self.env['ir.sequence'].create(seq)
-
-			*/
+		`CreateSequence creates new no_gap entry sequence for every new Journal`,
+		func(rs pool.AccountJournalSet, vals *pool.AccountJournalData, refund bool) pool.SequenceSet {
+			prefix := rs.GetSequencePrefix(vals.Code, refund)
+			name := vals.Name
+			if refund {
+				name = rs.T("%s: Refund", name)
+			}
+			seq := pool.SequenceData{
+				Name:            name,
+				Implementation:  "no_gap",
+				Prefix:          prefix,
+				Padding:         4,
+				NumberIncrement: 1,
+				UseDateRange:    true,
+				Company:         vals.Company,
+			}
+			return pool.Sequence().Create(rs.Env(), &seq)
 		})
 
 	pool.AccountJournal().Methods().PrepareLiquidityAccount().DeclareMethod(
-		`PrepareLiquidityAccount`,
+		`PrepareLiquidityAccount prepares the value to use for the creation of the default debit and credit accounts of a
+			  liquidity journal (created through the wizard of generating COA from templates for example).`,
 		func(rs pool.AccountJournalSet, name string, company pool.CompanySet, currency pool.CurrencySet, accType string) *pool.AccountAccountData {
-			//@api.model
-			/*def _prepare_liquidity_account(self, name, company, currency_id, type):
-			  '''
-			  This function prepares the value to use for the creation of the default debit and credit accounts of a
-			  liquidity journal (created through the wizard of generating COA from templates for example).
+			// Seek the next available number for the account code
+			codeDigits := company.AccountsCodeDigits()
+			accountCodePrefix := company.BankAccountCodePrefix()
+			if accType == "cash" {
+				if company.CashAccountCodePrefix() != "" {
+					accountCodePrefix = company.CashAccountCodePrefix()
+				}
+			}
+			var (
+				flag    bool
+				newCode string
+			)
+			for num := 1; num < 100; num++ {
+				newCode = strings.Replace(
+					fmt.Sprintf("%-[1]*[2]d%d", codeDigits-1, accountCodePrefix, num), " ", "0", -1)
+				rec := pool.AccountAccount().Search(rs.Env(),
+					pool.AccountAccount().Code().Equals(newCode).And().Company().Equals(company)).Limit(1)
+				if rec.IsEmpty() {
+					flag = true
+					break
+				}
+			}
+			if !flag {
+				panic(rs.T("Cannot generate an unused account code."))
+			}
+			liquidityType := pool.AccountAccountType().Search(rs.Env(),
+				pool.AccountAccountType().HexyaExternalID().Equals("account.data_account_type_liquidity"))
 
-			  :param name: name of the bank account
-			  :param company: company for which the wizard is running
-			  :param currency_id: ID of the currency in wich is the bank account
-			  :param type: either 'cash' or 'bank'
-			  :return: mapping of field names and values
-			  :rtype: dict
-			  '''
-
-			  # Seek the next available number for the account code
-			  code_digits = company.accounts_code_digits or 0
-			  if type == 'bank':
-			      account_code_prefix = company.bank_account_code_prefix or ''
-			  else:
-			      account_code_prefix = company.cash_account_code_prefix or company.bank_account_code_prefix or ''
-			  for num in xrange(1, 100):
-			      new_code = str(account_code_prefix.ljust(code_digits - 1, '0')) + str(num)
-			      rec = self.env['account.account'].search([('code', '=', new_code), ('company_id', '=', company.id)], limit=1)
-			      if not rec:
-			          break
-			  else:
-			      raise UserError(_('Cannot generate an unused account code.'))
-
-			  liquidity_type = self.env.ref('account.data_account_type_liquidity')
-			  return {
-			          'name': name,
-			          'currency_id': currency_id or False,
-			          'code': new_code,
-			          'user_type_id': liquidity_type and liquidity_type.id or False,
-			          'company_id': company.id,
-			  }
-
-			*/
-			return &pool.AccountAccountData{}
+			return &pool.AccountAccountData{
+				Name:     name,
+				Currency: currency,
+				Code:     newCode,
+				UserType: liquidityType,
+				Company:  company,
+			}
 		})
 
 	pool.AccountJournal().Methods().Create().Extend("",
 		func(rs pool.AccountJournalSet, vals *pool.AccountJournalData) pool.AccountJournalSet {
-			//@api.model
-			/*def create(self, vals):
-			  company_id = vals.get('company_id', self.env.user.company_id.id)
-			  if vals.get('type') in ('bank', 'cash'):
-			      # For convenience, the name can be inferred from account number
-			      if not vals.get('name') and 'bank_acc_number' in vals:
-			          vals['name'] = vals['bank_acc_number']
+			company := vals.Company
+			if company.IsEmpty() {
+				company = pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			}
+			if vals.Type == "bank" || vals.Type == "cash" {
+				// # For convenience, the name can be inferred from account number
+				// if not vals.get('name') and 'bank_acc_number' in vals:
+				//    vals['name'] = vals['bank_acc_number']
+				if vals.Code == "" {
+					journalCodeBase := "BNK"
+					if vals.Type == "cash" {
+						journalCodeBase = "CSH"
+					}
+					journals := pool.AccountJournal().Search(rs.Env(),
+						pool.AccountJournal().Code().Like(journalCodeBase+"%").And().Company().Equals(company))
+					journalCodes := make(map[string]bool)
+					for _, j := range journals.Records() {
+						journalCodes[j.Code()] = true
+					}
+					for num := 1; num < 100; num++ {
+						// journal_code has a maximal size of 5, hence we can enforce the boundary num < 100
+						jCode := journalCodeBase + strconv.Itoa(num)
+						if _, exists := journalCodes[jCode]; !exists {
+							vals.Code = jCode
+							break
+						}
+					}
+					if vals.Code == "" {
+						panic(rs.T("Cannot generate an unused journal code. Please fill the 'Shortcode' field."))
+					}
+				}
+				// Create a default debit/credit account if not given
+				defaultAccount := vals.DefaultDebitAccount
+				if defaultAccount.IsEmpty() {
+					defaultAccount = vals.DefaultCreditAccount
+				}
+				if defaultAccount.IsEmpty() {
+					accountVals := rs.PrepareLiquidityAccount(vals.Name, company, vals.Currency, vals.Type)
+					defaultAccount = pool.AccountAccount().Create(rs.Env(), accountVals)
+					vals.DefaultDebitAccount = defaultAccount
+					vals.DefaultCreditAccount = defaultAccount
+				}
 
-			      # If no code provided, loop to find next available journal code
-			      if not vals.get('code'):
-			          journal_code_base = (vals['type'] == 'cash' and 'CSH' or 'BNK')
-			          journals = self.env['account.journal'].search([('code', 'like', journal_code_base + '%'), ('company_id', '=', company_id)])
-			          for num in xrange(1, 100):
-			              # journal_code has a maximal size of 5, hence we can enforce the boundary num < 100
-			              journal_code = journal_code_base + str(num)
-			              if journal_code not in journals.mapped('code'):
-			                  vals['code'] = journal_code
-			                  break
-			          else:
-			              raise UserError(_("Cannot generate an unused journal code. Please fill the 'Shortcode' field."))
+			}
+			// We just need to create the relevant sequences according to the chosen options
+			if vals.EntrySequence.IsEmpty() {
+				vals.EntrySequence = rs.Sudo().CreateSequence(vals, false)
+			}
+			if (vals.Type == "sale" || vals.Type == "purchase") && vals.RefundSequence && vals.RefundEntrySequence.IsEmpty() {
+				vals.RefundEntrySequence = rs.Sudo().CreateSequence(vals, true)
+			}
+			journal := rs.Super().Create(vals)
 
-			      # Create a default debit/credit account if not given
-			      default_account = vals.get('default_debit_account_id') or vals.get('default_credit_account_id')
-			      if not default_account:
-			          company = self.env['res.company'].browse(company_id)
-			          account_vals = self._prepare_liquidity_account(vals.get('name'), company, vals.get('currency_id'), vals.get('type'))
-			          default_account = self.env['account.account'].create(account_vals)
-			          vals['default_debit_account_id'] = default_account.id
-			          vals['default_credit_account_id'] = default_account.id
-
-			  # We just need to create the relevant sequences according to the chosen options
-			  if not vals.get('sequence_id'):
-			      vals.update({'sequence_id': self.sudo()._create_sequence(vals).id})
-			  if vals.get('type') in ('sale', 'purchase') and vals.get('refund_sequence') and not vals.get('refund_sequence_id'):
-			      vals.update({'refund_sequence_id': self.sudo()._create_sequence(vals, refund=True).id})
-
-			  journal = super(AccountJournal, self).create(vals)
+			/*
 
 			  # Create the bank_account_id if necessary
 			  if journal.type == 'bank' and not journal.bank_account_id and vals.get('bank_acc_number'):
@@ -611,7 +622,7 @@ to manage payments outside of the software.`},
 			  return journal
 
 			*/
-			return rs.Super().Create(vals)
+			return journal
 		})
 
 	pool.AccountJournal().Methods().DefineBankAccount().DeclareMethod(

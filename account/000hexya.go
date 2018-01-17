@@ -8,23 +8,16 @@ import (
 	_ "github.com/hexya-erp/hexya-addons/analytic"
 	"github.com/hexya-erp/hexya-base/base"
 	"github.com/hexya-erp/hexya-base/web/controllers"
-	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/server"
-	"github.com/hexya-erp/hexya/pool"
 )
 
 const MODULE_NAME string = "account"
 
 func init() {
 	server.RegisterModule(&server.Module{
-		Name: MODULE_NAME,
-		PostInit: func() {
-			models.ExecuteInNewEnvironment(security.SuperUserID, func(env models.Environment) {
-				pool.SaleReport().NewSet(env).Init()
-			})
-
-		},
+		Name:     MODULE_NAME,
+		PostInit: func() {},
 	})
 
 	GroupAccountInvoice = security.Registry.NewGroup("account_group_account_invoice", "Billing", base.GroupUser)
