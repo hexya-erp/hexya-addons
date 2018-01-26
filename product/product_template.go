@@ -339,7 +339,7 @@ Use this field anywhere a small image is required.`},
 			if _, exists := vals.Get(pool.ProductTemplate().AttributeLines(), fieldsToUnset...); exists || vals.Active {
 				rs.CreateVariants()
 			}
-			if active, exists := vals.Get(pool.ProductTemplate().AttributeLines(), fieldsToUnset...); exists && !active.(bool) {
+			if active, exists := vals.Get(pool.ProductTemplate().Active(), fieldsToUnset...); exists && !active.(bool) {
 				rs.WithContext("active_test", false).ProductVariants().SetActive(vals.Active)
 			}
 			return res
@@ -466,7 +466,7 @@ Use this field anywhere a small image is required.`},
 				}
 				var variantMatrix []pool.ProductAttributeValueSet
 				if len(matrixValues) > 0 {
-					variantMatrix = variantMatrix[0].CartesianProduct(variantMatrix[1:]...)
+					variantMatrix = matrixValues[0].CartesianProduct(matrixValues[1:]...)
 				} else {
 					variantMatrix = []pool.ProductAttributeValueSet{pool.ProductAttributeValue().NewSet(rs.Env())}
 				}
