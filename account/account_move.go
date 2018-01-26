@@ -23,11 +23,11 @@ func init() {
 		"Name": models.CharField{String: "Number", Required: true, NoCopy: true, Default: models.DefaultValue("/")},
 		"Ref":  models.CharField{String: "Reference", NoCopy: true},
 		"Date": models.DateField{String: "Date", Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
-			Index: true, Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Index: true, Default: func(env models.Environment) interface{} {
 				return dates.Today()
 			}},
 		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("default_journal_type") {
 					return pool.AccountJournal().Search(env,
 						pool.AccountJournal().Type().Equals(env.Context().GetString("default_journal_type"))).Limit(1)
@@ -53,7 +53,7 @@ will be created in 'Posted' status.'`},
 			Depends: []string{"Lines", "Lines.Debit", "Lines.Credit"}, Stored: true},
 		"Narration": models.TextField{String: "Internal Note"},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Journal.Company", /* readonly=true */
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"MatchedPercentage": models.FloatField{String: "Percentage Matched",
@@ -408,7 +408,7 @@ views from reports`},
 		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Company.Currency",
 			/* readonly=true */ Help: "Utility field to express amount currency', store=True"},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("default_journal_id") {
 					return pool.AccountJournal().Browse(env, []int64{env.Context().GetInteger("default_journal_id")}).Currency()
 				}
@@ -427,7 +427,7 @@ views from reports`},
 			Help: "The residual amount on a journal item expressed in its currency (possibly not the company currency)."},
 		"Account": models.Many2OneField{RelationModel: pool.AccountAccount(), Required: true, Index: true,
 			OnDelete: models.Cascade, Filter: pool.AccountAccount().Deprecated().Equals(false),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("account_id") {
 					return pool.AccountAccount().Browse(env, []int64{env.Context().GetInteger("account_id")})
 				}
@@ -1922,7 +1922,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 
 	pool.AccountFullReconcile().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Number", Required: true, NoCopy: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Sequence().NewSet(env).NextByCode("account.reconcile")
 			},
 			/*[ default lambda self: self.env['ir.sequence'].next_by_code('account.reconcile']*/},

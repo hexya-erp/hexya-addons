@@ -31,14 +31,14 @@ func init() {
 			Help: "If unchecked, it will allow you to hide the pricelist without removing it."},
 		"Items": models.One2ManyField{String: "Pricelist Items", RelationModel: pool.ProductPricelistItem(),
 			ReverseFK: "Pricelist", JSON: "item_ids", NoCopy: false,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				listItems := pool.ProductPricelistItem().NewSet(env)
 				values, _ := listItems.DataStruct(listItems.DefaultGet())
 				values.ComputePrice = "formula"
 				return listItems.Create(values)
 			}},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company().Currency()
 			}, Required: true},
 		"Company":       models.Many2OneField{RelationModel: pool.Company()},

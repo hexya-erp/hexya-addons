@@ -14,11 +14,11 @@ func init() {
 	pool.AccountCommonReport().DeclareMixinModel()
 	pool.AccountCommonReport().AddFields(map[string]models.FieldDefinition{
 		"Company": models.Many2OneField{RelationModel: pool.Company(), JSON: "company_id",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"Journals": models.Many2ManyField{RelationModel: pool.AccountJournal(), JSON: "journal_ids",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.AccountJournal().NewSet(env).SearchAll()
 			}},
 		"DateFrom": models.DateField{String: "Start Date"},

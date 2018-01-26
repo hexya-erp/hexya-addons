@@ -29,7 +29,7 @@ func init() {
 	pool.SaleOrder().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Order Reference", Required: true, NoCopy: true, /*[ readonly True]*/
 			/*[ states {'draft': [('readonly']*/ /*[ False)]}]*/ Index: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.SaleOrder().NewSet(env).T("New")
 			}},
 		"Origin": models.CharField{String: "Source Document",
@@ -46,7 +46,7 @@ func init() {
 		"DateOrder": models.DateTimeField{String: "Order Date", Required: true, Index: true, /*[ readonly True]*/
 			/*[ states {'draft': [('readonly']*/ /*[ False)]]*/
 			/*[ 'sent': [('readonly'] [ False)]}]*/
-			NoCopy: true, Default: func(models.Environment, models.FieldMap) interface{} {
+			NoCopy: true, Default: func(env models.Environment) interface{} {
 				return dates.Now()
 			}},
 		"ValidityDate": models.DateField{String: "Expiration Date" /*[ readonly True]*/, NoCopy: true,
@@ -57,7 +57,7 @@ based on the template if online quotation is installed.`},
 		"ConfirmationDate": models.DateTimeField{ /*[ readonly True]*/ Index: true,
 			Help: "Date on which the sale order is confirmed."},
 		"User": models.Many2OneField{String: "Salesperson", RelationModel: pool.User(), Index: true, /*[ track_visibility 'onchange']*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser()
 			}},
 		"Partner": models.Many2OneField{String: "Customer", RelationModel: pool.Partner(), /* readonly=true */
@@ -108,7 +108,7 @@ based on the template if online quotation is installed.`},
 		}, Compute: pool.SaleOrder().Methods().GetInvoiced(),
 			Depends: []string{"state", "OrderLine.InvoiceStatus"}, Stored: true /*readonly=true*/},
 		"Note": models.TextField{String: "Terms and conditions",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company().SaleNote()
 			}},
 		"AmountUntaxed": models.FloatField{String: "Untaxed Amount", Stored: true, /*[ readonly True]*/
@@ -124,11 +124,11 @@ based on the template if online quotation is installed.`},
 		"FiscalPosition": models.Many2OneField{RelationModel: pool.AccountFiscalPosition(),
 			OnChange: pool.SaleOrder().Methods().ComputeTax()},
 		"Company": models.Many2OneField{RelationModel: pool.Company(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()
 			}},
 		"Team": models.Many2OneField{String: "Sales Team", RelationModel: pool.CRMTeam(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.CRMTeam().NewSet(env).GetDefaultTeam(pool.User().NewSet(env))
 			}},
 		"ProcurementGroup": models.Many2OneField{RelationModel: pool.ProcurementGroup(), NoCopy: true},

@@ -42,7 +42,7 @@ func init() {
 			"out_refund":  "Customer Refund",
 			"in_refund":   "Vendor Refund",
 		}, /*[readonly True]*/ Index: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("type") {
 					return env.Context().GetString("type")
 				}
@@ -135,7 +135,7 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 			Help:    "Total amount in the currency of the company, negative for credit notes."},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
 			Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				journal := pool.AccountInvoice().NewSet(env).DefaultJournal()
 				if !journal.Currency().IsEmpty() {
 					return journal.Currency()
@@ -149,11 +149,11 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 			Related: "Company.Currency" /* readonly=true */},
 		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			OnChange: pool.AccountInvoice().Methods().OnchangeJournal(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.AccountInvoice().NewSet(env).DefaultJournal()
 			} /*Filter: "[('type'*/ /*[ 'in']*/ /*[ {'out_invoice': ['sale']]*/ /*[ 'out_refund': ['sale']]*/ /*[ 'in_refund': ['purchase']] [ 'in_invoice': ['purchase']}.get(type,  ('company_id']*/ /*[ ' ']*/ /*[ company_id)]"]*/},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()
 			}, OnChange: pool.AccountInvoice().Methods().OnchangePartner()},
 		"Reconciled": models.BooleanField{String: "Paid/Reconciled", Stored: true, /*[ readonly True]*/
@@ -183,7 +183,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			Depends: []string{"Move.Lines.AmountResidual"}},
 		"User": models.Many2OneField{String: "Salesperson", RelationModel: pool.User(), /*[ track_visibility 'onchange']*/
 			/* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser()
 			}},
 		"FiscalPosition": models.Many2OneField{RelationModel: pool.AccountFiscalPosition() /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/},
@@ -1476,7 +1476,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			OnChange: pool.AccountInvoiceLine().Methods().OnchangeProduct()},
 		"Account": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(),
 			Required: true, Filter: pool.AccountAccount().Deprecated().Equals(false),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if !env.Context().HasKey("journal_id") {
 					return pool.AccountJournal().NewSet(env)
 				}
@@ -1802,7 +1802,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		"Note": models.TextField{String: "Description on the Invoice", Translate: true},
 		"Lines": models.One2ManyField{RelationModel: pool.AccountPaymentTermLine(), ReverseFK: "Payment",
 			JSON: "line_ids", String: "Terms",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.AccountPaymentTermLine().Create(env, &pool.AccountPaymentTermLineData{
 					Value:       "balance",
 					ValueAmount: 0,
@@ -1812,7 +1812,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 				})
 			}, Constraint: pool.AccountPaymentTerm().Methods().CheckLines()},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 	})

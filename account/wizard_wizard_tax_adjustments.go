@@ -22,7 +22,7 @@ func init() {
 		})
 	pool.TaxAdjustmentsWizard().AddFields(map[string]models.FieldDefinition{
 		"Reason": models.CharField{String: "Reason" /*[string 'Justification']*/, Required: true},
-		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true, Default: func(models.Environment, models.FieldMap) interface{} {
+		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true, Default: func(env models.Environment) interface{} {
 			/*_get_default_journal(self):
 			    return self.env['account.journal'].search([('type', '=', 'general')], limit=1).id
 
@@ -33,7 +33,7 @@ func init() {
 		"DebitAccount":  models.Many2OneField{String: "Debit account", RelationModel: pool.AccountAccount(), JSON: "debit_account_id" /*['account.account']*/, Required: true /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
 		"CreditAccount": models.Many2OneField{String: "Credit account", RelationModel: pool.AccountAccount(), JSON: "credit_account_id" /*['account.account']*/, Required: true /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
 		"Amount":        models.FloatField{String: "Amount" /*[currency_field 'company_currency_id']*/, Required: true},
-		"CompanyCurrency": models.Many2OneField{String: "CompanyCurrencyId", RelationModel: pool.Currency(), JSON: "company_currency_id" /*['res.currency']*/ /* readonly=true */, Default: func(models.Environment, models.FieldMap) interface{} {
+		"CompanyCurrency": models.Many2OneField{String: "CompanyCurrencyId", RelationModel: pool.Currency(), JSON: "company_currency_id" /*['res.currency']*/ /* readonly=true */, Default: func(env models.Environment) interface{} {
 			/*lambda self: self.env.user.company_id.currency_id*/
 			return 0
 		}},

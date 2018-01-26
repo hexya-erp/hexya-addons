@@ -98,7 +98,7 @@ func init() {
 
 	pool.ProductPriceHistory().AddFields(map[string]models.FieldDefinition{
 		"Company": models.Many2OneField{RelationModel: pool.Company(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("force_company") {
 
 					return pool.Company().Browse(env, []int64{env.Context().GetInteger("force_company")})
@@ -108,7 +108,7 @@ func init() {
 			}, Required: true},
 		"Product": models.Many2OneField{RelationModel: pool.ProductProduct(), JSON: "product_id",
 			OnDelete: models.Cascade, Required: true},
-		"Datetime": models.DateTimeField{String: "Date", Default: func(env models.Environment, vals models.FieldMap) interface{} {
+		"Datetime": models.DateTimeField{String: "Date", Default: func(env models.Environment) interface{} {
 			return dates.Now()
 		}},
 		"Cost": models.FloatField{String: "Cost", Digits: decimalPrecision.GetPrecision("Product Price")},
@@ -727,10 +727,10 @@ Keep empty to use the internal one.`},
 or in the default unit of measure of the product otherwise.`},
 		"Price": models.FloatField{Default: models.DefaultValue(0), Digits: decimalPrecision.GetPrecision("Product Price"),
 			Required: true, Help: "The price to purchase a product"},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Default: func(env models.Environment, vals models.FieldMap) interface{} {
+		"Company": models.Many2OneField{RelationModel: pool.Company(), Default: func(env models.Environment) interface{} {
 			return pool.User().NewSet(env).CurrentUser().Company()
 		}, Index: true},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(), Default: func(env models.Environment, vals models.FieldMap) interface{} {
+		"Currency": models.Many2OneField{RelationModel: pool.Currency(), Default: func(env models.Environment) interface{} {
 			return pool.User().NewSet(env).CurrentUser().Company().Currency()
 		}, Required: true},
 		"DateStart": models.DateField{String: "Start Date", Help: "Start date for this vendor price"},

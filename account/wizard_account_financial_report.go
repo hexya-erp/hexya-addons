@@ -6,7 +6,7 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-    "github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool"
 )
 
 func init() {
@@ -27,7 +27,7 @@ func init() {
 		})
 	pool.AccountingReport().AddFields(map[string]models.FieldDefinition{
 		"EnableFilter": models.BooleanField{String: "EnableFilter" /*[string 'Enable Comparison']*/},
-		"AccountReport": models.Many2OneField{String: "Account Reports", RelationModel: pool.AccountFinancialReport(), JSON: "account_report_id" /*['account.financial.report']*/, Required: true, Default: func(models.Environment, models.FieldMap) interface{} {
+		"AccountReport": models.Many2OneField{String: "Account Reports", RelationModel: pool.AccountFinancialReport(), JSON: "account_report_id" /*['account.financial.report']*/, Required: true, Default: func(env models.Environment) interface{} {
 			/*_get_account_report(self):
 			    reports = []
 			    if self._context.get('active_id'):

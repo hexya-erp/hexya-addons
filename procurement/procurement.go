@@ -29,7 +29,7 @@ func init() {
 
 	pool.ProcurementGroup().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Reference",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Sequence().NewSet(env).NextByCode("procurement.group")
 			}, Required: true},
 		"MoveType": models.SelectionField{String: "Delivery Type", Selection: types.Selection{
@@ -70,13 +70,13 @@ func init() {
 		"Origin": models.CharField{String: "Source Document",
 			Help: "Reference of the document that created this Procurement. This is automatically completed by Hexya."},
 		"Company": models.Many2OneField{RelationModel: pool.Company(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()
 			}, Required: true},
 		"Priority": models.SelectionField{Selection: Priorities, Default: models.DefaultValue("1"),
 			Required: true, Index: true /*track_visibility='onchange')*/},
 		"DatePlanned": models.DateTimeField{String: "Scheduled Date",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return dates.Now()
 			}, Required: true, Index: true /*[ track_visibility 'onchange']*/},
 		"Group": models.Many2OneField{String: "Procurement Group", RelationModel: pool.ProcurementGroup()},

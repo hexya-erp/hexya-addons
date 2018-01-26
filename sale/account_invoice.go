@@ -12,7 +12,7 @@ func init() {
 
 	pool.AccountInvoice().AddFields(map[string]models.FieldDefinition{
 		"Team": models.Many2OneField{String: "Sales Team", RelationModel: pool.CRMTeam(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.CRMTeam().NewSet(env).GetDefaultTeam(pool.User().NewSet(env))
 			}},
 		"PartnerShipping": models.Many2OneField{String: "Delivery Address", RelationModel: pool.Partner(),
@@ -21,7 +21,7 @@ func init() {
 	})
 
 	pool.AccountInvoice().Fields().Comment().SetDefault(
-		func(env models.Environment, vals models.FieldMap) interface{} {
+		func(env models.Environment) interface{} {
 			invoiceType := "out_invoice"
 			if env.Context().HasKey("type") {
 				invoiceType = env.Context().GetString("type")

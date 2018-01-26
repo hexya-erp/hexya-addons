@@ -26,7 +26,7 @@ func init() {
 	//		company_id = */
 	//	})
 	//pool.AccountConfigSettings().AddFields(map[string]models.FieldDefinition{
-	//	"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(models.Environment, models.FieldMap) interface{} {
+	//	"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
 	//		/*lambda self: self.env.user.company_id*/
 	//		return 0
 	//	}},

@@ -76,7 +76,7 @@ or if you click the "Done" button.`, NoCopy: true},
 		"Taxes": models.Many2ManyField{String: "Default Taxes", RelationModel: pool.AccountTax(), JSON: "tax_ids"},
 		"Note":  models.TextField{String: "Internal Notes"},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()
 			}},
 		"Tags": models.Many2ManyField{RelationModel: pool.AccountAccountTag(), JSON: "tag_ids",
@@ -304,7 +304,7 @@ them from invoices.`},
 			Constraint: pool.AccountJournal().Methods().CheckCurrency(),
 			Help:       "The currency used to enter statement"},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true, Index: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}, Help: "Company related to this journal"},
 		"RefundSequence": models.BooleanField{String: "Dedicated Refund Sequence",
@@ -314,7 +314,7 @@ same sequence for invoices and refunds made from this journal`,
 		"InboundPaymentMethods": models.Many2ManyField{String: "Debit Methods",
 			RelationModel: pool.AccountPaymentMethod(), JSON: "inbound_payment_method_ids",
 			Filter: pool.AccountPaymentMethod().PaymentType().Equals("inbound"),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.AccountPaymentMethod().Search(env,
 					pool.AccountPaymentMethod().HexyaExternalID().Equals("account_account_payment_method_manual_in"))
 			},
@@ -325,7 +325,7 @@ to manage payments outside of the software.`},
 		"OutboundPaymentMethods": models.Many2ManyField{String: "Payment Methods",
 			RelationModel: pool.AccountPaymentMethod(), JSON: "outbound_payment_method_ids",
 			Filter: pool.AccountPaymentMethod().PaymentType().Equals("outbound"),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.AccountPaymentMethod().Search(env,
 					pool.AccountPaymentMethod().HexyaExternalID().Equals("account_account_payment_method_manual_out"))
 			}, Help: `Means of payment for sending money.
@@ -770,7 +770,7 @@ used to manually fill some data in the tax declaration`},
 		"Active": models.BooleanField{String: "Active", Default: models.DefaultValue(true),
 			Help: "Set active to false to hide the tax without removing it."},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTax(), JSON: "children_tax_ids",
@@ -802,7 +802,7 @@ to the same analytic account as the invoice line (if any)`},
 		"Tags": models.Many2ManyField{String: "Tags", RelationModel: pool.AccountAccountTag(), JSON: "tag_ids",
 			Help: "Optional tags you may want to assign for custom reporting"},
 		"TaxGroup": models.Many2OneField{RelationModel: pool.AccountTaxGroup(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.AccountTaxGroup().NewSet(env).SearchAll().Limit(1)
 			}, Required: true},
 	})
@@ -1145,7 +1145,7 @@ to the same analytic account as the invoice line (if any)`},
 		"Sequence":      models.IntegerField{Required: true, Default: models.DefaultValue(10)},
 		"HasSecondLine": models.BooleanField{String: "Add a second line", Default: models.DefaultValue(false)},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"Account": models.Many2OneField{RelationModel: pool.AccountAccount(),

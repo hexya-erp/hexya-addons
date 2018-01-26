@@ -33,7 +33,7 @@ func init() {
 		"Lines": models.One2ManyField{String: "Analytic Lines", RelationModel: pool.AccountAnalyticLine(),
 			ReverseFK: "Account", JSON: "line_ids"},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"Partner": models.Many2OneField{String: "Customer", RelationModel: pool.Partner() /* track_visibility 'onchange' */},
@@ -104,7 +104,7 @@ func init() {
 	pool.AccountAnalyticLine().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Description", Required: true},
 		"Date": models.DateField{String: "Date", Required: true, Index: true,
-			Default: func(models.Environment, models.FieldMap) interface{} {
+			Default: func(models.Environment) interface{} {
 				return dates.Today()
 			}},
 		"Amount":     models.FloatField{Required: true, Default: models.DefaultValue(0)},
@@ -113,7 +113,7 @@ func init() {
 			Required: true, OnDelete: models.Restrict, Index: true},
 		"Partner": models.Many2OneField{RelationModel: pool.Partner()},
 		"User": models.Many2OneField{String: "User", RelationModel: pool.User(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				user := pool.User().NewSet(env).CurrentUser()
 				if env.Context().HasKey("user_id") {
 					user = pool.User().Browse(env, []int64{env.Context().GetInteger("user_id")})

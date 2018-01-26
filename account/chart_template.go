@@ -571,7 +571,7 @@ Note : 'None' means a tax can't be used by itself however it can still be used i
 		"Active": models.BooleanField{Default: models.DefaultValue(true),
 			Help: "Set active to false to hide the tax without removing it."},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company()
 			}},
 		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTaxTemplate(), JSON: "children_tax_ids",

@@ -46,7 +46,7 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 	The "Digital Product" module has to be installed.`},
 		"Rental": models.BooleanField{String: "Can be Rent"},
 		"Categ": models.Many2OneField{String: "Internal Category", RelationModel: pool.ProductCategory(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("categ_id") {
 					return pool.ProductCategory().Browse(env, []int64{env.Context().GetInteger("categ_id")})
 				}
@@ -91,18 +91,18 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 		"Pricelist": models.Many2OneField{String: "Pricelist", RelationModel: pool.ProductPricelist(),
 			Stored: false, Help: "Technical field. Used for searching on pricelists, not stored in database."},
 		"Uom": models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.ProductUom().NewSet(env).SearchAll().Limit(1).OrderBy("ID")
 			}, Required: true, Help: "Default Unit of Measure used for all stock operation.",
 			Constraint: pool.ProductTemplate().Methods().CheckUom(),
 			OnChange:   pool.ProductTemplate().Methods().OnchangeUom()},
 		"UomPo": models.Many2OneField{String: "Purchase Unit of Measure", RelationModel: pool.ProductUom(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.ProductUom().NewSet(env).SearchAll().Limit(1).OrderBy("ID")
 			}, Required: true, Constraint: pool.ProductTemplate().Methods().CheckUom(),
 			Help: "Default Unit of Measure used for purchase orders. It must be in the same category than the default unit of measure."},
 		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.ProductUom().NewSet(env).SearchAll().Limit(1).OrderBy("ID")
 			}, Index: true},
 		"Packagings": models.One2ManyField{String: "Logistical Units", RelationModel: pool.ProductPackaging(),

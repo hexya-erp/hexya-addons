@@ -27,7 +27,7 @@ func init() {
 				"percentage": "Down payment (percentage)",
 				"fixed":      "Down payment (fixed amount)"},
 			OnChange: pool.SaleAdvancePaymentInv().Methods().OnchangeAdvancePaymentMethod(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				if len(env.Context().GetIntegerSlice("active_ids")) == 1 {
 					order := pool.SaleOrder().Browse(env, env.Context().GetIntegerSlice("active_ids"))
 					if order.InvoiceCount() > 0 {
@@ -44,23 +44,23 @@ func init() {
 			}},
 		"Product": models.Many2OneField{String: "Down Payment Product", RelationModel: pool.ProductProduct(),
 			Filter: pool.ProductProduct().Type().Equals("service"),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.SaleAdvancePaymentInv().NewSet(env).DefaultProduct()
 			}},
 		"Count": models.IntegerField{String: "# of Orders",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return len(env.Context().GetIntegerSlice("active_ids"))
 			}},
 		"Amount": models.FloatField{String: "Down Payment Amount", Digits: decimalPrecision.GetPrecision("Account"),
 			Help: "The amount to be invoiced in advance, taxes excluded."},
 		"DepositAccount": models.Many2OneField{String: "Income Account", RelationModel: pool.AccountAccount(),
 			Filter: pool.AccountAccount().Deprecated().Equals(false), Help: "Account used for deposits",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.SaleAdvancePaymentInv().NewSet(env).DefaultProduct().PropertyAccountIncome()
 			}},
 		"DepositTaxes": models.Many2ManyField{String: "Customer Taxes", RelationModel: pool.AccountTax(),
 			JSON: "deposit_taxes_id", Help: "Taxes used for deposits",
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.SaleAdvancePaymentInv().NewSet(env).DefaultProduct().Taxes()
 			}},
 	})

@@ -104,12 +104,12 @@ func init() {
 			Help: `Used to hold the reference of the external mean that created this statement
 (name of imported file, reference of online synchronization...)`},
 		"Date": models.DateField{Required: true /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/, Index: true,
-			NoCopy: true, Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			NoCopy: true, Default: func(env models.Environment) interface{} {
 				return dates.Today()
 			}},
 		"DateDone": models.DateTimeField{String: "Closed On"},
 		"BalanceStart": models.FloatField{String: "Starting Balance", /*[ states {'confirm': [('readonly'] '=' [ True)]}]*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				// Search last bank statement and set current opening balance as closing balance of previous one
 				journal := pool.AccountJournal().NewSet(env)
 				switch {
@@ -132,7 +132,7 @@ func init() {
 		"Journal": models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(),
 			Required: true, /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/
 			OnChange: pool.AccountBankStatement().Methods().OnchangeJournal(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				journalType := env.Context().GetString("journal_type")
 				company := pool.Company().NewSet(env).CompanyDefaultGet()
 				if journalType != "" {
@@ -143,7 +143,7 @@ func init() {
 			}},
 		"JournalType": models.SelectionField{Related: "Journal.Type", Help: "Technical field used for usability purposes"},
 		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Journal.Company", /* readonly=true */
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()
 			}},
 		"TotalEntryEncoding": models.FloatField{String: "Transactions Subtotal",
@@ -168,7 +168,7 @@ func init() {
 			Depends: []string{"Lines.JournalEntries"}},
 		"User": models.Many2OneField{String: "Responsible", RelationModel: pool.User(),
 			Required: false,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser()
 			}},
 		"CashboxStart": models.Many2OneField{String: "Starting Cashbox",
@@ -538,7 +538,7 @@ func init() {
 	pool.AccountBankStatementLine().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Label", Required: true},
 		"Date": models.DateField{ /*[required True]*/
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				date := dates.Today()
 				if env.Context().HasKey("date") {
 					date = env.Context().GetDate("date")

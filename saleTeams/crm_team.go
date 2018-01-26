@@ -43,7 +43,7 @@ func init() {
 		"Active": models.BooleanField{Default: models.DefaultValue(true),
 			Help: "If the active field is set to false, it will allow you to hide the sales team without removing it."},
 		"Company": models.Many2OneField{RelationModel: pool.Company(),
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.Company().NewSet(env).CompanyDefaultGet()
 			}},
 		"User": models.Many2OneField{String: "Team Leader", RelationModel: pool.User()},

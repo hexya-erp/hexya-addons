@@ -41,10 +41,10 @@ func init() {
 		"Amount": models.FloatField{String: "Payment Amount", Required: true,
 			Constraint: pool.AccountAbstractPayment().Methods().CheckAmount()},
 		"Currency": models.Many2OneField{RelationModel: pool.Currency(), Required: true,
-			Default: func(env models.Environment, vals models.FieldMap) interface{} {
+			Default: func(env models.Environment) interface{} {
 				return pool.User().NewSet(env).CurrentUser().Company().Currency()
 			}},
-		"PaymentDate": models.DateField{Default: func(env models.Environment, vals models.FieldMap) interface{} {
+		"PaymentDate": models.DateField{Default: func(env models.Environment) interface{} {
 			return dates.Today()
 		}, Required: true, NoCopy: true},
 		"Communication": models.CharField{String: "Memo"},
