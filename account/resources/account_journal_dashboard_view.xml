@@ -388,8 +388,8 @@
             </help>
         </action>
 
-        <menuitem id="account_menu_board_journal_1" name="Dashboard" sequence="1" parent="account_menu_finance"
-                  action="account_open_account_journal_dashboard_kanban" groups="group_account_user"/>
+        <!--<menuitem id="account_menu_board_journal_1" name="Dashboard" sequence="1" parent="account_menu_finance"-->
+                  <!--action="account_open_account_journal_dashboard_kanban" groups="group_account_user"/>-->
 
     </data>
 </hexya>
