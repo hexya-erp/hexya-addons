@@ -3,15 +3,13 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
-	pool.ReportAccountReportOverdue().DeclareTransientModel()
-	pool.ReportAccountReportOverdue().Methods().GetAccountMoveLines().DeclareMethod(
+	h.ReportAccountReportOverdue().DeclareTransientModel()
+	h.ReportAccountReportOverdue().Methods().GetAccountMoveLines().DeclareMethod(
 		`GetAccountMoveLines`,
-		func(rs pool.ReportAccountReportOverdueSet, args struct {
+		func(rs h.ReportAccountReportOverdueSet, args struct {
 			PartnerIds interface{}
 		}) {
 			/*def _get_account_move_lines(self, partner_ids):
@@ -34,9 +32,9 @@ func init() {
 			      "JOIN account_move m ON (l.move_id = m.id) "
 			      "WHERE l.partner_id IN %s AND at.type IN ('receivable', 'payable') AND NOT l.reconciled GROUP BY l.date, l.name, l.ref, l.date_maturity, l.partner_id, at.type, l.blocked, l.amount_currency, l.currency_id, l.move_id, m.name", (((*/
 		})
-	pool.ReportAccountReportOverdue().Methods().RenderHtml().DeclareMethod(
+	h.ReportAccountReportOverdue().Methods().RenderHtml().DeclareMethod(
 		`RenderHtml`,
-		func(rs pool.ReportAccountReportOverdueSet, args struct {
+		func(rs h.ReportAccountReportOverdueSet, args struct {
 			Docids interface{}
 			Data   interface{}
 		}) {

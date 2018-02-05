@@ -6,19 +6,19 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.CashBox().DeclareTransientModel()
-	pool.CashBox().AddFields(map[string]models.FieldDefinition{
+	h.CashBox().DeclareTransientModel()
+	h.CashBox().AddFields(map[string]models.FieldDefinition{
 		"Name":   models.CharField{String: "Name" /*[string 'Reason']*/, Required: true},
 		"Amount": models.FloatField{String: "Amount" /*[string 'Amount']*/, Digits: nbutils.Digits{0, 0}, Required: true},
 	})
-	pool.CashBox().Methods().Run().DeclareMethod(
+	h.CashBox().Methods().Run().DeclareMethod(
 		`Run`,
-		func(rs pool.CashBoxSet) {
+		func(rs h.CashBoxSet) {
 			//@api.multi
 			/*def run(self):
 			  context = dict(self._context or {})
@@ -31,9 +31,9 @@ func init() {
 
 			*/
 		})
-	pool.CashBox().Methods().RunPrivate().DeclareMethod(
+	h.CashBox().Methods().RunPrivate().DeclareMethod(
 		`RunPrivate`,
-		func(rs pool.CashBoxSet, args struct {
+		func(rs h.CashBoxSet, args struct {
 			Records interface{}
 		}) {
 			//@api.multi
@@ -49,9 +49,9 @@ func init() {
 
 			*/
 		})
-	pool.CashBox().Methods().CreateBankStatementLine().DeclareMethod(
+	h.CashBox().Methods().CreateBankStatementLine().DeclareMethod(
 		`CreateBankStatementLine`,
-		func(rs pool.CashBoxSet, args struct {
+		func(rs h.CashBoxSet, args struct {
 			Record interface{}
 		}) {
 			//@api.one
@@ -65,13 +65,13 @@ func init() {
 			*/
 		})
 
-	pool.CashBoxIn().DeclareTransientModel()
-	pool.CashBoxIn().AddFields(map[string]models.FieldDefinition{
+	h.CashBoxIn().DeclareTransientModel()
+	h.CashBoxIn().AddFields(map[string]models.FieldDefinition{
 		"Ref": models.CharField{String: "Reference')" /*['Reference']*/},
 	})
-	pool.CashBoxIn().Methods().CalculateValuesForStatementLine().DeclareMethod(
+	h.CashBoxIn().Methods().CalculateValuesForStatementLine().DeclareMethod(
 		`CalculateValuesForStatementLine`,
-		func(rs pool.CashBoxInSet, args struct {
+		func(rs h.CashBoxInSet, args struct {
 			Record interface{}
 		}) {
 			//@api.multi
@@ -92,10 +92,10 @@ func init() {
 			*/
 		})
 
-	pool.CashBoxOut().DeclareTransientModel()
-	pool.CashBoxOut().Methods().CalculateValuesForStatementLine().DeclareMethod(
+	h.CashBoxOut().DeclareTransientModel()
+	h.CashBoxOut().Methods().CalculateValuesForStatementLine().DeclareMethod(
 		`CalculateValuesForStatementLine`,
-		func(rs pool.CashBoxOutSet, args struct {
+		func(rs h.CashBoxOutSet, args struct {
 			Record interface{}
 		}) {
 			//@api.multi

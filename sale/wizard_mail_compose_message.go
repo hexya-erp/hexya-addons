@@ -5,9 +5,9 @@ package sale
 
 func init() {
 
-	//pool.MailComposeMessage().Methods().SendMail().DeclareMethod(
+	//h.MailComposeMessage().Methods().SendMail().DeclareMethod(
 	//	`SendMail`,
-	//	func(rs pool.MailComposeMessageSet, autocommit interface{}) {
+	//	func(rs h.MailComposeMessageSet, autocommit interface{}) {
 	//		//@api.multi
 	//		/*def send_mail(self, auto_commit=False):
 	//		  if self._context.get('default_model') == 'sale.order' and self._context.get('default_res_id') and self._context.get('mark_so_as_sent'):

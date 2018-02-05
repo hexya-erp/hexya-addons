@@ -3,15 +3,13 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
-	pool.ReportAccountReportGeneralledger().DeclareTransientModel()
-	pool.ReportAccountReportGeneralledger().Methods().GetAccountMoveEntry().DeclareMethod(
+	h.ReportAccountReportGeneralledger().DeclareTransientModel()
+	h.ReportAccountReportGeneralledger().Methods().GetAccountMoveEntry().DeclareMethod(
 		`GetAccountMoveEntry`,
-		func(rs pool.ReportAccountReportGeneralledgerSet, args struct {
+		func(rs h.ReportAccountReportGeneralledgerSet, args struct {
 			Accounts       interface{}
 			InitBalance    interface{}
 			Sortby         interface{}
@@ -119,9 +117,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportGeneralledger().Methods().RenderHtml().DeclareMethod(
+	h.ReportAccountReportGeneralledger().Methods().RenderHtml().DeclareMethod(
 		`RenderHtml`,
-		func(rs pool.ReportAccountReportGeneralledgerSet, args struct {
+		func(rs h.ReportAccountReportGeneralledgerSet, args struct {
 			Docids interface{}
 			Data   interface{}
 		}) {

@@ -6,15 +6,15 @@ package product
 import (
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.ProductPriceListWizard().DeclareTransientModel()
+	h.ProductPriceListWizard().DeclareTransientModel()
 
-	pool.ProductPriceListWizard().AddFields(map[string]models.FieldDefinition{
-		"PriceList": models.Many2OneField{RelationModel: pool.ProductPricelist(), Required: true},
+	h.ProductPriceListWizard().AddFields(map[string]models.FieldDefinition{
+		"PriceList": models.Many2OneField{RelationModel: h.ProductPricelist(), Required: true},
 		"Qty1":      models.IntegerField{String: "Quantity-1", Default: models.DefaultValue(1)},
 		"Qty2":      models.IntegerField{String: "Quantity-2", Default: models.DefaultValue(5)},
 		"Qty3":      models.IntegerField{String: "Quantity-3", Default: models.DefaultValue(10)},
@@ -22,9 +22,9 @@ func init() {
 		"Qty5":      models.IntegerField{String: "Quantity-5", Default: models.DefaultValue(0)},
 	})
 
-	pool.ProductPriceListWizard().Methods().PrintReport().DeclareMethod(
+	h.ProductPriceListWizard().Methods().PrintReport().DeclareMethod(
 		`PrintReport returns the report action from the data in this popup (not implemented)`,
-		func(rs pool.ProductPriceListWizardSet) *actions.Action {
+		func(rs h.ProductPriceListWizardSet) *actions.Action {
 			// TODO implement with reports
 			return &actions.Action{
 				Type: actions.ActionCloseWindow,

@@ -3,15 +3,13 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
-	pool.ReportAccountReportPartnerledger().DeclareTransientModel()
-	pool.ReportAccountReportPartnerledger().Methods().Lines().DeclareMethod(
+	h.ReportAccountReportPartnerledger().DeclareTransientModel()
+	h.ReportAccountReportPartnerledger().Methods().Lines().DeclareMethod(
 		`Lines`,
-		func(rs pool.ReportAccountReportPartnerledgerSet, args struct {
+		func(rs h.ReportAccountReportPartnerledgerSet, args struct {
 			Data    interface{}
 			Partner interface{}
 		}) {
@@ -53,9 +51,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportPartnerledger().Methods().SumPartner().DeclareMethod(
+	h.ReportAccountReportPartnerledger().Methods().SumPartner().DeclareMethod(
 		`SumPartner`,
-		func(rs pool.ReportAccountReportPartnerledgerSet, args struct {
+		func(rs h.ReportAccountReportPartnerledgerSet, args struct {
 			Data    interface{}
 			Partner interface{}
 			Field   interface{}
@@ -84,9 +82,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportPartnerledger().Methods().RenderHtml().DeclareMethod(
+	h.ReportAccountReportPartnerledger().Methods().RenderHtml().DeclareMethod(
 		`RenderHtml`,
-		func(rs pool.ReportAccountReportPartnerledgerSet, args struct {
+		func(rs h.ReportAccountReportPartnerledgerSet, args struct {
 			Docids interface{}
 			Data   interface{}
 		}) {

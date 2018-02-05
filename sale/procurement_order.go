@@ -5,13 +5,13 @@ package sale
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.ProcurementOrder().AddFields(map[string]models.FieldDefinition{
-		"SaleLine": models.Many2OneField{String: "Sale Order Line", RelationModel: pool.SaleOrderLine()},
+	h.ProcurementOrder().AddFields(map[string]models.FieldDefinition{
+		"SaleLine": models.Many2OneField{String: "Sale Order Line", RelationModel: h.SaleOrderLine()},
 	})
 
 }

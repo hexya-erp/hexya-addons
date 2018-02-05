@@ -6,24 +6,24 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountCommonAccountReport().DeclareMixinModel()
-	pool.AccountCommonAccountReport().InheritModel(pool.AccountCommonReport())
+	h.AccountCommonAccountReport().DeclareMixinModel()
+	h.AccountCommonAccountReport().InheritModel(h.AccountCommonReport())
 
-	pool.AccountCommonAccountReport().AddFields(map[string]models.FieldDefinition{
+	h.AccountCommonAccountReport().AddFields(map[string]models.FieldDefinition{
 		"DisplayAccount": models.SelectionField{String: "Display Accounts", Selection: types.Selection{
 			"all":      "All",
 			"movement": "With movements",
 			"not_zero": "With balance is not equal to 0",
 			/*[('all','All'  ('movement','With movements'  ('not_zero','With balance is not equal to 0' ]*/}, /*[]*/ Required: true, Default: models.DefaultValue("movement")},
 	})
-	pool.AccountCommonAccountReport().Methods().PrePrintReport().DeclareMethod(
+	h.AccountCommonAccountReport().Methods().PrePrintReport().DeclareMethod(
 		`PrePrintReport`,
-		func(rs pool.AccountCommonAccountReportSet, args struct {
+		func(rs h.AccountCommonAccountReportSet, args struct {
 			Data interface{}
 		}) {
 			//@api.multi

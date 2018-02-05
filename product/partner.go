@@ -5,45 +5,46 @@ package product
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.Partner().AddFields(map[string]models.FieldDefinition{
-		"PropertyProductPricelist": models.Many2OneField{String: "Sale Pricelist", RelationModel: pool.ProductPricelist(),
-			Compute: pool.Partner().Methods().ComputeProductPricelist(),
+	h.Partner().AddFields(map[string]models.FieldDefinition{
+		"PropertyProductPricelist": models.Many2OneField{String: "Sale Pricelist", RelationModel: h.ProductPricelist(),
+			Compute: h.Partner().Methods().ComputeProductPricelist(),
 			Depends: []string{"Country"},
-			Inverse: pool.Partner().Methods().InverseProductPricelist(),
+			Inverse: h.Partner().Methods().InverseProductPricelist(),
 			Help:    "This pricelist will be used instead of the default one for sales to the current partner"},
-		"ProductPricelist": models.Many2OneField{String: "Stored Pricelist", RelationModel: pool.ProductPricelist()},
+		"ProductPricelist": models.Many2OneField{String: "Stored Pricelist", RelationModel: h.ProductPricelist()},
 	})
 
-	pool.Partner().Methods().ComputeProductPricelist().DeclareMethod(
+	h.Partner().Methods().ComputeProductPricelist().DeclareMethod(
 		`ComputeProductPricelist returns the price list applicable for this partner`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			if rs.ID() == 0 {
 				// We are processing an Onchange
-				return new(pool.PartnerData), []models.FieldNamer{}
+				return new(h.PartnerData), []models.FieldNamer{}
 			}
-			company := pool.User().NewSet(rs.Env()).CurrentUser().Company()
-			return &pool.PartnerData{
-				PropertyProductPricelist: pool.ProductPricelist().NewSet(rs.Env()).GetPartnerPricelist(rs, company),
-			}, []models.FieldNamer{pool.Partner().PropertyProductPricelist()}
+			company := h.User().NewSet(rs.Env()).CurrentUser().Company()
+			return &h.PartnerData{
+				PropertyProductPricelist: h.ProductPricelist().NewSet(rs.Env()).GetPartnerPricelist(rs, company),
+			}, []models.FieldNamer{h.Partner().PropertyProductPricelist()}
 		})
 
-	pool.Partner().Methods().InverseProductPricelist().DeclareMethod(
+	h.Partner().Methods().InverseProductPricelist().DeclareMethod(
 		`InverseProductPricelist sets the price list for this partner to the given list`,
-		func(rs pool.PartnerSet, priceList pool.ProductPricelistSet) {
-			var defaultForCountry pool.ProductPricelistSet
+		func(rs h.PartnerSet, priceList h.ProductPricelistSet) {
+			var defaultForCountry h.ProductPricelistSet
 			if !rs.Country().IsEmpty() {
-				defaultForCountry = pool.ProductPricelist().Search(rs.Env(),
-					pool.ProductPricelist().CountryGroupsFilteredOn(
-						pool.CountryGroup().CountriesFilteredOn(
-							pool.Country().Code().Equals(rs.Country().Code())))).Limit(1)
+				defaultForCountry = h.ProductPricelist().Search(rs.Env(),
+					q.ProductPricelist().CountryGroupsFilteredOn(
+						q.CountryGroup().CountriesFilteredOn(
+							q.Country().Code().Equals(rs.Country().Code())))).Limit(1)
 			} else {
-				defaultForCountry = pool.ProductPricelist().Search(rs.Env(),
-					pool.ProductPricelist().CountryGroups().IsNull()).Limit(1)
+				defaultForCountry = h.ProductPricelist().Search(rs.Env(),
+					q.ProductPricelist().CountryGroups().IsNull()).Limit(1)
 			}
 			actual := rs.PropertyProductPricelist()
 			if !priceList.IsEmpty() || (!actual.IsEmpty() && !defaultForCountry.Equals(actual)) {
@@ -55,9 +56,9 @@ func init() {
 			}
 		})
 
-	pool.Partner().Methods().CommercialFields().Extend(
+	h.Partner().Methods().CommercialFields().Extend(
 		`CommercialFields`,
-		func(rs pool.PartnerSet) []models.FieldNamer {
-			return append(rs.Super().CommercialFields(), pool.Partner().PropertyProductPricelist())
+		func(rs h.PartnerSet) []models.FieldNamer {
+			return append(rs.Super().CommercialFields(), h.Partner().PropertyProductPricelist())
 		})
 }

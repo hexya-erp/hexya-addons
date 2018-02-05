@@ -17,13 +17,14 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/operator"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.AccountAccountType().DeclareModel()
-	pool.AccountAccountType().AddFields(map[string]models.FieldDefinition{
+	h.AccountAccountType().DeclareModel()
+	h.AccountAccountType().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Account Type", Required: true, Translate: true},
 		"IncludeInitialBalance": models.BooleanField{String: "Bring Accounts Balance Forward",
 			Help: `Used in reports to know if we should consider journal items from the beginning of time instead of
@@ -41,8 +42,8 @@ from the fiscal year only. Account types that should be reset to zero at each ne
 		"Note": models.TextField{String: "Description"},
 	})
 
-	pool.AccountAccountTag().DeclareModel()
-	pool.AccountAccountTag().AddFields(map[string]models.FieldDefinition{
+	h.AccountAccountTag().DeclareModel()
+	h.AccountAccountTag().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Name", Required: true},
 		"Applicability": models.SelectionField{String: "Applicability", Selection: types.Selection{
 			"accounts": "Accounts",
@@ -51,44 +52,44 @@ from the fiscal year only. Account types that should be reset to zero at each ne
 		"Color": models.IntegerField{String: "Color Index"},
 	})
 
-	pool.AccountAccount().DeclareModel()
-	pool.AccountAccount().SetDefaultOrder("Code")
+	h.AccountAccount().DeclareModel()
+	h.AccountAccount().SetDefaultOrder("Code")
 
-	pool.AccountAccount().AddFields(map[string]models.FieldDefinition{
+	h.AccountAccount().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{Required: true, Index: true},
-		"Currency": models.Many2OneField{String: "Account Currency", RelationModel: pool.Currency(),
+		"Currency": models.Many2OneField{String: "Account Currency", RelationModel: h.Currency(),
 			Help: "Forces all moves for this account to have this account currency."},
 		"Code":       models.CharField{Size: 64, Required: true, Index: true},
 		"Deprecated": models.BooleanField{Index: true, Default: models.DefaultValue(false)},
-		"UserType": models.Many2OneField{String: "Type", RelationModel: pool.AccountAccountType(),
+		"UserType": models.Many2OneField{String: "Type", RelationModel: h.AccountAccountType(),
 			Required: true, Help: `Account Type is used for information purpose, to generate country-specific
 legal reports, and set the rules to close a fiscal year and generate opening entries.`},
 		"InternalType": models.SelectionField{Related: "UserType.Type", /*readonly=True)*/
-			Constraint: pool.AccountAccount().Methods().CheckReconcile(),
-			OnChange:   pool.AccountAccount().Methods().OnchangeInternalType()},
+			Constraint: h.AccountAccount().Methods().CheckReconcile(),
+			OnChange:   h.AccountAccount().Methods().OnchangeInternalType()},
 		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date", /*[ readonly True]*/
 			Help: `Last time the invoices & payments matching was performed on this account.
 It is set either if there's not at least an unreconciled debit and an unreconciled credit
 or if you click the "Done" button.`, NoCopy: true},
 		"Reconcile": models.BooleanField{String: "Allow Reconciliation", Default: models.DefaultValue(false),
-			Constraint: pool.AccountAccount().Methods().CheckReconcile(),
+			Constraint: h.AccountAccount().Methods().CheckReconcile(),
 			Help:       "Check this box if this account allows invoices & payments matching of journal items."},
-		"Taxes": models.Many2ManyField{String: "Default Taxes", RelationModel: pool.AccountTax(), JSON: "tax_ids"},
+		"Taxes": models.Many2ManyField{String: "Default Taxes", RelationModel: h.AccountTax(), JSON: "tax_ids"},
 		"Note":  models.TextField{String: "Internal Notes"},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
+		"Company": models.Many2OneField{RelationModel: h.Company(), Required: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.Company().NewSet(env).CompanyDefaultGet()
+				return h.Company().NewSet(env).CompanyDefaultGet()
 			}},
-		"Tags": models.Many2ManyField{RelationModel: pool.AccountAccountTag(), JSON: "tag_ids",
+		"Tags": models.Many2ManyField{RelationModel: h.AccountAccountTag(), JSON: "tag_ids",
 			Help: "Optional tags you may want to assign for custom reporting"},
 	})
 
-	pool.AccountAccount().AddSQLConstraint("code_company_uniq", "unique (code,company_id)",
+	h.AccountAccount().AddSQLConstraint("code_company_uniq", "unique (code,company_id)",
 		"The code of the account must be unique per company !")
 
-	pool.AccountAccount().Methods().CheckReconcile().DeclareMethod(
+	h.AccountAccount().Methods().CheckReconcile().DeclareMethod(
 		`CheckReconcile`,
-		func(rs pool.AccountAccountSet) {
+		func(rs h.AccountAccountSet) {
 			//@api.constrains('internal_type','reconcile')
 			/*def _check_reconcile(self):
 			  for account in self:
@@ -97,8 +98,8 @@ or if you click the "Done" button.`, NoCopy: true},
 			*/
 		})
 
-	pool.AccountAccount().Methods().DefaultGet().Extend("",
-		func(rs pool.AccountAccountSet) models.FieldMap {
+	h.AccountAccount().Methods().DefaultGet().Extend("",
+		func(rs h.AccountAccountSet) models.FieldMap {
 			//@api.model
 			/*def default_get(self, default_fields):
 			  """If we're creating a new account through a many2one, there are chances that we typed the account code
@@ -120,8 +121,8 @@ or if you click the "Done" button.`, NoCopy: true},
 			return rs.Super().DefaultGet()
 		})
 
-	pool.AccountAccount().Methods().SearchByName().Extend("",
-		func(rs pool.AccountAccountSet, name string, op operator.Operator, additionalCond pool.AccountAccountCondition, limit int) pool.AccountAccountSet {
+	h.AccountAccount().Methods().SearchByName().Extend("",
+		func(rs h.AccountAccountSet, name string, op operator.Operator, additionalCond q.AccountAccountCondition, limit int) h.AccountAccountSet {
 			//@api.model
 			/*def name_search(self, name, args=None, operator='ilike', limit=100):
 			  args = args or []
@@ -137,20 +138,20 @@ or if you click the "Done" button.`, NoCopy: true},
 			return rs.Super().SearchByName(name, op, additionalCond, limit)
 		})
 
-	pool.AccountAccount().Methods().OnchangeInternalType().DeclareMethod(
+	h.AccountAccount().Methods().OnchangeInternalType().DeclareMethod(
 		`OnchangeInternalType`,
-		func(rs pool.AccountAccountSet) (*pool.AccountAccountSet, []models.FieldNamer) {
+		func(rs h.AccountAccountSet) (*h.AccountAccountSet, []models.FieldNamer) {
 			//@api.onchange('internal_type')
 			/*def onchange_internal_type(self):
 			  if self.internal_type in ('receivable', 'payable'):
 			      self.reconcile = True
 
 			*/
-			return new(pool.AccountAccountSet), []models.FieldNamer{}
+			return new(h.AccountAccountSet), []models.FieldNamer{}
 		})
 
-	pool.AccountAccount().Methods().NameGet().Extend("",
-		func(rs pool.AccountAccountSet) string {
+	h.AccountAccount().Methods().NameGet().Extend("",
+		func(rs h.AccountAccountSet) string {
 			//@api.depends('name','code')
 			/*def name_get(self):
 			  result = []
@@ -163,8 +164,8 @@ or if you click the "Done" button.`, NoCopy: true},
 			return rs.Super().NameGet()
 		})
 
-	pool.AccountAccount().Methods().Copy().Extend("",
-		func(rs pool.AccountAccountSet, overrides *pool.AccountAccountData, fieldsToReset ...models.FieldNamer) pool.AccountAccountSet {
+	h.AccountAccount().Methods().Copy().Extend("",
+		func(rs h.AccountAccountSet, overrides *h.AccountAccountData, fieldsToReset ...models.FieldNamer) h.AccountAccountSet {
 			//@api.returns('self',lambdavalue:value.id)
 			/*def copy(self, default=None):
 			  default = dict(default or {})
@@ -175,8 +176,8 @@ or if you click the "Done" button.`, NoCopy: true},
 			return rs.Super().Copy(overrides, fieldsToReset...)
 		})
 
-	pool.AccountAccount().Methods().Write().Extend("",
-		func(rs pool.AccountAccountSet, vals *pool.AccountAccountData, fieldsToReset ...models.FieldNamer) bool {
+	h.AccountAccount().Methods().Write().Extend("",
+		func(rs h.AccountAccountSet, vals *h.AccountAccountData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 			  # Dont allow changing the company_id when account_move_line already exist
@@ -198,8 +199,8 @@ or if you click the "Done" button.`, NoCopy: true},
 			return rs.Super().Write(vals, fieldsToReset...)
 		})
 
-	pool.AccountAccount().Methods().Unlink().Extend("",
-		func(rs pool.AccountAccountSet) int64 {
+	h.AccountAccount().Methods().Unlink().Extend("",
+		func(rs h.AccountAccountSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  if self.env['account.move.line'].search([('account_id', 'in', self.ids)], limit=1):
@@ -215,9 +216,9 @@ or if you click the "Done" button.`, NoCopy: true},
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountAccount().Methods().MarkAsReconciled().DeclareMethod(
+	h.AccountAccount().Methods().MarkAsReconciled().DeclareMethod(
 		`MarkAsReconciled`,
-		func(rs pool.AccountAccountSet) bool {
+		func(rs h.AccountAccountSet) bool {
 			//@api.multi
 			/*def mark_as_reconciled(self):
 			  return self.write({'last_time_entries_checked': time.strftime(DEFAULT_SERVER_DATETIME_FORMAT)})
@@ -226,9 +227,9 @@ or if you click the "Done" button.`, NoCopy: true},
 			return true
 		})
 
-	pool.AccountAccount().Methods().ActionOpenReconcile().DeclareMethod(
+	h.AccountAccount().Methods().ActionOpenReconcile().DeclareMethod(
 		`ActionOpenReconcile`,
-		func(rs pool.AccountAccountSet) *actions.Action {
+		func(rs h.AccountAccountSet) *actions.Action {
 			//@api.multi
 			/*def action_open_reconcile(self):
 			  self.ensure_one()
@@ -252,10 +253,10 @@ or if you click the "Done" button.`, NoCopy: true},
 			}
 		})
 
-	pool.AccountJournal().DeclareModel()
-	pool.AccountJournal().SetDefaultOrder("Sequence", "Type", "Code")
+	h.AccountJournal().DeclareModel()
+	h.AccountJournal().SetDefaultOrder("Sequence", "Type", "Code")
 
-	pool.AccountJournal().AddFields(map[string]models.FieldDefinition{
+	h.AccountJournal().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Journal Name", Required: true},
 		"Code": models.CharField{String: "Short Code", Size: 5, Required: true,
 			Help: "The journal entries of this journal will be named using this prefix."},
@@ -266,24 +267,24 @@ or if you click the "Done" button.`, NoCopy: true},
 			"bank":     "Bank",
 			"general":  "Miscellaneous",
 		}, Required: true,
-			Constraint: pool.AccountJournal().Methods().CheckBankAccount(),
+			Constraint: h.AccountJournal().Methods().CheckBankAccount(),
 			Help: `Select 'Sale' for customer invoices journals.
 Select 'Purchase' for vendor bills journals.
 Select 'Cash' or 'Bank' for journals that are used in customer or vendor payments.
 Select 'General' for miscellaneous operations journals.`},
 		"TypeControls": models.Many2ManyField{String: "Account Types Allowed",
-			RelationModel: pool.AccountAccountType(), JSON: "type_control_ids"},
-		"AccountControls": models.Many2ManyField{String: "Accounts Allowed", RelationModel: pool.AccountAccount(),
-			JSON: "account_control_ids", Filter: pool.AccountAccount().Deprecated().Equals(false)},
-		"DefaultCreditAccount": models.Many2OneField{RelationModel: pool.AccountAccount(),
-			Constraint: pool.AccountJournal().Methods().CheckCurrency(),
-			OnChange:   pool.AccountJournal().Methods().OnchangeCreditAccountId(),
-			Filter:     pool.AccountAccount().Deprecated().Equals(false),
+			RelationModel: h.AccountAccountType(), JSON: "type_control_ids"},
+		"AccountControls": models.Many2ManyField{String: "Accounts Allowed", RelationModel: h.AccountAccount(),
+			JSON: "account_control_ids", Filter: q.AccountAccount().Deprecated().Equals(false)},
+		"DefaultCreditAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
+			Constraint: h.AccountJournal().Methods().CheckCurrency(),
+			OnChange:   h.AccountJournal().Methods().OnchangeCreditAccountId(),
+			Filter:     q.AccountAccount().Deprecated().Equals(false),
 			Help:       "It acts as a default account for credit amount"},
-		"DefaultDebitAccount": models.Many2OneField{RelationModel: pool.AccountAccount(),
-			Constraint: pool.AccountJournal().Methods().CheckCurrency(),
-			OnChange:   pool.AccountJournal().Methods().OnchangeDebitAccountId(),
-			Filter:     pool.AccountAccount().Deprecated().Equals(false),
+		"DefaultDebitAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
+			Constraint: h.AccountJournal().Methods().CheckCurrency(),
+			OnChange:   h.AccountJournal().Methods().OnchangeDebitAccountId(),
+			Filter:     q.AccountAccount().Deprecated().Equals(false),
 			Help:       "It acts as a default account for debit amount"},
 		"UpdatePosted": models.BooleanField{String: "Allow Cancelling Entries",
 			Help: `Check this box if you want to allow the cancellation the entries related to this journal or
@@ -291,62 +292,62 @@ of the invoice related to this journal`},
 		"GroupInvoiceLines": models.BooleanField{
 			Help: `If this box is checked, the system will try to group the accounting lines when generating
 them from invoices.`},
-		"EntrySequence": models.Many2OneField{RelationModel: pool.Sequence(), JSON: "sequence_id",
+		"EntrySequence": models.Many2OneField{RelationModel: h.Sequence(), JSON: "sequence_id",
 			Help:     "This field contains the information related to the numbering of the journal entries of this journal.",
 			Required: true, NoCopy: true},
-		"RefundEntrySequence": models.Many2OneField{RelationModel: pool.Sequence(), JSON: "refund_sequence_id",
+		"RefundEntrySequence": models.Many2OneField{RelationModel: h.Sequence(), JSON: "refund_sequence_id",
 			Help:   "This field contains the information related to the numbering of the refund entries of this journal.",
 			NoCopy: true},
 		"Sequence": models.IntegerField{
 			Help:    "Used to order Journals in the dashboard view', default=10",
 			Default: models.DefaultValue(10)},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
-			Constraint: pool.AccountJournal().Methods().CheckCurrency(),
+		"Currency": models.Many2OneField{RelationModel: h.Currency(),
+			Constraint: h.AccountJournal().Methods().CheckCurrency(),
 			Help:       "The currency used to enter statement"},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true, Index: true,
+		"Company": models.Many2OneField{RelationModel: h.Company(), Required: true, Index: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company()
+				return h.User().NewSet(env).CurrentUser().Company()
 			}, Help: "Company related to this journal"},
 		"RefundSequence": models.BooleanField{String: "Dedicated Refund Sequence",
 			Help: `Check this box if you don't want to share the
 same sequence for invoices and refunds made from this journal`,
 			Default: models.DefaultValue(false)},
 		"InboundPaymentMethods": models.Many2ManyField{String: "Debit Methods",
-			RelationModel: pool.AccountPaymentMethod(), JSON: "inbound_payment_method_ids",
-			Filter: pool.AccountPaymentMethod().PaymentType().Equals("inbound"),
+			RelationModel: h.AccountPaymentMethod(), JSON: "inbound_payment_method_ids",
+			Filter: q.AccountPaymentMethod().PaymentType().Equals("inbound"),
 			Default: func(env models.Environment) interface{} {
-				return pool.AccountPaymentMethod().Search(env,
-					pool.AccountPaymentMethod().HexyaExternalID().Equals("account_account_payment_method_manual_in"))
+				return h.AccountPaymentMethod().Search(env,
+					q.AccountPaymentMethod().HexyaExternalID().Equals("account_account_payment_method_manual_in"))
 			},
 			Help: `Means of payment for collecting money.
 Hexya modules offer various payments handling facilities,
 but you can always use the 'Manual' payment method in order
 to manage payments outside of the software.`},
 		"OutboundPaymentMethods": models.Many2ManyField{String: "Payment Methods",
-			RelationModel: pool.AccountPaymentMethod(), JSON: "outbound_payment_method_ids",
-			Filter: pool.AccountPaymentMethod().PaymentType().Equals("outbound"),
+			RelationModel: h.AccountPaymentMethod(), JSON: "outbound_payment_method_ids",
+			Filter: q.AccountPaymentMethod().PaymentType().Equals("outbound"),
 			Default: func(env models.Environment) interface{} {
-				return pool.AccountPaymentMethod().Search(env,
-					pool.AccountPaymentMethod().HexyaExternalID().Equals("account_account_payment_method_manual_out"))
+				return h.AccountPaymentMethod().Search(env,
+					q.AccountPaymentMethod().HexyaExternalID().Equals("account_account_payment_method_manual_out"))
 			}, Help: `Means of payment for sending money.
 Hexya modules offer various payments handling facilities
 but you can always use the 'Manual' payment method in order
 to manage payments outside of the software.`},
-		"AtLeastOneInbound": models.BooleanField{Compute: pool.AccountJournal().Methods().MethodsCompute(),
+		"AtLeastOneInbound": models.BooleanField{Compute: h.AccountJournal().Methods().MethodsCompute(),
 			Stored: true},
-		"AtLeastOneOutbound": models.BooleanField{Compute: pool.AccountJournal().Methods().MethodsCompute(),
+		"AtLeastOneOutbound": models.BooleanField{Compute: h.AccountJournal().Methods().MethodsCompute(),
 			Stored: true},
-		"ProfitAccount": models.Many2OneField{RelationModel: pool.AccountAccount(),
-			Filter: pool.AccountAccount().Deprecated().Equals(false),
+		"ProfitAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
+			Filter: q.AccountAccount().Deprecated().Equals(false),
 			Help:   "Used to register a profit when the ending balance of a cash register differs from what the system computes"},
-		"LossAccount": models.Many2OneField{RelationModel: pool.AccountAccount(),
-			Filter: pool.AccountAccount().Deprecated().Equals(false),
+		"LossAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
+			Filter: q.AccountAccount().Deprecated().Equals(false),
 			Help:   "Used to register a loss when the ending balance of a cash register differs from what the system computes"},
 		"BelongsToCompany": models.BooleanField{String: "Belong to the user's current company",
-			Compute: pool.AccountJournal().Methods().BelongToCompany() /*[ search "_search_company_journals"]*/},
+			Compute: h.AccountJournal().Methods().BelongToCompany() /*[ search "_search_company_journals"]*/},
 
-		"BankAccount": models.Many2OneField{RelationModel: pool.BankAccount(), OnDelete: models.Restrict,
-			Constraint: pool.AccountJournal().Methods().CheckBankAccount(),
+		"BankAccount": models.Many2OneField{RelationModel: h.BankAccount(), OnDelete: models.Restrict,
+			Constraint: h.AccountJournal().Methods().CheckBankAccount(),
 			NoCopy:     true},
 		"DisplayOnFooter": models.BooleanField{String: "Show in Invoices Footer",
 			Help: "Display this bank account on the footer of printed documents like invoices and sales orders."},
@@ -354,15 +355,15 @@ to manage payments outside of the software.`},
 			"manual": "Record Manually",
 		}},
 		//"BankAccNumber": models.CharField{Related: "BankAccount.Name"},
-		//"Bank":          models.Many2OneField{RelationModel: pool.Bank(), Related: "BankAccount.Bank"},
+		//"Bank":          models.Many2OneField{RelationModel: h.Bank(), Related: "BankAccount.Bank"},
 	})
 
-	pool.AccountJournal().AddSQLConstraint("code_company_uniq", "unique (code, name, company_id)",
+	h.AccountJournal().AddSQLConstraint("code_company_uniq", "unique (code, name, company_id)",
 		"The code and name of the journal must be unique per company !'")
 
-	pool.AccountJournal().Methods().CheckCurrency().DeclareMethod(
+	h.AccountJournal().Methods().CheckCurrency().DeclareMethod(
 		`CheckCurrency`,
-		func(rs pool.AccountJournalSet) {
+		func(rs h.AccountJournalSet) {
 			//@api.constrains('currency_id','default_credit_account_id','default_debit_account_id')
 			/*def _check_currency(self):
 			  if self.currency_id:
@@ -374,9 +375,9 @@ to manage payments outside of the software.`},
 			*/
 		})
 
-	pool.AccountJournal().Methods().CheckBankAccount().DeclareMethod(
+	h.AccountJournal().Methods().CheckBankAccount().DeclareMethod(
 		`CheckBankAccount`,
-		func(rs pool.AccountJournalSet) {
+		func(rs h.AccountJournalSet) {
 			//@api.constrains('type','bank_account_id')
 			/*def _check_bank_account(self):
 			  if self.type == 'bank' and self.bank_account_id:
@@ -390,32 +391,32 @@ to manage payments outside of the software.`},
 			*/
 		})
 
-	pool.AccountJournal().Methods().OnchangeDebitAccountId().DeclareMethod(
+	h.AccountJournal().Methods().OnchangeDebitAccountId().DeclareMethod(
 		`OnchangeDebitAccountId`,
-		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
 			//@api.onchange('default_debit_account_id')
 			/*def onchange_debit_account_id(self):
 			  if not self.default_credit_account_id:
 			      self.default_credit_account_id = self.default_debit_account_id
 
 			*/
-			return new(pool.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData), []models.FieldNamer{}
 		})
 
-	pool.AccountJournal().Methods().OnchangeCreditAccountId().DeclareMethod(
+	h.AccountJournal().Methods().OnchangeCreditAccountId().DeclareMethod(
 		`OnchangeCreditAccountId`,
-		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
 			//@api.onchange('default_credit_account_id')
 			/*def onchange_credit_account_id(self):
 			  if not self.default_debit_account_id:
 			      self.default_debit_account_id = self.default_credit_account_id
 
 			*/
-			return new(pool.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData), []models.FieldNamer{}
 		})
 
-	pool.AccountJournal().Methods().Unlink().Extend("",
-		func(rs pool.AccountJournalSet) int64 {
+	h.AccountJournal().Methods().Unlink().Extend("",
+		func(rs h.AccountJournalSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			bank_accounts = self.env['res.partner.bank'].browse()
@@ -430,8 +431,8 @@ to manage payments outside of the software.`},
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountJournal().Methods().Copy().Extend("",
-		func(rs pool.AccountJournalSet, overrides *pool.AccountJournalData, fieldsToReset ...models.FieldNamer) pool.AccountJournalSet {
+	h.AccountJournal().Methods().Copy().Extend("",
+		func(rs h.AccountJournalSet, overrides *h.AccountJournalData, fieldsToReset ...models.FieldNamer) h.AccountJournalSet {
 			//@api.returns('self',lambdavalue:value.id)
 			/*def copy(self, default=None):
 			default = dict(default or {})
@@ -443,8 +444,8 @@ to manage payments outside of the software.`},
 			return rs.Super().Copy(overrides, fieldsToReset...)
 		})
 
-	pool.AccountJournal().Methods().Write().Extend("",
-		func(rs pool.AccountJournalSet, vals *pool.AccountJournalData, fieldsToReset ...models.FieldNamer) bool {
+	h.AccountJournal().Methods().Write().Extend("",
+		func(rs h.AccountJournalSet, vals *h.AccountJournalData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 			for journal in self:
@@ -487,9 +488,9 @@ to manage payments outside of the software.`},
 			return rs.Super().Write(vals, fieldsToReset...)
 		})
 
-	pool.AccountJournal().Methods().GetSequencePrefix().DeclareMethod(
+	h.AccountJournal().Methods().GetSequencePrefix().DeclareMethod(
 		`GetSequencePrefix returns the prefix of the sequence for the given code.`,
-		func(rs pool.AccountJournalSet, code string, refund bool) string {
+		func(rs h.AccountJournalSet, code string, refund bool) string {
 			prefix := strings.ToUpper(code)
 			if refund {
 				prefix = "R" + prefix
@@ -497,15 +498,15 @@ to manage payments outside of the software.`},
 			return prefix + "/%(range_year)%/"
 		})
 
-	pool.AccountJournal().Methods().CreateSequence().DeclareMethod(
+	h.AccountJournal().Methods().CreateSequence().DeclareMethod(
 		`CreateSequence creates new no_gap entry sequence for every new Journal`,
-		func(rs pool.AccountJournalSet, vals *pool.AccountJournalData, refund bool) pool.SequenceSet {
+		func(rs h.AccountJournalSet, vals *h.AccountJournalData, refund bool) h.SequenceSet {
 			prefix := rs.GetSequencePrefix(vals.Code, refund)
 			name := vals.Name
 			if refund {
 				name = rs.T("%s: Refund", name)
 			}
-			seq := pool.SequenceData{
+			seq := h.SequenceData{
 				Name:            name,
 				Implementation:  "no_gap",
 				Prefix:          prefix,
@@ -514,13 +515,13 @@ to manage payments outside of the software.`},
 				UseDateRange:    true,
 				Company:         vals.Company,
 			}
-			return pool.Sequence().Create(rs.Env(), &seq)
+			return h.Sequence().Create(rs.Env(), &seq)
 		})
 
-	pool.AccountJournal().Methods().PrepareLiquidityAccount().DeclareMethod(
+	h.AccountJournal().Methods().PrepareLiquidityAccount().DeclareMethod(
 		`PrepareLiquidityAccount prepares the value to use for the creation of the default debit and credit accounts of a
 			  liquidity journal (created through the wizard of generating COA from templates for example).`,
-		func(rs pool.AccountJournalSet, name string, company pool.CompanySet, currency pool.CurrencySet, accType string) *pool.AccountAccountData {
+		func(rs h.AccountJournalSet, name string, company h.CompanySet, currency h.CurrencySet, accType string) *h.AccountAccountData {
 			// Seek the next available number for the account code
 			codeDigits := company.AccountsCodeDigits()
 			accountCodePrefix := company.BankAccountCodePrefix()
@@ -536,8 +537,8 @@ to manage payments outside of the software.`},
 			for num := 1; num < 100; num++ {
 				newCode = strings.Replace(
 					fmt.Sprintf("%-[1]*[2]d%d", codeDigits-1, accountCodePrefix, num), " ", "0", -1)
-				rec := pool.AccountAccount().Search(rs.Env(),
-					pool.AccountAccount().Code().Equals(newCode).And().Company().Equals(company)).Limit(1)
+				rec := h.AccountAccount().Search(rs.Env(),
+					q.AccountAccount().Code().Equals(newCode).And().Company().Equals(company)).Limit(1)
 				if rec.IsEmpty() {
 					flag = true
 					break
@@ -546,10 +547,10 @@ to manage payments outside of the software.`},
 			if !flag {
 				panic(rs.T("Cannot generate an unused account code."))
 			}
-			liquidityType := pool.AccountAccountType().Search(rs.Env(),
-				pool.AccountAccountType().HexyaExternalID().Equals("account.data_account_type_liquidity"))
+			liquidityType := h.AccountAccountType().Search(rs.Env(),
+				q.AccountAccountType().HexyaExternalID().Equals("account.data_account_type_liquidity"))
 
-			return &pool.AccountAccountData{
+			return &h.AccountAccountData{
 				Name:     name,
 				Currency: currency,
 				Code:     newCode,
@@ -558,11 +559,11 @@ to manage payments outside of the software.`},
 			}
 		})
 
-	pool.AccountJournal().Methods().Create().Extend("",
-		func(rs pool.AccountJournalSet, vals *pool.AccountJournalData) pool.AccountJournalSet {
+	h.AccountJournal().Methods().Create().Extend("",
+		func(rs h.AccountJournalSet, vals *h.AccountJournalData) h.AccountJournalSet {
 			company := vals.Company
 			if company.IsEmpty() {
-				company = pool.User().NewSet(rs.Env()).CurrentUser().Company()
+				company = h.User().NewSet(rs.Env()).CurrentUser().Company()
 			}
 			if vals.Type == "bank" || vals.Type == "cash" {
 				// # For convenience, the name can be inferred from account number
@@ -573,8 +574,8 @@ to manage payments outside of the software.`},
 					if vals.Type == "cash" {
 						journalCodeBase = "CSH"
 					}
-					journals := pool.AccountJournal().Search(rs.Env(),
-						pool.AccountJournal().Code().Like(journalCodeBase+"%").And().Company().Equals(company))
+					journals := h.AccountJournal().Search(rs.Env(),
+						q.AccountJournal().Code().Like(journalCodeBase+"%").And().Company().Equals(company))
 					journalCodes := make(map[string]bool)
 					for _, j := range journals.Records() {
 						journalCodes[j.Code()] = true
@@ -598,7 +599,7 @@ to manage payments outside of the software.`},
 				}
 				if defaultAccount.IsEmpty() {
 					accountVals := rs.PrepareLiquidityAccount(vals.Name, company, vals.Currency, vals.Type)
-					defaultAccount = pool.AccountAccount().Create(rs.Env(), accountVals)
+					defaultAccount = h.AccountAccount().Create(rs.Env(), accountVals)
 					vals.DefaultDebitAccount = defaultAccount
 					vals.DefaultCreditAccount = defaultAccount
 				}
@@ -625,9 +626,9 @@ to manage payments outside of the software.`},
 			return journal
 		})
 
-	pool.AccountJournal().Methods().DefineBankAccount().DeclareMethod(
+	h.AccountJournal().Methods().DefineBankAccount().DeclareMethod(
 		`DefineBankAccount`,
-		func(rs pool.AccountJournalSet, accNumber string, bank pool.BankSet) {
+		func(rs h.AccountJournalSet, accNumber string, bank h.BankSet) {
 			/*def set_bank_account(self, acc_number, bank_id=None):
 			  """ Create a res.partner.bank and set it as value of the  field bank_account_id """
 			  self.ensure_one()
@@ -642,8 +643,8 @@ to manage payments outside of the software.`},
 			*/
 		})
 
-	pool.AccountJournal().Methods().NameGet().Extend("",
-		func(rs pool.AccountJournalSet) string {
+	h.AccountJournal().Methods().NameGet().Extend("",
+		func(rs h.AccountJournalSet) string {
 			//@api.depends('name','currency_id','company_id','company_id.currency_id')
 			/*def name_get(self):
 			res = []
@@ -657,8 +658,8 @@ to manage payments outside of the software.`},
 			return rs.Super().NameGet()
 		})
 
-	pool.AccountJournal().Methods().SearchByName().Extend("",
-		func(rs pool.AccountJournalSet, name string, op operator.Operator, additionalCond pool.AccountJournalCondition, limit int) pool.AccountJournalSet {
+	h.AccountJournal().Methods().SearchByName().Extend("",
+		func(rs h.AccountJournalSet, name string, op operator.Operator, additionalCond q.AccountJournalCondition, limit int) h.AccountJournalSet {
 			//@api.model
 			/*def name_search(self, name, args=None, operator='ilike', limit=100):
 			args = args or []
@@ -672,22 +673,22 @@ to manage payments outside of the software.`},
 			return rs.Super().SearchByName(name, op, additionalCond, limit)
 		})
 
-	pool.AccountJournal().Methods().BelongToCompany().DeclareMethod(
+	h.AccountJournal().Methods().BelongToCompany().DeclareMethod(
 		`BelongToCompany`,
-		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
 			//@api.depends('company_id')
 			/*def _belong_to_company(self):
 			  for journal in self:
 			      journal.belong_to_company = (journal.company_id.id == self.env.user.company_id.id)
 
 			*/
-			return new(pool.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData), []models.FieldNamer{}
 		})
 
 	/*
-		pool.AccountJournal().Methods().SearchCompanyJournals().DeclareMethod(
+		h.AccountJournal().Methods().SearchCompanyJournals().DeclareMethod(
 			`SearchCompanyJournals`,
-			func(rs pool.AccountJournalSet, op operator.Operator, value string)
+			func(rs h.AccountJournalSet, op operator.Operator, value string)
 			}) {
 				//@api.multi
 	*/
@@ -705,9 +706,9 @@ to manage payments outside of the software.`},
 		})
 	*/
 
-	pool.AccountJournal().Methods().MethodsCompute().DeclareMethod(
+	h.AccountJournal().Methods().MethodsCompute().DeclareMethod(
 		`MethodsCompute`,
-		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
 			//@api.depends('inbound_payment_method_ids','outbound_payment_method_ids')
 			/*def _methods_compute(self):
 			  for journal in self:
@@ -716,19 +717,19 @@ to manage payments outside of the software.`},
 
 
 			*/
-			return new(pool.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData), []models.FieldNamer{}
 		})
 
-	pool.BankAccount().AddFields(map[string]models.FieldDefinition{
-		"Journal": models.One2ManyField{RelationModel: pool.AccountJournal(), ReverseFK: "BankAccount",
-			JSON: "journal_id", Filter: pool.AccountJournal().Type().Equals("bank"), /* readonly=True */
+	h.BankAccount().AddFields(map[string]models.FieldDefinition{
+		"Journal": models.One2ManyField{RelationModel: h.AccountJournal(), ReverseFK: "BankAccount",
+			JSON: "journal_id", Filter: q.AccountJournal().Type().Equals("bank"), /* readonly=True */
 			Help:       "The accounting journal corresponding to this bank account.",
-			Constraint: pool.BankAccount().Methods().CheckJournal()},
+			Constraint: h.BankAccount().Methods().CheckJournal()},
 	})
 
-	pool.BankAccount().Methods().CheckJournal().DeclareMethod(
+	h.BankAccount().Methods().CheckJournal().DeclareMethod(
 		`CheckJournal`,
-		func(rs pool.BankAccountSet) {
+		func(rs h.BankAccountSet) {
 			//@api.constrains('journal_id')
 			/*def _check_journal_id(self):
 			  if len(self.journal_id) > 1:
@@ -737,25 +738,25 @@ to manage payments outside of the software.`},
 			*/
 		})
 
-	pool.AccountTaxGroup().DeclareModel()
-	pool.AccountTaxGroup().SetDefaultOrder("Sequence ASC")
+	h.AccountTaxGroup().DeclareModel()
+	h.AccountTaxGroup().SetDefaultOrder("Sequence ASC")
 
-	pool.AccountTaxGroup().AddFields(map[string]models.FieldDefinition{
+	h.AccountTaxGroup().AddFields(map[string]models.FieldDefinition{
 		"Name":     models.CharField{Required: true, Translate: true},
 		"Sequence": models.IntegerField{Default: models.DefaultValue(10)},
 	})
 
-	pool.AccountTax().DeclareModel()
-	pool.AccountTax().SetDefaultOrder("Sequence")
+	h.AccountTax().DeclareModel()
+	h.AccountTax().SetDefaultOrder("Sequence")
 
-	pool.AccountTax().AddFields(map[string]models.FieldDefinition{
+	h.AccountTax().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Tax Name", Required: true, Translate: true},
 		"TypeTaxUse": models.SelectionField{String: "Tax Scope", Selection: types.Selection{
 			"sale":     "Sales",
 			"purchase": "Purchases",
 			"none":     "None",
 		}, Required: true, Default: models.DefaultValue("sale"),
-			Constraint: pool.AccountTax().Methods().CheckChildrenScope(),
+			Constraint: h.AccountTax().Methods().CheckChildrenScope(),
 			Help: `Determines where the tax is selectable.
 Note: 'None' means a tax can't be used by itself however it can still be used in a group.`},
 		"TaxAdjustment": models.BooleanField{String: "TaxAdjustment",
@@ -769,29 +770,29 @@ used to manually fill some data in the tax declaration`},
 		}, Required: true, Default: models.DefaultValue("percent")},
 		"Active": models.BooleanField{String: "Active", Default: models.DefaultValue(true),
 			Help: "Set active to false to hide the tax without removing it."},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
+		"Company": models.Many2OneField{RelationModel: h.Company(), Required: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company()
+				return h.User().NewSet(env).CurrentUser().Company()
 			}},
-		"ChildrenTaxes": models.Many2ManyField{RelationModel: pool.AccountTax(), JSON: "children_tax_ids",
+		"ChildrenTaxes": models.Many2ManyField{RelationModel: h.AccountTax(), JSON: "children_tax_ids",
 			M2MTheirField: "ChildTax", M2MOurField: "ParentTax",
-			Constraint: pool.AccountTax().Methods().CheckChildrenScope()},
+			Constraint: h.AccountTax().Methods().CheckChildrenScope()},
 		"Sequence": models.IntegerField{Required: true, GoType: new(int), Default: models.DefaultValue(1),
 			Help: "The sequence field is used to define order in which the tax lines are applied."},
 		"Amount": models.FloatField{Required: true, Digits: nbutils.Digits{Precision: 16, Scale: 4},
-			OnChange: pool.AccountTax().Methods().OnchangeAmount()},
+			OnChange: h.AccountTax().Methods().OnchangeAmount()},
 		"Account": models.Many2OneField{String: "Tax Account",
-			RelationModel: pool.AccountAccount(), Filter: pool.AccountAccount().Deprecated().Equals(false),
+			RelationModel: h.AccountAccount(), Filter: q.AccountAccount().Deprecated().Equals(false),
 			OnDelete: models.Restrict,
-			OnChange: pool.AccountTax().Methods().OnchangeAccount(),
+			OnChange: h.AccountTax().Methods().OnchangeAccount(),
 			Help:     "Account that will be set on invoice tax lines for invoices. Leave empty to use the expense account."},
 		"RefundAccount": models.Many2OneField{String: "Tax Account on Refunds",
-			RelationModel: pool.AccountAccount(), Filter: pool.AccountAccount().Deprecated().Equals(false),
+			RelationModel: h.AccountAccount(), Filter: q.AccountAccount().Deprecated().Equals(false),
 			OnDelete: models.Restrict,
 			Help:     "Account that will be set on invoice tax lines for refunds. Leave empty to use the expense account."},
 		"Description": models.CharField{String: "Label on Invoices", Translate: true},
 		"PriceInclude": models.BooleanField{String: "Included in Price", Default: models.DefaultValue(false),
-			OnChange: pool.AccountTax().Methods().OnchangePriceInclude(),
+			OnChange: h.AccountTax().Methods().OnchangePriceInclude(),
 			Help:     "Check this if the price you use on the product and invoices includes this tax."},
 		"IncludeBaseAmount": models.BooleanField{String: "Affect Base of Subsequent Taxes",
 			Default: models.DefaultValue(false),
@@ -799,19 +800,19 @@ used to manually fill some data in the tax declaration`},
 		"Analytic": models.BooleanField{String: "Include in Analytic Cost",
 			Help: `If set, the amount computed by this tax will be assigned
 to the same analytic account as the invoice line (if any)`},
-		"Tags": models.Many2ManyField{String: "Tags", RelationModel: pool.AccountAccountTag(), JSON: "tag_ids",
+		"Tags": models.Many2ManyField{String: "Tags", RelationModel: h.AccountAccountTag(), JSON: "tag_ids",
 			Help: "Optional tags you may want to assign for custom reporting"},
-		"TaxGroup": models.Many2OneField{RelationModel: pool.AccountTaxGroup(),
+		"TaxGroup": models.Many2OneField{RelationModel: h.AccountTaxGroup(),
 			Default: func(env models.Environment) interface{} {
-				return pool.AccountTaxGroup().NewSet(env).SearchAll().Limit(1)
+				return h.AccountTaxGroup().NewSet(env).SearchAll().Limit(1)
 			}, Required: true},
 	})
 
-	pool.AccountTax().AddSQLConstraint("name_company_uniq", "unique(name, company_id, type_tax_use)",
+	h.AccountTax().AddSQLConstraint("name_company_uniq", "unique(name, company_id, type_tax_use)",
 		"Tax names must be unique !")
 
-	pool.AccountTax().Methods().Unlink().Extend("",
-		func(rs pool.AccountTaxSet) int64 {
+	h.AccountTax().Methods().Unlink().Extend("",
+		func(rs h.AccountTaxSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  company_id = self.env.user.company_id.id
@@ -830,9 +831,9 @@ to the same analytic account as the invoice line (if any)`},
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountTax().Methods().CheckChildrenScope().DeclareMethod(
+	h.AccountTax().Methods().CheckChildrenScope().DeclareMethod(
 		`CheckChildrenScope`,
-		func(rs pool.AccountTaxSet) {
+		func(rs h.AccountTaxSet) {
 			//@api.constrains('children_tax_ids','type_tax_use')
 			/*def _check_children_scope(self):
 			  if not all(child.type_tax_use in ('none', self.type_tax_use) for child in self.children_tax_ids):
@@ -841,8 +842,8 @@ to the same analytic account as the invoice line (if any)`},
 			*/
 		})
 
-	pool.AccountTax().Methods().Copy().Extend("",
-		func(rs pool.AccountTaxSet, overrides *pool.AccountTaxData, fieldsToReset ...models.FieldNamer) pool.AccountTaxSet {
+	h.AccountTax().Methods().Copy().Extend("",
+		func(rs h.AccountTaxSet, overrides *h.AccountTaxData, fieldsToReset ...models.FieldNamer) h.AccountTaxSet {
 			//@api.returns('self',lambdavalue:value.id)
 			/*def copy(self, default=None):
 			default = dict(default or {}, name=_("%s (Copy)") % self.name)
@@ -852,8 +853,8 @@ to the same analytic account as the invoice line (if any)`},
 			return rs.Super().Copy(overrides, fieldsToReset...)
 		})
 
-	pool.AccountTax().Methods().SearchByName().Extend("",
-		func(rs pool.AccountTaxSet, name string, op operator.Operator, additionalCond pool.AccountTaxCondition, limit int) pool.AccountTaxSet {
+	h.AccountTax().Methods().SearchByName().Extend("",
+		func(rs h.AccountTaxSet, name string, op operator.Operator, additionalCond q.AccountTaxCondition, limit int) h.AccountTaxSet {
 			//@api.model
 			/*def name_search(self, name, args=None, operator='ilike', limit=100):
 			""" Returns a list of tupples containing id, name, as internally it is called {def name_get}
@@ -871,8 +872,8 @@ to the same analytic account as the invoice line (if any)`},
 			return rs.Super().SearchByName(name, op, additionalCond, limit)
 		})
 
-	pool.AccountTax().Methods().Search().Extend("",
-		func(rs pool.AccountTaxSet, cond pool.AccountTaxCondition) pool.AccountTaxSet {
+	h.AccountTax().Methods().Search().Extend("",
+		func(rs h.AccountTaxSet, cond q.AccountTaxCondition) h.AccountTaxSet {
 			//@api.model
 			/*def search(self, args, offset=0, limit=None, order=None, count=False):
 			  context = self._context or {}
@@ -894,44 +895,44 @@ to the same analytic account as the invoice line (if any)`},
 			return rs.Super().Search(cond)
 		})
 
-	pool.AccountTax().Methods().OnchangeAmount().DeclareMethod(
+	h.AccountTax().Methods().OnchangeAmount().DeclareMethod(
 		`OnchangeAmount`,
-		func(rs pool.AccountTaxSet) (*pool.AccountTaxData, []models.FieldNamer) {
+		func(rs h.AccountTaxSet) (*h.AccountTaxData, []models.FieldNamer) {
 			//@api.onchange('amount')
 			/*def onchange_amount(self):
 			  if self.amount_type in ('percent', 'division') and self.amount != 0.0 and not self.description:
 			      self.description = "{0:.4g}%".format(self.amount)
 
 			*/
-			return new(pool.AccountTaxData), []models.FieldNamer{}
+			return new(h.AccountTaxData), []models.FieldNamer{}
 		})
 
-	pool.AccountTax().Methods().OnchangeAccount().DeclareMethod(
+	h.AccountTax().Methods().OnchangeAccount().DeclareMethod(
 		`OnchangeAccount`,
-		func(rs pool.AccountTaxSet) (*pool.AccountTaxData, []models.FieldNamer) {
+		func(rs h.AccountTaxSet) (*h.AccountTaxData, []models.FieldNamer) {
 			//@api.onchange('account_id')
 			/*def onchange_account_id(self):
 			  self.refund_account_id = self.account_id
 
 			*/
-			return new(pool.AccountTaxData), []models.FieldNamer{}
+			return new(h.AccountTaxData), []models.FieldNamer{}
 		})
 
-	pool.AccountTax().Methods().OnchangePriceInclude().DeclareMethod(
+	h.AccountTax().Methods().OnchangePriceInclude().DeclareMethod(
 		`OnchangePriceInclude`,
-		func(rs pool.AccountTaxSet) (*pool.AccountTaxData, []models.FieldNamer) {
+		func(rs h.AccountTaxSet) (*h.AccountTaxData, []models.FieldNamer) {
 			//@api.onchange('price_include')
 			/*def onchange_price_include(self):
 			  if self.price_include:
 			      self.include_base_amount = True
 
 			*/
-			return new(pool.AccountTaxData), []models.FieldNamer{}
+			return new(h.AccountTaxData), []models.FieldNamer{}
 		})
 
-	pool.AccountTax().Methods().GetGroupingKey().DeclareMethod(
+	h.AccountTax().Methods().GetGroupingKey().DeclareMethod(
 		`GetGroupingKey`,
-		func(rs pool.AccountTaxSet, invoiceTaxVal *pool.AccountInvoiceTaxData) string {
+		func(rs h.AccountTaxSet, invoiceTaxVal *h.AccountInvoiceTaxData) string {
 			/*def get_grouping_key(self, invoice_tax_val):
 			  """ Returns a string that will be used to group account.invoice.tax sharing the same properties"""
 			  self.ensure_one()
@@ -941,12 +942,12 @@ to the same analytic account as the invoice line (if any)`},
 			return ""
 		})
 
-	pool.AccountTax().Methods().ComputeAmount().DeclareMethod(
+	h.AccountTax().Methods().ComputeAmount().DeclareMethod(
 		`ComputeAmount returns the amount of a single tax.
 
 		baseAmount is the actual amount on which the tax is applied, which is priceUnit * quantity eventually
 		affected by previous taxes (if tax is include_base_amount XOR price_include)`,
-		func(rs pool.AccountTaxSet, baseAmount, priceUnit, quantity float64, product pool.ProductProductSet, partner pool.PartnerSet) float64 {
+		func(rs h.AccountTaxSet, baseAmount, priceUnit, quantity float64, product h.ProductProductSet, partner h.PartnerSet) float64 {
 			rs.EnsureOne()
 			if rs.AmountType() == "fixed" {
 				// Use Copysign to take into account the sign of the base amount which includes the sign
@@ -975,9 +976,9 @@ to the same analytic account as the invoice line (if any)`},
 			panic("Unhandled tax type")
 		})
 
-	pool.AccountTax().Methods().JSONFriendlyComputeAll().DeclareMethod(
+	h.AccountTax().Methods().JSONFriendlyComputeAll().DeclareMethod(
 		`JSONFriendlyComputeAll`,
-		func(rs pool.AccountTaxSet, priceUnit float64, currencyID int64, quantity float64, productID int64, partnerID int64) float64 {
+		func(rs h.AccountTaxSet, priceUnit float64, currencyID int64, quantity float64, productID int64, partnerID int64) float64 {
 			//@api.multi
 			/*def json_friendly_compute_all(self, price_unit, currency_id=None, quantity=1.0, product_id=None, partner_id=None):
 			  """ Just converts parameters in browse records and calls for compute_all, because js widgets can't serialize browse records """
@@ -993,7 +994,7 @@ to the same analytic account as the invoice line (if any)`},
 			return 0
 		})
 
-	pool.AccountTax().Methods().ComputeAll().DeclareMethod(
+	h.AccountTax().Methods().ComputeAll().DeclareMethod(
 		`ComputeAll returns all information required to apply taxes (in self + their children in case of a tax goup).
 			      We consider the sequence of the parent for group of taxes.
 			          Eg. considering letters as taxes and alphabetic order as sequence :
@@ -1009,12 +1010,12 @@ to the same analytic account as the invoice line (if any)`},
 
                    []AppliedTaxData     # One struct for each tax in rs and their children
 			  } `,
-		func(rs pool.AccountTaxSet, priceUnit float64, currency pool.CurrencySet, quantity float64,
-			product pool.ProductProductSet, partner pool.PartnerSet) (float64, float64, float64, []accounttypes.AppliedTaxData) {
+		func(rs h.AccountTaxSet, priceUnit float64, currency h.CurrencySet, quantity float64,
+			product h.ProductProductSet, partner h.PartnerSet) (float64, float64, float64, []accounttypes.AppliedTaxData) {
 
 			company := rs.Company()
 			if rs.IsEmpty() {
-				company = pool.User().NewSet(rs.Env()).CurrentUser().Company()
+				company = h.User().NewSet(rs.Env()).CurrentUser().Company()
 			}
 			if currency.IsEmpty() {
 				currency = company.Currency()
@@ -1121,9 +1122,9 @@ to the same analytic account as the invoice line (if any)`},
 			return base, totalExcluded, totalIncluded, taxes
 		})
 
-	pool.AccountTax().Methods().FixTaxIncludedPrice().DeclareMethod(
+	h.AccountTax().Methods().FixTaxIncludedPrice().DeclareMethod(
 		`FixTaxIncludedPrice`,
-		func(rs pool.AccountTaxSet, price float64, prodTaxes, lineTaxes pool.AccountTaxSet) float64 {
+		func(rs h.AccountTaxSet, price float64, prodTaxes, lineTaxes h.AccountTaxSet) float64 {
 			//@api.model
 			/*def _fix_tax_included_price(self, price, prod_taxes, line_taxes):
 			  """Subtract tax amount from price when corresponding "price included" taxes do not apply"""
@@ -1137,21 +1138,21 @@ to the same analytic account as the invoice line (if any)`},
 			return 0
 		})
 
-	pool.AccountReconcileModel().DeclareModel()
+	h.AccountReconcileModel().DeclareModel()
 
-	pool.AccountReconcileModel().AddFields(map[string]models.FieldDefinition{
+	h.AccountReconcileModel().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Button Label", Required: true,
-			OnChange: pool.AccountReconcileModel().Methods().OnchangeName()},
+			OnChange: h.AccountReconcileModel().Methods().OnchangeName()},
 		"Sequence":      models.IntegerField{Required: true, Default: models.DefaultValue(10)},
 		"HasSecondLine": models.BooleanField{String: "Add a second line", Default: models.DefaultValue(false)},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
+		"Company": models.Many2OneField{RelationModel: h.Company(), Required: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company()
+				return h.User().NewSet(env).CurrentUser().Company()
 			}},
-		"Account": models.Many2OneField{RelationModel: pool.AccountAccount(),
+		"Account": models.Many2OneField{RelationModel: h.AccountAccount(),
 			OnDelete: models.Cascade,
-			Filter:   pool.AccountAccount().Deprecated().Equals(false)},
-		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(),
+			Filter:   q.AccountAccount().Deprecated().Equals(false)},
+		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(),
 			OnDelete: models.Cascade, Help: "This field is ignored in a bank statement reconciliation."},
 		"Label": models.CharField{String: "Journal Item Label"},
 		"AmountType": models.SelectionField{Selection: types.Selection{
@@ -1159,14 +1160,14 @@ to the same analytic account as the invoice line (if any)`},
 			"percentage": "Percentage of balance"}, Required: true, Default: models.DefaultValue("percentage")},
 		"Amount": models.FloatField{Required: true, Default: models.DefaultValue(100.0),
 			Help: "Fixed amount will count as a debit if it is negative, as a credit if it is positive."},
-		"Tax": models.Many2OneField{String: "Tax", RelationModel: pool.AccountTax(),
-			OnDelete: models.Restrict, Filter: pool.AccountTax().TypeTaxUse().Equals("purchase")},
-		"AnalyticAccount": models.Many2OneField{RelationModel: pool.AccountAnalyticAccount(),
+		"Tax": models.Many2OneField{String: "Tax", RelationModel: h.AccountTax(),
+			OnDelete: models.Restrict, Filter: q.AccountTax().TypeTaxUse().Equals("purchase")},
+		"AnalyticAccount": models.Many2OneField{RelationModel: h.AccountAnalyticAccount(),
 			OnDelete: models.SetNull},
-		"SecondAccount": models.Many2OneField{RelationModel: pool.AccountAccount(),
-			OnDelete: models.Cascade, Filter: pool.AccountAccount().Deprecated().Equals(false),
+		"SecondAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
+			OnDelete: models.Cascade, Filter: q.AccountAccount().Deprecated().Equals(false),
 		},
-		"SecondJournal": models.Many2OneField{RelationModel: pool.AccountJournal(),
+		"SecondJournal": models.Many2OneField{RelationModel: h.AccountJournal(),
 			OnDelete: models.Cascade, Help: "This field is ignored in a bank statement reconciliation."},
 		"SecondLabel": models.CharField{String: "Second Journal Item Label"},
 		"SecondAmountType": models.SelectionField{Selection: types.Selection{
@@ -1174,20 +1175,20 @@ to the same analytic account as the invoice line (if any)`},
 			"percentage": "Percentage of balance"}, Required: true, Default: models.DefaultValue("percentage")},
 		"SecondAmount": models.FloatField{Required: true, Default: models.DefaultValue(100.0),
 			Help: "Fixed amount will count as a debit if it is negative, as a credit if it is positive."},
-		"SecondTax": models.Many2OneField{RelationModel: pool.AccountTax(),
-			OnDelete: models.Restrict, Filter: pool.AccountTax().TypeTaxUse().Equals("purchase")},
-		"SecondAnalyticAccount": models.Many2OneField{RelationModel: pool.AccountAnalyticAccount(),
+		"SecondTax": models.Many2OneField{RelationModel: h.AccountTax(),
+			OnDelete: models.Restrict, Filter: q.AccountTax().TypeTaxUse().Equals("purchase")},
+		"SecondAnalyticAccount": models.Many2OneField{RelationModel: h.AccountAnalyticAccount(),
 			OnDelete: models.SetNull},
 	})
 
-	pool.AccountReconcileModel().Methods().OnchangeName().DeclareMethod(
+	h.AccountReconcileModel().Methods().OnchangeName().DeclareMethod(
 		`OnchangeName`,
-		func(rs pool.AccountReconcileModelSet) (*pool.AccountReconcileModelData, []models.FieldNamer) {
+		func(rs h.AccountReconcileModelSet) (*h.AccountReconcileModelData, []models.FieldNamer) {
 			//@api.onchange('name')
 			/*def onchange_name(self):
 			  self.label = self.name
 			*/
-			return new(pool.AccountReconcileModelData), []models.FieldNamer{}
+			return new(h.AccountReconcileModelData), []models.FieldNamer{}
 		})
 
 }

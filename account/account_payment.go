@@ -8,13 +8,14 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.AccountPaymentMethod().DeclareModel()
-	pool.AccountPaymentMethod().AddFields(map[string]models.FieldDefinition{
+	h.AccountPaymentMethod().DeclareModel()
+	h.AccountPaymentMethod().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{Required: true, Translate: true},
 		"Code": models.CharField{Required: true},
 		"PaymentType": models.SelectionField{Selection: types.Selection{
@@ -23,44 +24,44 @@ func init() {
 		}, Required: true},
 	})
 
-	pool.AccountAbstractPayment().DeclareMixinModel()
-	pool.AccountAbstractPayment().AddFields(map[string]models.FieldDefinition{
+	h.AccountAbstractPayment().DeclareMixinModel()
+	h.AccountAbstractPayment().AddFields(map[string]models.FieldDefinition{
 		"PaymentType": models.SelectionField{Selection: types.Selection{
 			"outbound": "Send Money",
 			"inbound":  "Receive Money",
 		}, Required: true},
 		"PaymentMethod": models.Many2OneField{String: "Payment Method Type",
-			RelationModel: pool.AccountPaymentMethod(), Required: true},
+			RelationModel: h.AccountPaymentMethod(), Required: true},
 		"PaymentMethodCode": models.CharField{
 			Help: "Technical field used to adapt the interface to the payment type selected." /*[ readonly True]*/},
 		"PartnerType": models.SelectionField{Selection: types.Selection{
 			"customer": "Customer",
 			"supplier": "Vendor",
 		}},
-		"Partner": models.Many2OneField{RelationModel: pool.Partner()},
+		"Partner": models.Many2OneField{RelationModel: h.Partner()},
 		"Amount": models.FloatField{String: "Payment Amount", Required: true,
-			Constraint: pool.AccountAbstractPayment().Methods().CheckAmount()},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(), Required: true,
+			Constraint: h.AccountAbstractPayment().Methods().CheckAmount()},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), Required: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company().Currency()
+				return h.User().NewSet(env).CurrentUser().Company().Currency()
 			}},
 		"PaymentDate": models.DateField{Default: func(env models.Environment) interface{} {
 			return dates.Today()
 		}, Required: true, NoCopy: true},
 		"Communication": models.CharField{String: "Memo"},
-		"Journal": models.Many2OneField{String: "Payment Journal", RelationModel: pool.AccountJournal(),
-			Required: true, Filter: pool.AccountJournal().Type().In([]string{"bank", "cash"}),
-			OnChange: pool.AccountAbstractPayment().Methods().OnchangeJournal()},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Journal.Company" /* readonly=true */},
+		"Journal": models.Many2OneField{String: "Payment Journal", RelationModel: h.AccountJournal(),
+			Required: true, Filter: q.AccountJournal().Type().In([]string{"bank", "cash"}),
+			OnChange: h.AccountAbstractPayment().Methods().OnchangeJournal()},
+		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company" /* readonly=true */},
 		"HidePaymentMethod": models.BooleanField{
-			Compute: pool.AccountAbstractPayment().Methods().ComputeHidePaymentMethod(),
+			Compute: h.AccountAbstractPayment().Methods().ComputeHidePaymentMethod(),
 			Help: `Technical field used to hide the payment method if the selected journal
 has only one available which is 'manual'`},
 	})
 
-	pool.AccountAbstractPayment().Methods().CheckAmount().DeclareMethod(
+	h.AccountAbstractPayment().Methods().CheckAmount().DeclareMethod(
 		`CheckAmount`,
-		func(rs pool.AccountAbstractPaymentSet) {
+		func(rs h.AccountAbstractPaymentSet) {
 			//@api.constrains('amount')
 			/*def _check_amount(self):
 			  if not self.amount > 0.0:
@@ -69,9 +70,9 @@ has only one available which is 'manual'`},
 			*/
 		})
 
-	pool.AccountAbstractPayment().Methods().ComputeHidePaymentMethod().DeclareMethod(
+	h.AccountAbstractPayment().Methods().ComputeHidePaymentMethod().DeclareMethod(
 		`ComputeHidePaymentMethod`,
-		func(rs pool.AccountAbstractPaymentSet) (*pool.AccountAbstractPaymentData, []models.FieldNamer) {
+		func(rs h.AccountAbstractPaymentSet) (*h.AccountAbstractPaymentData, []models.FieldNamer) {
 			//@api.depends('payment_type','journal_id')
 			/*def _compute_hide_payment_method(self):
 			  if not self.journal_id:
@@ -81,12 +82,12 @@ has only one available which is 'manual'`},
 			  self.hide_payment_method = len(journal_payment_methods) == 1 and journal_payment_methods[0].code == 'manual'
 
 			*/
-			return new(pool.AccountAbstractPaymentData), []models.FieldNamer{}
+			return new(h.AccountAbstractPaymentData), []models.FieldNamer{}
 		})
 
-	pool.AccountAbstractPayment().Methods().OnchangeJournal().DeclareMethod(
+	h.AccountAbstractPayment().Methods().OnchangeJournal().DeclareMethod(
 		`OnchangeJournal`,
-		func(rs pool.AccountAbstractPaymentSet) (*pool.AccountAbstractPaymentData, []models.FieldNamer) {
+		func(rs h.AccountAbstractPaymentSet) (*h.AccountAbstractPaymentData, []models.FieldNamer) {
 			//@api.onchange('journal_id')
 			/*def _onchange_journal(self):
 			  if self.journal_id:
@@ -100,12 +101,12 @@ has only one available which is 'manual'`},
 			  return {}
 
 			*/
-			return new(pool.AccountAbstractPaymentData), []models.FieldNamer{}
+			return new(h.AccountAbstractPaymentData), []models.FieldNamer{}
 		})
 
-	pool.AccountAbstractPayment().Methods().GetInvoices().DeclareMethod(
+	h.AccountAbstractPayment().Methods().GetInvoices().DeclareMethod(
 		`GetInvoices`,
-		func(rs pool.AccountAbstractPaymentSet) pool.AccountInvoiceSet {
+		func(rs h.AccountAbstractPaymentSet) h.AccountInvoiceSet {
 			/*def _get_invoices(self):
 			  """ Return the invoices of the payment. Must be overridden """
 			  raise NotImplementedError
@@ -114,9 +115,9 @@ has only one available which is 'manual'`},
 			panic("Not implemented")
 		})
 
-	pool.AccountAbstractPayment().Methods().ComputeTotalInvoicesAmount().DeclareMethod(
+	h.AccountAbstractPayment().Methods().ComputeTotalInvoicesAmount().DeclareMethod(
 		`ComputeTotalInvoicesAmount`,
-		func(rs pool.AccountAbstractPaymentSet) float64 {
+		func(rs h.AccountAbstractPaymentSet) float64 {
 			/*def _compute_total_invoices_amount(self):
 			  """ Compute the sum of the residual of invoices, expressed in the payment currency """
 			  payment_currency = self.currency_id or self.journal_id.currency_id or self.journal_id.company_id.currency_id or self.env.user.company_id.currency_id
@@ -138,37 +139,37 @@ has only one available which is 'manual'`},
 			return 0
 		})
 
-	pool.AccountRegisterPayments().DeclareTransientModel()
-	pool.AccountRegisterPayments().InheritModel(pool.AccountAbstractPayment())
+	h.AccountRegisterPayments().DeclareTransientModel()
+	h.AccountRegisterPayments().InheritModel(h.AccountAbstractPayment())
 
-	// pool.AccountRegisterPayments().Fields().PaymentType().SetOnchange(pool.AccountRegisterPayments().Methods().OnchangePaymentType())
+	// h.AccountRegisterPayments().Fields().PaymentType().SetOnchange(h.AccountRegisterPayments().Methods().OnchangePaymentType())
 
-	pool.AccountRegisterPayments().Methods().OnchangePaymentType().DeclareMethod(
+	h.AccountRegisterPayments().Methods().OnchangePaymentType().DeclareMethod(
 		`OnchangePaymentType`,
-		func(rs pool.AccountRegisterPaymentsSet) (*pool.AccountRegisterPaymentsData, []models.FieldNamer) {
+		func(rs h.AccountRegisterPaymentsSet) (*h.AccountRegisterPaymentsData, []models.FieldNamer) {
 			//@api.onchange('payment_type')
 			/*def _onchange_payment_type(self):
 			  if self.payment_type:
 			      return {'domain': {'payment_method_id': [('payment_type', '=', self.payment_type)]}}
 
 			*/
-			return new(pool.AccountRegisterPaymentsData), []models.FieldNamer{}
+			return new(h.AccountRegisterPaymentsData), []models.FieldNamer{}
 		})
 
-	pool.AccountRegisterPayments().Methods().GetInvoices().Extend("",
-		func(rs pool.AccountRegisterPaymentsSet) pool.AccountInvoiceSet {
+	h.AccountRegisterPayments().Methods().GetInvoices().Extend("",
+		func(rs h.AccountRegisterPaymentsSet) h.AccountInvoiceSet {
 			/*def _get_invoices(self):
 			  """ Return the invoices of the payment. Must be overridden """
 				return self.env['account.invoice'].browse(self._context.get('active_ids'))
 			*/
 			if rs.Env().Context().HasKey("active_ids") {
-				return pool.AccountInvoice().Browse(rs.Env(), rs.Env().Context().GetIntegerSlice("active_ids"))
+				return h.AccountInvoice().Browse(rs.Env(), rs.Env().Context().GetIntegerSlice("active_ids"))
 			}
-			return pool.AccountInvoice().NewSet(rs.Env())
+			return h.AccountInvoice().NewSet(rs.Env())
 		})
 
-	pool.AccountRegisterPayments().Methods().DefaultGet().Extend("",
-		func(rs pool.AccountRegisterPaymentsSet) models.FieldMap {
+	h.AccountRegisterPayments().Methods().DefaultGet().Extend("",
+		func(rs h.AccountRegisterPaymentsSet) models.FieldMap {
 			//@api.model
 			/*def default_get(self, fields):
 			  rec = super(account_register_payments, self).default_get(fields)
@@ -210,9 +211,9 @@ has only one available which is 'manual'`},
 			return rs.Super().DefaultGet()
 		})
 
-	pool.AccountRegisterPayments().Methods().GetPaymentVals().DeclareMethod(
+	h.AccountRegisterPayments().Methods().GetPaymentVals().DeclareMethod(
 		`GetPaymentVals`,
-		func(rs pool.AccountRegisterPaymentsSet) *pool.AccountPaymentData {
+		func(rs h.AccountRegisterPaymentsSet) *h.AccountPaymentData {
 			/*def get_payment_vals(self):
 			  """ Hook for extension """
 			  return {
@@ -229,24 +230,24 @@ has only one available which is 'manual'`},
 			  }
 
 			*/
-			return new(pool.AccountPaymentData)
+			return new(h.AccountPaymentData)
 		})
 
-	pool.AccountRegisterPayments().Methods().CreatePayment().DeclareMethod(
+	h.AccountRegisterPayments().Methods().CreatePayment().DeclareMethod(
 		`CreatePayment`,
-		func(rs pool.AccountRegisterPaymentsSet) *actions.Action {
-			payment := pool.AccountPayment().Create(rs.Env(), rs.GetPaymentVals())
+		func(rs h.AccountRegisterPaymentsSet) *actions.Action {
+			payment := h.AccountPayment().Create(rs.Env(), rs.GetPaymentVals())
 			payment.Post()
 			return &actions.Action{
 				Type: actions.ActionCloseWindow,
 			}
 		})
 
-	pool.AccountPayment().DeclareModel()
-	pool.AccountPayment().InheritModel(pool.AccountAbstractPayment())
-	pool.AccountPayment().SetDefaultOrder("PaymentDate DESC", "Name DESC")
+	h.AccountPayment().DeclareModel()
+	h.AccountPayment().InheritModel(h.AccountAbstractPayment())
+	h.AccountPayment().SetDefaultOrder("PaymentDate DESC", "Name DESC")
 
-	pool.AccountPayment().AddFields(map[string]models.FieldDefinition{
+	h.AccountPayment().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Name" /*[readonly True]*/, NoCopy: true,
 			Default: models.DefaultValue("Draft Payment") /* The name is attributed upon post(]*/},
 		"State": models.SelectionField{String: "Status", Selection: types.Selection{
@@ -262,45 +263,45 @@ has only one available which is 'manual'`},
 			Help: `Technical field holding the number given to the journal entry, automatically set when the statement
 line is reconciled then stored to set the same number again if the line is cancelled,
 set to draft and re-processed again." `},
-		"DestinationAccount": models.Many2OneField{RelationModel: pool.AccountAccount(),
-			Compute: pool.AccountPayment().Methods().ComputeDestinationAccount() /* readonly=true */},
-		"DestinationJournal": models.Many2OneField{String: "Transfer To", RelationModel: pool.AccountJournal(),
-			Filter: pool.AccountJournal().Type().In([]string{"bank", "cash"})},
-		"Invoices": models.Many2ManyField{RelationModel: pool.AccountInvoice(), JSON: "invoice_ids",
+		"DestinationAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
+			Compute: h.AccountPayment().Methods().ComputeDestinationAccount() /* readonly=true */},
+		"DestinationJournal": models.Many2OneField{String: "Transfer To", RelationModel: h.AccountJournal(),
+			Filter: q.AccountJournal().Type().In([]string{"bank", "cash"})},
+		"Invoices": models.Many2ManyField{RelationModel: h.AccountInvoice(), JSON: "invoice_ids",
 			NoCopy: true /*[ readonly True]*/},
-		"HasInvoices": models.BooleanField{Compute: pool.AccountPayment().Methods().ComputeHasInvoices(),
+		"HasInvoices": models.BooleanField{Compute: h.AccountPayment().Methods().ComputeHasInvoices(),
 			Help: "Technical field used for usability purposes"},
-		"PaymentDifference": models.FloatField{Compute: pool.AccountPayment().Methods().ComputePaymentDifference()},
+		"PaymentDifference": models.FloatField{Compute: h.AccountPayment().Methods().ComputePaymentDifference()},
 		"PaymentDifferenceHandling": models.SelectionField{String: "Payment Difference", Selection: types.Selection{
 			"open":      "Keep open",
 			"reconcile": "Mark invoice as fully paid",
 		}, Default: models.DefaultValue("open"), NoCopy: true},
-		"WriteoffAccount": models.Many2OneField{String: "Difference Account", RelationModel: pool.AccountAccount(),
-			Filter: pool.AccountAccount().Deprecated().Equals(false)},
-		"MoveLines": models.One2ManyField{RelationModel: pool.AccountMoveLine(), ReverseFK: "Payment",
+		"WriteoffAccount": models.Many2OneField{String: "Difference Account", RelationModel: h.AccountAccount(),
+			Filter: q.AccountAccount().Deprecated().Equals(false)},
+		"MoveLines": models.One2ManyField{RelationModel: h.AccountMoveLine(), ReverseFK: "Payment",
 			JSON: "move_line_ids" /* readonly */, NoCopy: true},
 	})
 
-	//pool.AccountPayment().Fields().PaymentType().
+	//h.AccountPayment().Fields().PaymentType().
 	//	UpdateSelection(types.Selection{"transfer": "Internal Transfer"}).
-	//	SetOnchange(pool.AccountPayment().Methods().OnchangePaymentType())
+	//	SetOnchange(h.AccountPayment().Methods().OnchangePaymentType())
 	//
-	//pool.AccountPayment().Fields().PartnerType().SetOnchange(pool.AccountPayment().Methods().OnchangePartnerType())
+	//h.AccountPayment().Fields().PartnerType().SetOnchange(h.AccountPayment().Methods().OnchangePartnerType())
 
-	pool.AccountPayment().Methods().ComputeHasInvoices().DeclareMethod(
+	h.AccountPayment().Methods().ComputeHasInvoices().DeclareMethod(
 		`ComputeHasInvoices`,
-		func(rs pool.AccountPaymentSet) (*pool.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
 			//@api.depends('invoice_ids')
 			/*def _get_has_invoices(self):
 			  self.has_invoices = bool(self.invoice_ids)
 
 			*/
-			return &pool.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}, []models.FieldNamer{}
 		})
 
-	pool.AccountPayment().Methods().ComputePaymentDifference().DeclareMethod(
+	h.AccountPayment().Methods().ComputePaymentDifference().DeclareMethod(
 		`ComputePaymentDifference`,
-		func(rs pool.AccountPaymentSet) (*pool.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
 			//@api.depends('invoice_ids','amount','payment_date','currency_id')
 			/*def _compute_payment_difference(self):
 			  if len(self.invoice_ids) == 0:
@@ -310,13 +311,13 @@ set to draft and re-processed again." `},
 			  else:
 			      self.payment_difference = self._compute_total_invoices_amount() - self.amount
 			*/
-			return &pool.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}, []models.FieldNamer{}
 
 		})
 
-	pool.AccountPayment().Methods().ComputeDestinationAccount().DeclareMethod(
+	h.AccountPayment().Methods().ComputeDestinationAccount().DeclareMethod(
 		`ComputeDestinationAccountId`,
-		func(rs pool.AccountPaymentSet) (*pool.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
 			//@api.depends('invoice_ids','payment_type','partner_type','partner_id')
 			/*def _compute_destination_account_id(self):
 			  if self.invoice_ids:
@@ -332,12 +333,12 @@ set to draft and re-processed again." `},
 			          self.destination_account_id = self.partner_id.property_account_payable_id.id
 
 			*/
-			return &pool.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}, []models.FieldNamer{}
 		})
 
-	pool.AccountPayment().Methods().OnchangePartnerType().DeclareMethod(
+	h.AccountPayment().Methods().OnchangePartnerType().DeclareMethod(
 		`OnchangePartnerType`,
-		func(rs pool.AccountPaymentSet) (*pool.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
 			//@api.onchange('partner_type')
 			/*def _onchange_partner_type(self):
 			  # Set partner_id domain
@@ -345,12 +346,12 @@ set to draft and re-processed again." `},
 			      return {'domain': {'partner_id': [(self.partner_type, '=', True)]}}
 
 			*/
-			return &pool.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}, []models.FieldNamer{}
 		})
 
-	pool.AccountPayment().Methods().OnchangePaymentType().DeclareMethod(
+	h.AccountPayment().Methods().OnchangePaymentType().DeclareMethod(
 		`OnchangePaymentType`,
-		func(rs pool.AccountPaymentSet) (*pool.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
 			//@api.onchange('payment_type')
 			/*def _onchange_payment_type(self):
 			    # Set partner_id domain
@@ -358,11 +359,11 @@ set to draft and re-processed again." `},
 					return {'domain': {'partner_id': [(self.partner_type, '=', True)]}}
 
 			*/
-			return &pool.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}, []models.FieldNamer{}
 		})
 
-	pool.AccountPayment().Methods().DefaultGet().Extend("",
-		func(rs pool.AccountPaymentSet) models.FieldMap {
+	h.AccountPayment().Methods().DefaultGet().Extend("",
+		func(rs h.AccountPaymentSet) models.FieldMap {
 			//@api.model
 			/*def default_get(self, fields):
 			rec = super(account_payment, self).default_get(fields)
@@ -382,14 +383,14 @@ set to draft and re-processed again." `},
 			return rs.Super().DefaultGet()
 		})
 
-	pool.AccountPayment().Methods().GetInvoices().Extend("",
-		func(rs pool.AccountPaymentSet) pool.AccountInvoiceSet {
+	h.AccountPayment().Methods().GetInvoices().Extend("",
+		func(rs h.AccountPaymentSet) h.AccountInvoiceSet {
 			return rs.Invoices()
 		})
 
-	pool.AccountPayment().Methods().ButtonJournalEntries().DeclareMethod(
+	h.AccountPayment().Methods().ButtonJournalEntries().DeclareMethod(
 		`ButtonJournalEntries`,
-		func(rs pool.AccountPaymentSet) *actions.Action {
+		func(rs h.AccountPaymentSet) *actions.Action {
 			//@api.multi
 			/*def button_journal_entries(self):
 			  return {
@@ -406,9 +407,9 @@ set to draft and re-processed again." `},
 			return new(actions.Action)
 		})
 
-	pool.AccountPayment().Methods().ButtonInvoices().DeclareMethod(
+	h.AccountPayment().Methods().ButtonInvoices().DeclareMethod(
 		`ButtonInvoices`,
-		func(rs pool.AccountPaymentSet) *actions.Action {
+		func(rs h.AccountPaymentSet) *actions.Action {
 			//@api.multi
 			/*def button_invoices(self):
 			  return {
@@ -425,15 +426,15 @@ set to draft and re-processed again." `},
 			return new(actions.Action)
 		})
 
-	pool.AccountPayment().Methods().ButtonDummy().DeclareMethod(
+	h.AccountPayment().Methods().ButtonDummy().DeclareMethod(
 		`ButtonDummy`,
-		func(rs pool.AccountPaymentSet) bool {
+		func(rs h.AccountPaymentSet) bool {
 			return true
 		})
 
-	pool.AccountPayment().Methods().Unreconcile().DeclareMethod(
+	h.AccountPayment().Methods().Unreconcile().DeclareMethod(
 		`Unreconcile`,
-		func(rs pool.AccountPaymentSet) {
+		func(rs h.AccountPaymentSet) {
 			//@api.multi
 			/*def unreconcile(self):
 			  """ Set back the payments in 'posted' or 'sent' state, without deleting the journal entries.
@@ -448,9 +449,9 @@ set to draft and re-processed again." `},
 			*/
 		})
 
-	pool.AccountPayment().Methods().Cancel().DeclareMethod(
+	h.AccountPayment().Methods().Cancel().DeclareMethod(
 		`Cancel`,
-		func(rs pool.AccountPaymentSet) {
+		func(rs h.AccountPaymentSet) {
 			//@api.multi
 			/*def cancel(self):
 			  for rec in self:
@@ -464,8 +465,8 @@ set to draft and re-processed again." `},
 			*/
 		})
 
-	pool.AccountPayment().Methods().Unlink().Extend("",
-		func(rs pool.AccountPaymentSet) int64 {
+	h.AccountPayment().Methods().Unlink().Extend("",
+		func(rs h.AccountPaymentSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  if any(bool(rec.move_line_ids) for rec in self):
@@ -478,9 +479,9 @@ set to draft and re-processed again." `},
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountPayment().Methods().Post().DeclareMethod(
+	h.AccountPayment().Methods().Post().DeclareMethod(
 		`Post`,
-		func(rs pool.AccountPaymentSet) {
+		func(rs h.AccountPaymentSet) {
 			//@api.multi
 			/*def post(self):
 			  """ Create the journal items for the payment and update the payment's state to 'posted'.
@@ -529,9 +530,9 @@ set to draft and re-processed again." `},
 			*/
 		})
 
-	pool.AccountPayment().Methods().CreatePaymentEntry().DeclareMethod(
+	h.AccountPayment().Methods().CreatePaymentEntry().DeclareMethod(
 		`CreatePaymentEntry`,
-		func(rs pool.AccountPaymentSet, amount float64) pool.AccountMoveSet {
+		func(rs h.AccountPaymentSet, amount float64) h.AccountMoveSet {
 			/*def _create_payment_entry(self, amount):
 			  """ Create a journal entry corresponding to a payment, if the payment references invoice(s) they are reconciled.
 			      Return the journal entry.
@@ -599,12 +600,12 @@ set to draft and re-processed again." `},
 			  return move
 
 			*/
-			return pool.AccountMove().NewSet(rs.Env())
+			return h.AccountMove().NewSet(rs.Env())
 		})
 
-	pool.AccountPayment().Methods().CreateTransferEntry().DeclareMethod(
+	h.AccountPayment().Methods().CreateTransferEntry().DeclareMethod(
 		`CreateTransferEntry`,
-		func(rs pool.AccountPaymentSet, amount float64) pool.AccountMoveLineSet {
+		func(rs h.AccountPaymentSet, amount float64) h.AccountMoveLineSet {
 			/*def _create_transfer_entry(self, amount):
 			  """ Create the journal entry corresponding to the 'incoming money' part of an internal transfer, return the reconciliable move line
 			  """
@@ -639,12 +640,12 @@ set to draft and re-processed again." `},
 			  return transfer_debit_aml
 
 			*/
-			return pool.AccountMoveLine().NewSet(rs.Env())
+			return h.AccountMoveLine().NewSet(rs.Env())
 		})
 
-	pool.AccountPayment().Methods().GetMoveVals().DeclareMethod(
+	h.AccountPayment().Methods().GetMoveVals().DeclareMethod(
 		`GetMoveVals`,
-		func(rs pool.AccountPaymentSet, journal pool.AccountJournalSet) *pool.AccountMoveData {
+		func(rs h.AccountPaymentSet, journal h.AccountJournalSet) *h.AccountMoveData {
 			/*def _get_move_vals(self, journal=None):
 			  """ Return dict to create the payment move
 			  """
@@ -663,13 +664,13 @@ set to draft and re-processed again." `},
 			  }
 
 			*/
-			return &pool.AccountMoveData{}
+			return &h.AccountMoveData{}
 		})
 
-	pool.AccountPayment().Methods().GetSharedMoveLineVals().DeclareMethod(
+	h.AccountPayment().Methods().GetSharedMoveLineVals().DeclareMethod(
 		`GetSharedMoveLineVals`,
-		func(rs pool.AccountPaymentSet, debit, credit, amountCurrency float64, move pool.AccountMoveSet,
-			invoice pool.AccountInvoiceSet) *pool.AccountMoveLineData {
+		func(rs h.AccountPaymentSet, debit, credit, amountCurrency float64, move h.AccountMoveSet,
+			invoice h.AccountInvoiceSet) *h.AccountMoveLineData {
 			/*def _get_shared_move_line_vals(self, debit, credit, amount_currency, move_id, invoice_id=False):
 			  """ Returns values common to both move lines (except for debit, credit and amount_currency which are reversed)
 			  """
@@ -683,12 +684,12 @@ set to draft and re-processed again." `},
 			  }
 
 			*/
-			return &pool.AccountMoveLineData{}
+			return &h.AccountMoveLineData{}
 		})
 
-	pool.AccountPayment().Methods().GetCounterpartMoveLineVals().DeclareMethod(
+	h.AccountPayment().Methods().GetCounterpartMoveLineVals().DeclareMethod(
 		`GetCounterpartMoveLineVals`,
-		func(rs pool.AccountPaymentSet, invoice pool.AccountInvoiceSet) *pool.AccountMoveLineData {
+		func(rs h.AccountPaymentSet, invoice h.AccountInvoiceSet) *h.AccountMoveLineData {
 			/*def _get_counterpart_move_line_vals(self, invoice=False):
 			  if self.payment_type == 'transfer':
 			      name = self.name
@@ -719,12 +720,12 @@ set to draft and re-processed again." `},
 			  }
 
 			*/
-			return &pool.AccountMoveLineData{}
+			return &h.AccountMoveLineData{}
 		})
 
-	pool.AccountPayment().Methods().GetLiquidityMoveLineVals().DeclareMethod(
+	h.AccountPayment().Methods().GetLiquidityMoveLineVals().DeclareMethod(
 		`GetLiquidityMoveLineVals`,
-		func(rs pool.AccountPaymentSet, amount float64) *pool.AccountMoveLineData {
+		func(rs h.AccountPaymentSet, amount float64) *h.AccountMoveLineData {
 			/*def _get_liquidity_move_line_vals(self, amount):
 			  name = self.name
 			  if self.payment_type == 'transfer':
@@ -748,7 +749,7 @@ set to draft and re-processed again." `},
 
 			  return vals
 			*/
-			return &pool.AccountMoveLineData{}
+			return &h.AccountMoveLineData{}
 		})
 
 }

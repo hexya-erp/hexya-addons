@@ -6,15 +6,15 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountInvoiceRefund().DeclareTransientModel()
-	pool.AccountInvoiceRefund().Methods().GetReason().DeclareMethod(
+	h.AccountInvoiceRefund().DeclareTransientModel()
+	h.AccountInvoiceRefund().Methods().GetReason().DeclareMethod(
 		`GetReason`,
-		func(rs pool.AccountInvoiceRefundSet) {
+		func(rs h.AccountInvoiceRefundSet) {
 			//@api.model
 			/*def _get_reason(self):
 			    context = dict(self._context or {})
@@ -26,7 +26,7 @@ func init() {
 
 			date_invoice = */
 		})
-	pool.AccountInvoiceRefund().AddFields(map[string]models.FieldDefinition{
+	h.AccountInvoiceRefund().AddFields(map[string]models.FieldDefinition{
 		"DateInvoice": models.DateField{String: "DateInvoice" /*[string 'Refund Date']*/ /*[ default fields.Date.context_today]*/ /*[ required True]*/},
 		"Date":        models.DateField{String: "Date" /*[string 'Accounting Date']*/},
 		"Description": models.CharField{String: "Description" /*[string 'Reason']*/, Required: true /*[ default _get_reason]*/},
@@ -37,9 +37,9 @@ func init() {
 			"modify": "Modify: create refund reconcile and create a new draft invoice",
 		}, /*[]*/ Default: models.DefaultValue("refund"), Required: true, Help: "Refund base on this type. You can not Modify and Cancel if the invoice is already reconciled"},
 	})
-	pool.AccountInvoiceRefund().Methods().GetRefundOnly().DeclareMethod(
+	h.AccountInvoiceRefund().Methods().GetRefundOnly().DeclareMethod(
 		`GetRefundOnly`,
-		func(rs pool.AccountInvoiceRefundSet) {
+		func(rs h.AccountInvoiceRefundSet) {
 			//@api.one
 			/*def _get_refund_only(self):
 			  invoice_id = self.env['account.invoice'].browse(self._context.get('active_id',False))
@@ -51,9 +51,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountInvoiceRefund().Methods().ComputeRefund().DeclareMethod(
+	h.AccountInvoiceRefund().Methods().ComputeRefund().DeclareMethod(
 		`ComputeRefund`,
-		func(rs pool.AccountInvoiceRefundSet, args struct {
+		func(rs h.AccountInvoiceRefundSet, args struct {
 			Mode interface{}
 		}) {
 			//@api.multi
@@ -138,9 +138,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountInvoiceRefund().Methods().InvoiceRefund().DeclareMethod(
+	h.AccountInvoiceRefund().Methods().InvoiceRefund().DeclareMethod(
 		`InvoiceRefund`,
-		func(rs pool.AccountInvoiceRefundSet) {
+		func(rs h.AccountInvoiceRefundSet) {
 			//@api.multi
 			/*def invoice_refund(self):
 			  data_refund = self.read(['filter_refund'])[0]['filter_refund']

@@ -6,7 +6,7 @@ package saleTeams
 import (
 	"github.com/hexya-erp/hexya-base/base"
 	"github.com/hexya-erp/hexya/hexya/models/security"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 
 func init() {
 
-	pool.CRMTeam().Methods().Load().AllowGroup(base.GroupUser)
-	pool.CRMTeam().Methods().Load().AllowGroup(GroupSaleSalesman)
-	pool.CRMTeam().Methods().AllowAllToGroup(GroupSaleManager)
+	h.CRMTeam().Methods().Load().AllowGroup(base.GroupUser)
+	h.CRMTeam().Methods().Load().AllowGroup(GroupSaleSalesman)
+	h.CRMTeam().Methods().AllowAllToGroup(GroupSaleManager)
 }

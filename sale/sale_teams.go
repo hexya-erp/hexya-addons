@@ -9,19 +9,20 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.CRMTeam().AddFields(map[string]models.FieldDefinition{
+	h.CRMTeam().AddFields(map[string]models.FieldDefinition{
 		"UseQuotations": models.BooleanField{String: "Quotations", Default: models.DefaultValue(true),
-			OnChange: pool.CRMTeam().Methods().OnchangeUseQuotation(),
+			OnChange: h.CRMTeam().Methods().OnchangeUseQuotation(),
 			Help:     "Check this box to manage quotations in this sales team."},
 		"UseInvoices": models.BooleanField{String: "Invoices",
 			Help: "Check this box to manage invoices in this sales team."},
 		"Invoiced": models.FloatField{String: "Invoiced This Month",
-			Compute: pool.CRMTeam().Methods().ComputeInvoiced(), /*[ readonly True]*/
+			Compute: h.CRMTeam().Methods().ComputeInvoiced(), /*[ readonly True]*/
 			Help: `Invoice revenue for the current month. This is the amount the sales
 team has invoiced this month. It is used to compute the progression ratio
 of the current and target revenue on the kanban view.`},
@@ -29,61 +30,61 @@ of the current and target revenue on the kanban view.`},
 			Help: `Target of invoice revenue for the current month. This is the amount the sales
 team estimates to be able to invoice this month.`},
 		"SalesToInvoiceAmount": models.FloatField{String: "Amount of sales to invoice",
-			Compute: pool.CRMTeam().Methods().ComputeSalesToInvoiceAmount() /*[ readonly True]*/},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Company.Currency", /* readonly=true */
+			Compute: h.CRMTeam().Methods().ComputeSalesToInvoiceAmount() /*[ readonly True]*/},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency", /* readonly=true */
 			Required: true},
 	})
 
-	pool.CRMTeam().Methods().ComputeSalesToInvoiceAmount().DeclareMethod(
+	h.CRMTeam().Methods().ComputeSalesToInvoiceAmount().DeclareMethod(
 		`ComputeSalesToInvoiceAmount computes the total amount of sale orders that have not yet been invoiced`,
-		func(rs pool.CRMTeamSet) (*pool.CRMTeamData, []models.FieldNamer) {
-			amounts := pool.SaleOrder().Search(rs.Env(),
-				pool.SaleOrder().Team().Equals(rs).
+		func(rs h.CRMTeamSet) (*h.CRMTeamData, []models.FieldNamer) {
+			amounts := h.SaleOrder().Search(rs.Env(),
+				q.SaleOrder().Team().Equals(rs).
 					And().InvoiceStatus().Equals("to invoice")).
-				GroupBy(pool.SaleOrder().Team()).
-				Aggregates(pool.SaleOrder().Team(), pool.SaleOrder().AmountTotal())
+				GroupBy(h.SaleOrder().Team()).
+				Aggregates(h.SaleOrder().Team(), h.SaleOrder().AmountTotal())
 			if len(amounts) == 0 {
-				return &pool.CRMTeamData{}, []models.FieldNamer{pool.CRMTeam().SalesToInvoiceAmount()}
+				return &h.CRMTeamData{}, []models.FieldNamer{h.CRMTeam().SalesToInvoiceAmount()}
 			}
-			amount, _ := amounts[0].Values.Get("AmountTotal", pool.SaleOrder().Underlying())
-			return &pool.CRMTeamData{
+			amount, _ := amounts[0].Values.Get("AmountTotal", h.SaleOrder().Underlying())
+			return &h.CRMTeamData{
 				SalesToInvoiceAmount: amount.(float64),
-			}, []models.FieldNamer{pool.CRMTeam().SalesToInvoiceAmount()}
+			}, []models.FieldNamer{h.CRMTeam().SalesToInvoiceAmount()}
 		})
 
-	pool.CRMTeam().Methods().ComputeInvoiced().DeclareMethod(
+	h.CRMTeam().Methods().ComputeInvoiced().DeclareMethod(
 		`ComputeInvoiced returns the total amount invoiced by this sale team this month.`,
-		func(rs pool.CRMTeamSet) (*pool.CRMTeamData, []models.FieldNamer) {
+		func(rs h.CRMTeamSet) (*h.CRMTeamData, []models.FieldNamer) {
 			firstDayOfMonth := dates.Date{Time: time.Date(dates.Today().Year(), dates.Today().Month(), 1,
 				0, 0, 0, 0, time.UTC)}
-			invoices := pool.AccountInvoice().Search(rs.Env(),
-				pool.AccountInvoice().State().In([]string{"open", "paid"}).
+			invoices := h.AccountInvoice().Search(rs.Env(),
+				q.AccountInvoice().State().In([]string{"open", "paid"}).
 					And().Team().Equals(rs).
 					And().Date().LowerOrEqual(dates.Today()).
 					And().Date().GreaterOrEqual(firstDayOfMonth).
 					And().Type().In([]string{"out_invoice", "out_refund"})).
-				GroupBy(pool.AccountInvoice().Team()).
-				Aggregates(pool.AccountInvoice().Team(), pool.AccountInvoice().AmountUntaxedSigned())
+				GroupBy(h.AccountInvoice().Team()).
+				Aggregates(h.AccountInvoice().Team(), h.AccountInvoice().AmountUntaxedSigned())
 			if len(invoices) == 0 {
-				return &pool.CRMTeamData{}, []models.FieldNamer{pool.CRMTeam().Invoiced()}
+				return &h.CRMTeamData{}, []models.FieldNamer{h.CRMTeam().Invoiced()}
 			}
-			amount, _ := invoices[0].Values.Get("AmountUntaxedSigned", pool.AccountInvoice().Underlying())
-			return &pool.CRMTeamData{
+			amount, _ := invoices[0].Values.Get("AmountUntaxedSigned", h.AccountInvoice().Underlying())
+			return &h.CRMTeamData{
 				Invoiced: amount.(float64),
-			}, []models.FieldNamer{pool.CRMTeam().Invoiced()}
+			}, []models.FieldNamer{h.CRMTeam().Invoiced()}
 		})
 
-	pool.CRMTeam().Methods().UpdateInvoicedTarget().DeclareMethod(
+	h.CRMTeam().Methods().UpdateInvoicedTarget().DeclareMethod(
 		`UpdateInvoicedTarget updates the invoice target with the given value`,
-		func(rs pool.CRMTeamSet, value float64) bool {
-			return rs.Write(&pool.CRMTeamData{
+		func(rs h.CRMTeamSet, value float64) bool {
+			return rs.Write(&h.CRMTeamData{
 				InvoicedTarget: nbutils.Round(value, 1),
-			}, pool.CRMTeam().InvoicedTarget())
+			}, h.CRMTeam().InvoicedTarget())
 		})
 
-	pool.CRMTeam().Methods().OnchangeUseQuotation().DeclareMethod(
+	h.CRMTeam().Methods().OnchangeUseQuotation().DeclareMethod(
 		`OnchangeUseQuotation makes sure we use invoices if we use quotations.`,
-		func(rs pool.CRMTeamSet) (*pool.CRMTeamData, []models.FieldNamer) {
+		func(rs h.CRMTeamSet) (*h.CRMTeamData, []models.FieldNamer) {
 			//@api.onchange('use_quotations')
 			/*def _onchange_use_quotation(self):
 			  if self.use_quotations:
@@ -93,9 +94,9 @@ team estimates to be able to invoice this month.`},
 			if rs.UseQuotations() {
 				useInvoices = true
 			}
-			return &pool.CRMTeamData{
+			return &h.CRMTeamData{
 				UseInvoices: useInvoices,
-			}, []models.FieldNamer{pool.CRMTeam().UseInvoices()}
+			}, []models.FieldNamer{h.CRMTeam().UseInvoices()}
 		})
 
 }

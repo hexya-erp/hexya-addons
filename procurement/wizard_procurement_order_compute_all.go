@@ -6,28 +6,28 @@ package procurement
 import (
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.ProcurementOrderComputeAll().DeclareTransientModel()
+	h.ProcurementOrderComputeAll().DeclareTransientModel()
 
-	pool.ProcurementOrderComputeAll().Methods().ProcureCalculationAll().DeclareMethod(
+	h.ProcurementOrderComputeAll().Methods().ProcureCalculationAll().DeclareMethod(
 		`ProcureCalculationAll`,
-		func(rs pool.ProcurementOrderComputeAllSet) {
+		func(rs h.ProcurementOrderComputeAllSet) {
 			models.ExecuteInNewEnvironment(rs.Env().Uid(), func(env models.Environment) {
 				// TODO Avoid to run the scheduler multiple times in the same time
-				companies := pool.User().NewSet(env).CurrentUser().Companies()
+				companies := h.User().NewSet(env).CurrentUser().Companies()
 				for _, company := range companies.Records() {
-					pool.ProcurementOrder().NewSet(env).RunScheduler(true, company)
+					h.ProcurementOrder().NewSet(env).RunScheduler(true, company)
 				}
 			})
 		})
 
-	pool.ProcurementOrderComputeAll().Methods().ProcureCalculation().DeclareMethod(
+	h.ProcurementOrderComputeAll().Methods().ProcureCalculation().DeclareMethod(
 		`ProcureCalculation`,
-		func(rs pool.ProcurementOrderComputeAllSet) *actions.Action {
+		func(rs h.ProcurementOrderComputeAllSet) *actions.Action {
 			go rs.ProcureCalculationAll()
 			return &actions.Action{
 				Type: actions.ActionCloseWindow,

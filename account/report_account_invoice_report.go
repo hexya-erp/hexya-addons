@@ -7,15 +7,15 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountInvoiceReport().DeclareModel()
-	pool.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency().DeclareMethod(
+	h.AccountInvoiceReport().DeclareModel()
+	h.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency().DeclareMethod(
 		`ComputeAmountsInUserCurrency`,
-		func(rs pool.AccountInvoiceReportSet) (*pool.AccountInvoiceReportData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceReportSet) (*h.AccountInvoiceReportData, []models.FieldNamer) {
 			//@api.depends('currency_id','date','price_total','price_average','residual')
 			/*def _compute_amounts_in_user_currency(self):
 			  """Compute the amounts in the currency of the user
@@ -33,26 +33,26 @@ func init() {
 			      record.user_currency_price_average = base_currency_id.with_context(ctx).compute(record.price_average, user_currency_id)
 			      record.user_currency_residual = base_currency_id.with_context(ctx).compute(record.residual, user_currency_id)
 			*/
-			return &pool.AccountInvoiceReportData{}, []models.FieldNamer{}
+			return &h.AccountInvoiceReportData{}, []models.FieldNamer{}
 		})
-	pool.AccountInvoiceReport().AddFields(map[string]models.FieldDefinition{
+	h.AccountInvoiceReport().AddFields(map[string]models.FieldDefinition{
 		"Date":                     models.DateField{String: "Date" /*[readonly True]*/},
-		"Product":                  models.Many2OneField{String: "Product", RelationModel: pool.ProductProduct(), JSON: "product_id" /*['product.product']*/ /* readonly=true */},
+		"Product":                  models.Many2OneField{String: "Product", RelationModel: h.ProductProduct(), JSON: "product_id" /*['product.product']*/ /* readonly=true */},
 		"ProductQty":               models.FloatField{String: "ProductQty" /*[string 'Product Quantity']*/ /*[ readonly True]*/},
 		"UomName":                  models.CharField{String: "UomName" /*[string 'Reference Unit of Measure']*/ /*[ readonly True]*/},
-		"PaymentTerm":              models.Many2OneField{String: "Payment Terms", RelationModel: pool.AccountPaymentTerm(), JSON: "payment_term_id" /*['account.payment.term']*/ /*[ oldname 'payment_term']*/ /* readonly=true */},
-		"FiscalPosition":           models.Many2OneField{String: "Fiscal Position", RelationModel: pool.AccountFiscalPosition(), JSON: "fiscal_position_id" /*['account.fiscal.position']*/ /*[oldname 'fiscal_position']*/ /* readonly=true */},
-		"Currency":                 models.Many2OneField{String: "Currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/ /* readonly=true */},
-		"Categ":                    models.Many2OneField{String: "Product Category", RelationModel: pool.ProductCategory(), JSON: "categ_id" /*['product.category']*/ /* readonly=true */},
-		"Journal":                  models.Many2OneField{String: "Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/ /* readonly=true */},
-		"Partner":                  models.Many2OneField{String: "Partner", RelationModel: pool.Partner(), JSON: "partner_id" /*['res.partner']*/ /* readonly=true */},
-		"CommercialPartner":        models.Many2OneField{String: "Partner Company", RelationModel: pool.Partner(), JSON: "commercial_partner_id" /*['res.partner']*/, Help: "Commercial Entity"},
-		"Company":                  models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/ /* readonly=true */},
-		"User":                     models.Many2OneField{String: "Salesperson", RelationModel: pool.User(), JSON: "user_id" /*['res.users']*/ /* readonly=true */},
+		"PaymentTerm":              models.Many2OneField{String: "Payment Terms", RelationModel: h.AccountPaymentTerm(), JSON: "payment_term_id" /*['account.payment.term']*/ /*[ oldname 'payment_term']*/ /* readonly=true */},
+		"FiscalPosition":           models.Many2OneField{String: "Fiscal Position", RelationModel: h.AccountFiscalPosition(), JSON: "fiscal_position_id" /*['account.fiscal.position']*/ /*[oldname 'fiscal_position']*/ /* readonly=true */},
+		"Currency":                 models.Many2OneField{String: "Currency", RelationModel: h.Currency(), JSON: "currency_id" /*['res.currency']*/ /* readonly=true */},
+		"Categ":                    models.Many2OneField{String: "Product Category", RelationModel: h.ProductCategory(), JSON: "categ_id" /*['product.category']*/ /* readonly=true */},
+		"Journal":                  models.Many2OneField{String: "Journal", RelationModel: h.AccountJournal(), JSON: "journal_id" /*['account.journal']*/ /* readonly=true */},
+		"Partner":                  models.Many2OneField{String: "Partner", RelationModel: h.Partner(), JSON: "partner_id" /*['res.partner']*/ /* readonly=true */},
+		"CommercialPartner":        models.Many2OneField{String: "Partner Company", RelationModel: h.Partner(), JSON: "commercial_partner_id" /*['res.partner']*/, Help: "Commercial Entity"},
+		"Company":                  models.Many2OneField{String: "Company", RelationModel: h.Company(), JSON: "company_id" /*['res.company']*/ /* readonly=true */},
+		"User":                     models.Many2OneField{String: "Salesperson", RelationModel: h.User(), JSON: "user_id" /*['res.users']*/ /* readonly=true */},
 		"PriceTotal":               models.FloatField{String: "PriceTotal" /*[string 'Total Without Tax']*/ /*[ readonly True]*/},
-		"UserCurrencyPriceTotal":   models.FloatField{String: "UserCurrencyPriceTotal" /*[string "Total Without Tax"]*/, Compute: pool.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency(), Digits: nbutils.Digits{0, 0}},
+		"UserCurrencyPriceTotal":   models.FloatField{String: "UserCurrencyPriceTotal" /*[string "Total Without Tax"]*/, Compute: h.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency(), Digits: nbutils.Digits{0, 0}},
 		"PriceAverage":             models.FloatField{String: "PriceAverage" /*[string 'Average Price']*/ /*[ readonly True]*/ /*[ group_operator "avg"]*/},
-		"UserCurrencyPriceAverage": models.FloatField{String: "UserCurrencyPriceAverage" /*[string "Average Price"]*/, Compute: pool.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency(), Digits: nbutils.Digits{0, 0}},
+		"UserCurrencyPriceAverage": models.FloatField{String: "UserCurrencyPriceAverage" /*[string "Average Price"]*/, Compute: h.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency(), Digits: nbutils.Digits{0, 0}},
 		"CurrencyRate":             models.FloatField{String: "CurrencyRate" /*[string 'Currency Rate']*/ /*[ readonly True]*/ /*[ group_operator "avg"]*/},
 		"Nbr":                      models.IntegerField{String: "Nbr" /*[string '# of Lines']*/ /*[ readonly True)  # TDE FIXME master: rename into nbr_lines type   fields.Selection([ ('out_invoice']*/ /*[ 'Customer Invoice']*/ /*[ ('in_invoice']*/ /*[ 'Vendor Bill']*/ /*[ ('out_refund']*/ /*[ 'Customer Refund']*/ /*[ ('in_refund']*/ /*[ 'Vendor Refund']*/ /*[ ]]*/ /*[ readonly True]*/},
 		"Type": models.SelectionField{String: "Type", Selection: types.Selection{
@@ -63,18 +63,18 @@ func init() {
 			/*[ ('out_invoice', 'Customer Invoice'  ('in_invoice', 'Vendor Bill'  ('out_refund', 'Customer Refund'  ('in_refund', 'Vendor Refund'  ]*/} /*[]*/ /*[readonly True]*/},
 		"State":                models.SelectionField{ /*state = fields.Selection([ ('draft', 'Draft'), ('proforma', 'Pro-forma'), ('proforma2', 'Pro-forma'), ('open', 'Open'), ('paid', 'Done'), ('cancel', 'Cancelled')*/ },
 		"DateDue":              models.DateField{String: "DateDue" /*[string 'Due Date']*/ /*[ readonly True]*/},
-		"Account":              models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(), JSON: "account_id" /*['account.account']*/ /* readonly=true */ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
-		"AccountLine":          models.Many2OneField{String: "Account Line", RelationModel: pool.AccountAccount(), JSON: "account_line_id" /*['account.account']*/ /* readonly=true */ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
-		"PartnerBank":          models.Many2OneField{String: "Bank Account", RelationModel: pool.BankAccount(), JSON: "partner_bank_id" /*['res.partner.bank']*/ /* readonly=true */},
+		"Account":              models.Many2OneField{String: "Account", RelationModel: h.AccountAccount(), JSON: "account_id" /*['account.account']*/ /* readonly=true */ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
+		"AccountLine":          models.Many2OneField{String: "Account Line", RelationModel: h.AccountAccount(), JSON: "account_line_id" /*['account.account']*/ /* readonly=true */ /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
+		"PartnerBank":          models.Many2OneField{String: "Bank Account", RelationModel: h.BankAccount(), JSON: "partner_bank_id" /*['res.partner.bank']*/ /* readonly=true */},
 		"Residual":             models.FloatField{String: "Residual" /*[string 'Total Residual']*/ /*[ readonly True]*/},
-		"UserCurrencyResidual": models.FloatField{String: "UserCurrencyResidual" /*[string "Total Residual"]*/, Compute: pool.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency(), Digits: nbutils.Digits{0, 0}},
-		"Country":              models.Many2OneField{String: "Country of the Partner Company", RelationModel: pool.Country(), JSON: "country_id" /*['res.country']*/},
+		"UserCurrencyResidual": models.FloatField{String: "UserCurrencyResidual" /*[string "Total Residual"]*/, Compute: h.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency(), Digits: nbutils.Digits{0, 0}},
+		"Country":              models.Many2OneField{String: "Country of the Partner Company", RelationModel: h.Country(), JSON: "country_id" /*['res.country']*/},
 		"Weight":               models.FloatField{String: "Weight" /*[string 'Gross Weight']*/ /*[ readonly True]*/},
 		"Volume":               models.FloatField{String: "Volume" /*[string 'Volume']*/ /*[ readonly True]*/},
 	})
-	pool.AccountInvoiceReport().Methods().Select().DeclareMethod(
+	h.AccountInvoiceReport().Methods().Select().DeclareMethod(
 		`Select`,
-		func(rs pool.AccountInvoiceReportSet) string {
+		func(rs h.AccountInvoiceReportSet) string {
 			/*def _select(self):
 			  select_str = """
 			      SELECT sub.id, sub.date, sub.product_id, sub.partner_id, sub.country_id, sub.account_analytic_id,
@@ -91,9 +91,9 @@ func init() {
 			return ""
 		})
 
-	pool.AccountInvoiceReport().Methods().SubSelect().DeclareMethod(
+	h.AccountInvoiceReport().Methods().SubSelect().DeclareMethod(
 		`SubSelect`,
-		func(rs pool.AccountInvoiceReportSet) string {
+		func(rs h.AccountInvoiceReportSet) string {
 			/*def _sub_select(self):
 			  select_str = """
 			          SELECT ail.id AS id,
@@ -124,9 +124,9 @@ func init() {
 			return ""
 		})
 
-	pool.AccountInvoiceReport().Methods().From().DeclareMethod(
+	h.AccountInvoiceReport().Methods().From().DeclareMethod(
 		`From`,
-		func(rs pool.AccountInvoiceReportSet) string {
+		func(rs h.AccountInvoiceReportSet) string {
 			/*def _from(self):
 			  from_str = """
 			          FROM account_invoice_line ail
@@ -152,9 +152,9 @@ func init() {
 			return ""
 		})
 
-	pool.AccountInvoiceReport().Methods().GroupByClause().DeclareMethod(
+	h.AccountInvoiceReport().Methods().GroupByClause().DeclareMethod(
 		`GroupBy`,
-		func(rs pool.AccountInvoiceReportSet) string {
+		func(rs h.AccountInvoiceReportSet) string {
 			/*def _group_by(self):
 			  group_by_str = """
 			          GROUP BY ail.id, ail.product_id, ail.account_analytic_id, ai.date_invoice, ai.id,
@@ -169,9 +169,9 @@ func init() {
 			return ""
 		})
 
-	pool.AccountInvoiceReport().Methods().Init().DeclareMethod(
+	h.AccountInvoiceReport().Methods().Init().DeclareMethod(
 		`Init`,
-		func(rs pool.AccountInvoiceReportSet) {
+		func(rs h.AccountInvoiceReportSet) {
 			//@api.model_cr
 			/*def init(self):
 			  # self._table = account_invoice_report

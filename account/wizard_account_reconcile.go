@@ -6,25 +6,25 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountMoveLineReconcile().DeclareTransientModel()
-	pool.AccountMoveLineReconcile().AddFields(map[string]models.FieldDefinition{
+	h.AccountMoveLineReconcile().DeclareTransientModel()
+	h.AccountMoveLineReconcile().AddFields(map[string]models.FieldDefinition{
 		"TransNbr": models.IntegerField{String: "TransNbr" /*[string '# of Transaction']*/ /*[ readonly True]*/},
 		"Credit":   models.FloatField{String: "Credit" /*[string 'Credit amount']*/ /*[ readonly True]*/, Digits: nbutils.Digits{0, 0}},
 		"Debit":    models.FloatField{String: "Debit" /*[string 'Debit amount']*/ /*[ readonly True]*/, Digits: nbutils.Digits{0, 0}},
 		"Writeoff": models.FloatField{String: "Writeoff" /*[string 'Write-Off amount']*/ /*[ readonly True]*/, Digits: nbutils.Digits{0, 0}},
-		"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
+		"Company": models.Many2OneField{String: "Company", RelationModel: h.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
 			/*lambda self: self.env.user.company_id*/
 			return 0
 		}},
 	})
-	pool.AccountMoveLineReconcile().Methods().DefaultGet().DeclareMethod(
+	h.AccountMoveLineReconcile().Methods().DefaultGet().DeclareMethod(
 		`DefaultGet`,
-		func(rs pool.AccountMoveLineReconcileSet, args struct {
+		func(rs h.AccountMoveLineReconcileSet, args struct {
 			Fields interface{}
 		}) {
 			//@api.model
@@ -43,9 +43,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountMoveLineReconcile().Methods().TransRecGet().DeclareMethod(
+	h.AccountMoveLineReconcile().Methods().TransRecGet().DeclareMethod(
 		`TransRecGet`,
-		func(rs pool.AccountMoveLineReconcileSet) {
+		func(rs h.AccountMoveLineReconcileSet) {
 			//@api.multi
 			/*def trans_rec_get(self):
 			  context = self._context or {}
@@ -63,27 +63,27 @@ func init() {
 
 			*/
 		})
-	pool.AccountMoveLineReconcile().Methods().TransRecAddendumWriteoff().DeclareMethod(
+	h.AccountMoveLineReconcile().Methods().TransRecAddendumWriteoff().DeclareMethod(
 		`TransRecAddendumWriteoff`,
-		func(rs pool.AccountMoveLineReconcileSet) {
+		func(rs h.AccountMoveLineReconcileSet) {
 			//@api.multi
 			/*def trans_rec_addendum_writeoff(self):
 			  return self.env['account.move.line.reconcile.writeoff'].trans_rec_addendum()
 
 			*/
 		})
-	pool.AccountMoveLineReconcile().Methods().TransRecReconcilePartialReconcile().DeclareMethod(
+	h.AccountMoveLineReconcile().Methods().TransRecReconcilePartialReconcile().DeclareMethod(
 		`TransRecReconcilePartialReconcile`,
-		func(rs pool.AccountMoveLineReconcileSet) {
+		func(rs h.AccountMoveLineReconcileSet) {
 			//@api.multi
 			/*def trans_rec_reconcile_partial_reconcile(self):
 			  return self.env['account.move.line.reconcile.writeoff'].trans_rec_reconcile_partial()
 
 			*/
 		})
-	pool.AccountMoveLineReconcile().Methods().TransRecReconcileFull().DeclareMethod(
+	h.AccountMoveLineReconcile().Methods().TransRecReconcileFull().DeclareMethod(
 		`TransRecReconcileFull`,
-		func(rs pool.AccountMoveLineReconcileSet) {
+		func(rs h.AccountMoveLineReconcileSet) {
 			//@api.multi
 			/*def trans_rec_reconcile_full(self):
 			  move_lines = self.env['account.move.line'].browse(self._context.get('active_ids', []))
@@ -112,17 +112,17 @@ func init() {
 			*/
 		})
 
-	pool.AccountMoveLineReconcileWriteoff().DeclareTransientModel()
-	pool.AccountMoveLineReconcileWriteoff().AddFields(map[string]models.FieldDefinition{
-		"Journal":     models.Many2OneField{String: "Write-Off Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true},
-		"WriteoffAcc": models.Many2OneField{String: "Write-Off account", RelationModel: pool.AccountAccount(), JSON: "writeoff_acc_id" /*['account.account']*/, Required: true /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
+	h.AccountMoveLineReconcileWriteoff().DeclareTransientModel()
+	h.AccountMoveLineReconcileWriteoff().AddFields(map[string]models.FieldDefinition{
+		"Journal":     models.Many2OneField{String: "Write-Off Journal", RelationModel: h.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true},
+		"WriteoffAcc": models.Many2OneField{String: "Write-Off account", RelationModel: h.AccountAccount(), JSON: "writeoff_acc_id" /*['account.account']*/, Required: true /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
 		"DateP":       models.DateField{String: "DateP" /*[string 'Date']*/ /*[ default fields.Date.context_today]*/},
 		"Comment":     models.CharField{String: "Comment", Required: true /*[ default 'Write-off']*/},
-		"Analytic":    models.Many2OneField{String: "Analytic Account", RelationModel: pool.AccountAnalyticAccount(), JSON: "analytic_id" /*['account.analytic.account']*/},
+		"Analytic":    models.Many2OneField{String: "Analytic Account", RelationModel: h.AccountAnalyticAccount(), JSON: "analytic_id" /*['account.analytic.account']*/},
 	})
-	pool.AccountMoveLineReconcileWriteoff().Methods().TransRecAddendum().DeclareMethod(
+	h.AccountMoveLineReconcileWriteoff().Methods().TransRecAddendum().DeclareMethod(
 		`TransRecAddendum`,
-		func(rs pool.AccountMoveLineReconcileWriteoffSet) {
+		func(rs h.AccountMoveLineReconcileWriteoffSet) {
 			//@api.multi
 			/*def trans_rec_addendum(self):
 			  view = self.env.ref('account.account_move_line_reconcile_writeoff')
@@ -139,9 +139,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountMoveLineReconcileWriteoff().Methods().TransRecReconcilePartial().DeclareMethod(
+	h.AccountMoveLineReconcileWriteoff().Methods().TransRecReconcilePartial().DeclareMethod(
 		`TransRecReconcilePartial`,
-		func(rs pool.AccountMoveLineReconcileWriteoffSet) {
+		func(rs h.AccountMoveLineReconcileWriteoffSet) {
 			//@api.multi
 			/*def trans_rec_reconcile_partial(self):
 			  context = self._context or {}
@@ -150,9 +150,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountMoveLineReconcileWriteoff().Methods().TransRecReconcile().DeclareMethod(
+	h.AccountMoveLineReconcileWriteoff().Methods().TransRecReconcile().DeclareMethod(
 		`TransRecReconcile`,
-		func(rs pool.AccountMoveLineReconcileWriteoffSet) {
+		func(rs h.AccountMoveLineReconcileWriteoffSet) {
 			//@api.multi
 			/*def trans_rec_reconcile(self):
 			  context = dict(self._context or {})

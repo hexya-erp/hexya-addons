@@ -12,7 +12,8 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/operator"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 var ReferenceType = types.Selection{
@@ -28,10 +29,10 @@ var Type2Journal = map[string]string{
 
 func init() {
 
-	pool.AccountInvoice().DeclareModel()
-	pool.AccountInvoice().SetDefaultOrder("DateInvoice DESC", "Number DESC", "ID DESC")
+	h.AccountInvoice().DeclareModel()
+	h.AccountInvoice().SetDefaultOrder("DateInvoice DESC", "Number DESC", "ID DESC")
 
-	pool.AccountInvoice().AddFields(map[string]models.FieldDefinition{
+	h.AccountInvoice().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Reference/Description", Index: true, /*[ readonly True]*/ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			NoCopy: true, Help: "The name that will be used on account move lines"},
 		"Origin": models.CharField{String: "Source Document",
@@ -49,7 +50,7 @@ func init() {
 				return "out_invoice"
 			} /*[ track_visibility 'always']*/},
 		"RefundInvoice": models.Many2OneField{String: "Invoice for which this invoice is the refund",
-			RelationModel: pool.AccountInvoice()},
+			RelationModel: h.AccountInvoice()},
 		"Number": models.CharField{Related: "Move.Name" /*[ readonly True]*/, NoCopy: true},
 		"MoveName": models.CharField{String: "Journal Entry Name" /*[ readonly False]*/, NoCopy: true,
 			Default: models.DefaultValue(false),
@@ -82,7 +83,7 @@ set to draft and re-validated.`},
 			NoCopy: true, Help: "It indicates that the invoice has been sent."},
 		"DateInvoice": models.DateField{String: "Invoice Date", /*[ readonly True]*/ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			Index: true, Help: "Keep empty to use the current date", NoCopy: true,
-			Constraint: pool.AccountInvoice().Methods().OnchangePaymentTermDateInvoice()},
+			Constraint: h.AccountInvoice().Methods().OnchangePaymentTermDateInvoice()},
 		"DateDue": models.DateField{String: "Due Date", /*[ readonly True]*/ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			Index: true, NoCopy: true,
 			Help: `If you use payment terms, the due date will be computed automatically at the generation
@@ -90,119 +91,119 @@ of accounting entries. The payment term may compute several due dates, for examp
 now and 50% in one month, but if you want to force a due date, make sure that the payment
 term is not set on the invoice. If you keep the payment term and the due date empty, it
 means direct payment.`},
-		"Partner": models.Many2OneField{RelationModel: pool.Partner(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/ /*[ track_visibility 'always']*/
-			OnChange: pool.AccountInvoice().Methods().OnchangePartner()},
+		"Partner": models.Many2OneField{RelationModel: h.Partner(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/ /*[ track_visibility 'always']*/
+			OnChange: h.AccountInvoice().Methods().OnchangePartner()},
 		"PaymentTerm": models.Many2OneField{String: "Payment Terms",
-			RelationModel: pool.AccountPaymentTerm(), /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			Constraint:    pool.AccountInvoice().Methods().OnchangePaymentTermDateInvoice(),
+			RelationModel: h.AccountPaymentTerm(), /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
+			Constraint:    h.AccountInvoice().Methods().OnchangePaymentTermDateInvoice(),
 			Help: `If you use payment terms, the due date will be computed automatically at the generation
 of accounting entries. If you keep the payment term and the due date empty, it means direct payment.
 The payment term may compute several due dates, for example 50% now, 50% in one month.`},
 		"Date": models.DateField{String: "Accounting Date", NoCopy: true,
 			Help: "Keep empty to use the invoice date." /*[ readonly True]*/ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/},
-		"Account": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(),
+		"Account": models.Many2OneField{String: "Account", RelationModel: h.AccountAccount(),
 			Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			Filter:   pool.AccountAccount().Deprecated().Equals(false),
+			Filter:   q.AccountAccount().Deprecated().Equals(false),
 			Help:     "The partner account used for this invoice."},
-		"InvoiceLines": models.One2ManyField{String: "Invoice Lines", RelationModel: pool.AccountInvoiceLine(),
+		"InvoiceLines": models.One2ManyField{String: "Invoice Lines", RelationModel: h.AccountInvoiceLine(),
 			ReverseFK: "Invoice", JSON: "invoice_line_ids", /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			OnChange: pool.AccountInvoice().Methods().OnchangeInvoiceLines(),
+			OnChange: h.AccountInvoice().Methods().OnchangeInvoiceLines(),
 			NoCopy:   false},
-		"TaxLines": models.One2ManyField{RelationModel: pool.AccountInvoiceTax(), ReverseFK: "Invoice",
+		"TaxLines": models.One2ManyField{RelationModel: h.AccountInvoiceTax(), ReverseFK: "Invoice",
 			JSON: "tax_line_ids" /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/, NoCopy: false},
-		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: pool.AccountMove(), /* readonly=true */
+		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: h.AccountMove(), /* readonly=true */
 			Index: true, OnDelete: models.Restrict, NoCopy: true,
 			Help: "Link to the automatically generated Journal Items."},
 		"AmountUntaxed": models.FloatField{String: "Untaxed Amount", Stored: true,
-			Compute: pool.AccountInvoice().Methods().ComputeAmount(), /*[ track_visibility 'always']*/
+			Compute: h.AccountInvoice().Methods().ComputeAmount(), /*[ track_visibility 'always']*/
 			Depends: []string{"InvoiceLines.PriceSubtotal", "TaxLines.Amount", "Currency", "Company", "DateInvoice", "Type"}},
 		"AmountUntaxedSigned": models.FloatField{String: "Untaxed Amount in Company Currency", Stored: true,
-			Compute: pool.AccountInvoice().Methods().ComputeAmount(),
+			Compute: h.AccountInvoice().Methods().ComputeAmount(),
 			Depends: []string{"InvoiceLines.PriceSubtotal", "TaxLines.Amount", "Currency", "Company", "DateInvoice", "Type"}},
 		"AmountTax": models.FloatField{String: "Tax", Stored: true,
-			Compute: pool.AccountInvoice().Methods().ComputeAmount(),
+			Compute: h.AccountInvoice().Methods().ComputeAmount(),
 			Depends: []string{"InvoiceLines.PriceSubtotal", "TaxLines.Amount", "Currency", "Company", "DateInvoice", "Type"}},
 		"AmountTotal": models.FloatField{String: "Total", Stored: true,
-			Compute: pool.AccountInvoice().Methods().ComputeAmount(),
+			Compute: h.AccountInvoice().Methods().ComputeAmount(),
 			Depends: []string{"InvoiceLines.PriceSubtotal", "TaxLines.Amount", "Currency", "Company", "DateInvoice", "Type"}},
 		"AmountTotalSigned": models.FloatField{String: "Total in Invoice Currency", Stored: true,
-			Compute: pool.AccountInvoice().Methods().ComputeAmount(),
+			Compute: h.AccountInvoice().Methods().ComputeAmount(),
 			Depends: []string{"InvoiceLines.PriceSubtotal", "TaxLines.Amount", "Currency", "Company", "DateInvoice", "Type"},
 			Help:    "Total amount in the currency of the invoice, negative for credit notes."},
 		"AmountTotalCompanySigned": models.FloatField{String: "Total in Company Currency", Stored: true,
-			Compute: pool.AccountInvoice().Methods().ComputeAmount(),
+			Compute: h.AccountInvoice().Methods().ComputeAmount(),
 			Depends: []string{"InvoiceLines.PriceSubtotal", "TaxLines.Amount", "Currency", "Company", "DateInvoice", "Type"},
 			Help:    "Total amount in the currency of the company, negative for credit notes."},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+		"Currency": models.Many2OneField{RelationModel: h.Currency(),
 			Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			Default: func(env models.Environment) interface{} {
-				journal := pool.AccountInvoice().NewSet(env).DefaultJournal()
+				journal := h.AccountInvoice().NewSet(env).DefaultJournal()
 				if !journal.Currency().IsEmpty() {
 					return journal.Currency()
 				}
 				if !journal.Company().Currency().IsEmpty() {
 					return journal.Company().Currency()
 				}
-				return pool.User().NewSet(env).CurrentUser().Company().Currency()
+				return h.User().NewSet(env).CurrentUser().Company().Currency()
 			} /*[ track_visibility 'always']*/},
-		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(),
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(),
 			Related: "Company.Currency" /* readonly=true */},
-		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
-			OnChange: pool.AccountInvoice().Methods().OnchangeJournal(),
+		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
+			OnChange: h.AccountInvoice().Methods().OnchangeJournal(),
 			Default: func(env models.Environment) interface{} {
-				return pool.AccountInvoice().NewSet(env).DefaultJournal()
+				return h.AccountInvoice().NewSet(env).DefaultJournal()
 			} /*Filter: "[('type'*/ /*[ 'in']*/ /*[ {'out_invoice': ['sale']]*/ /*[ 'out_refund': ['sale']]*/ /*[ 'in_refund': ['purchase']] [ 'in_invoice': ['purchase']}.get(type,  ('company_id']*/ /*[ ' ']*/ /*[ company_id)]"]*/},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
+		"Company": models.Many2OneField{RelationModel: h.Company(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			Default: func(env models.Environment) interface{} {
-				return pool.Company().NewSet(env).CompanyDefaultGet()
-			}, OnChange: pool.AccountInvoice().Methods().OnchangePartner()},
+				return h.Company().NewSet(env).CompanyDefaultGet()
+			}, OnChange: h.AccountInvoice().Methods().OnchangePartner()},
 		"Reconciled": models.BooleanField{String: "Paid/Reconciled", Stored: true, /*[ readonly True]*/
-			Compute: pool.AccountInvoice().Methods().ComputeResidual(),
+			Compute: h.AccountInvoice().Methods().ComputeResidual(),
 			Depends: []string{"State", "Currency", "InvoiceLines.PriceSubtotal", "Move.Lines.AmountResidual", "Move.Lines.Currency"},
 			Help: `It indicates that the invoice has been paid and the journal entry of the invoice
 has been reconciled with one or several journal entries of payment.`},
-		"PartnerBank": models.Many2OneField{String: "Bank Account", RelationModel: pool.BankAccount(),
+		"PartnerBank": models.Many2OneField{String: "Bank Account", RelationModel: h.BankAccount(),
 			Help: `Bank Account Number to which the invoice will be paid.
 A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise a Partner bank account number.`, /* readonly=True */ /* states={'draft': [('readonly', False)]}" */
 		},
 		"Residual": models.FloatField{String: "Amount Due",
-			Compute: pool.AccountInvoice().Methods().ComputeResidual(), Stored: true, Help: "Remaining amount due.",
+			Compute: h.AccountInvoice().Methods().ComputeResidual(), Stored: true, Help: "Remaining amount due.",
 			Depends: []string{"State", "Currency", "InvoiceLines.PriceSubtotal", "Move.Lines.AmountResidual", "Move.Lines.Currency"}},
 		"ResidualSigned": models.FloatField{String: "Amount Due in Invoice Currency",
-			Compute: pool.AccountInvoice().Methods().ComputeResidual(), Stored: true,
+			Compute: h.AccountInvoice().Methods().ComputeResidual(), Stored: true,
 			Depends: []string{"State", "Currency", "InvoiceLines.PriceSubtotal", "Move.Lines.AmountResidual", "Move.Lines.Currency"},
 			Help:    "Remaining amount due in the currency of the invoice."},
 		"ResidualCompanySigned": models.FloatField{String: "Amount Due in Company Currency",
-			Compute: pool.AccountInvoice().Methods().ComputeResidual(), Stored: true,
+			Compute: h.AccountInvoice().Methods().ComputeResidual(), Stored: true,
 			Depends: []string{"State", "Currency", "InvoiceLines.PriceSubtotal", "Move.Lines.AmountResidual", "Move.Lines.Currency"},
 			Help:    "Remaining amount due in the currency of the company."},
-		"Payments": models.Many2ManyField{RelationModel: pool.AccountPayment(), JSON: "payment_ids",
+		"Payments": models.Many2ManyField{RelationModel: h.AccountPayment(), JSON: "payment_ids",
 			NoCopy: true /*[ readonly True]*/},
-		"PaymentMoveLines": models.Many2ManyField{String: "Payment Move Lines", RelationModel: pool.AccountMoveLine(),
-			JSON: "payment_move_line_ids", Compute: pool.AccountInvoice().Methods().ComputePayments(), Stored: true,
+		"PaymentMoveLines": models.Many2ManyField{String: "Payment Move Lines", RelationModel: h.AccountMoveLine(),
+			JSON: "payment_move_line_ids", Compute: h.AccountInvoice().Methods().ComputePayments(), Stored: true,
 			Depends: []string{"Move.Lines.AmountResidual"}},
-		"User": models.Many2OneField{String: "Salesperson", RelationModel: pool.User(), /*[ track_visibility 'onchange']*/
+		"User": models.Many2OneField{String: "Salesperson", RelationModel: h.User(), /*[ track_visibility 'onchange']*/
 			/* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser()
+				return h.User().NewSet(env).CurrentUser()
 			}},
-		"FiscalPosition": models.Many2OneField{RelationModel: pool.AccountFiscalPosition() /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/},
+		"FiscalPosition": models.Many2OneField{RelationModel: h.AccountFiscalPosition() /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/},
 		"CommercialPartner": models.Many2OneField{String: "Commercial Entity",
-			RelationModel: pool.Partner(), Related: "Partner.CommercialPartner", /* readonly=true */
+			RelationModel: h.Partner(), Related: "Partner.CommercialPartner", /* readonly=true */
 			Help: "The commercial entity that will be used on Journal Entries for this invoice"},
-		"OutstandingCreditsDebitsWidget": models.TextField{Compute: pool.AccountInvoice().Methods().GetOutstandingInfoJSON()},
-		"PaymentsWidget": models.TextField{Compute: pool.AccountInvoice().Methods().GetPaymentInfoJSON(),
+		"OutstandingCreditsDebitsWidget": models.TextField{Compute: h.AccountInvoice().Methods().GetOutstandingInfoJSON()},
+		"PaymentsWidget": models.TextField{Compute: h.AccountInvoice().Methods().GetPaymentInfoJSON(),
 			Depends: []string{"PaymentMoveLines.AmountResidual"}},
-		"HasOutstanding": models.BooleanField{Compute: pool.AccountInvoice().Methods().GetOutstandingInfoJSON()},
+		"HasOutstanding": models.BooleanField{Compute: h.AccountInvoice().Methods().GetOutstandingInfoJSON()},
 	})
 
 	// TODO implement as constraint
-	//pool.AccountInvoice().AddSQLConstraint("number_uniq", "unique(number, company_id, journal_id, type)",
+	//h.AccountInvoice().AddSQLConstraint("number_uniq", "unique(number, company_id, journal_id, type)",
 	//	"Invoice Number must be unique per Company!")
 
-	pool.AccountInvoice().Methods().ComputeAmount().DeclareMethod(
+	h.AccountInvoice().Methods().ComputeAmount().DeclareMethod(
 		`ComputeAmount`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.depends('invoice_line_ids.price_subtotal','tax_line_ids.amount','currency_id','company_id','date_invoice','type')
 			/*def _compute_amount(self):
 			  self.amount_untaxed = sum(line.price_subtotal for line in self.invoice_line_ids)
@@ -220,32 +221,32 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  self.amount_untaxed_signed = amount_untaxed_signed * sign
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().DefaultJournal().DeclareMethod(
+	h.AccountInvoice().Methods().DefaultJournal().DeclareMethod(
 		`DefaultJournal`,
-		func(rs pool.AccountInvoiceSet) pool.AccountJournalSet {
+		func(rs h.AccountInvoiceSet) h.AccountJournalSet {
 			if rs.Env().Context().HasKey("default_journal_id") {
-				return pool.AccountJournal().Browse(rs.Env(),
+				return h.AccountJournal().Browse(rs.Env(),
 					[]int64{rs.Env().Context().GetInteger("default_journal_id")})
 			}
 			invType := "out_invoice"
 			if rs.Env().Context().HasKey("type") {
 				invType = rs.Env().Context().GetString("type")
 			}
-			company := pool.User().NewSet(rs.Env()).CurrentUser().Company()
+			company := h.User().NewSet(rs.Env()).CurrentUser().Company()
 			if rs.Env().Context().HasKey("company_id") {
-				company = pool.Company().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("company_id")})
+				company = h.Company().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("company_id")})
 			}
 			jType := Type2Journal[invType]
-			cond := pool.AccountJournal().Type().Equals(jType).And().Company().Equals(company)
-			return pool.AccountJournal().Search(rs.Env(), cond)
+			cond := q.AccountJournal().Type().Equals(jType).And().Company().Equals(company)
+			return h.AccountJournal().Search(rs.Env(), cond)
 		})
 
-	pool.AccountInvoice().Methods().ComputeResidual().DeclareMethod(
+	h.AccountInvoice().Methods().ComputeResidual().DeclareMethod(
 		`ComputeResidual`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			/*def _compute_residual(self):
 			  residual = 0.0
 			  residual_company_signed = 0.0
@@ -268,12 +269,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			      self.reconciled = False
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().GetOutstandingInfoJSON().DeclareMethod(
+	h.AccountInvoice().Methods().GetOutstandingInfoJSON().DeclareMethod(
 		`GetOutstandingInfoJSON`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.one
 			/*def _get_outstanding_info_JSON(self):
 			  self.outstanding_credits_debits_widget = json.dumps(False)
@@ -310,12 +311,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			          self.has_outstanding = True
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().GetPaymentInfoJSON().DeclareMethod(
+	h.AccountInvoice().Methods().GetPaymentInfoJSON().DeclareMethod(
 		`GetPaymentInfoJSON`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.depends('payment_move_line_ids.amount_residual')
 			/*def _get_payment_info_JSON(self):
 			  self.payments_widget = json.dumps(False)
@@ -359,12 +360,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			      self.payments_widget = json.dumps(info)
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().ComputePayments().DeclareMethod(
+	h.AccountInvoice().Methods().ComputePayments().DeclareMethod(
 		`ComputePayments`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.depends('move_id.line_ids.amount_residual')
 			/*def _compute_payments(self):
 			  payment_lines = []
@@ -374,11 +375,11 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  self.payment_move_line_ids = self.env['account.move.line'].browse(list(set(payment_lines)))
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().Create().Extend("",
-		func(rs pool.AccountInvoiceSet, data *pool.AccountInvoiceData) pool.AccountInvoiceSet {
+	h.AccountInvoice().Methods().Create().Extend("",
+		func(rs h.AccountInvoiceSet, data *h.AccountInvoiceData) h.AccountInvoiceSet {
 			//@api.model
 			/*def create(self, vals):
 			  onchanges = {
@@ -406,8 +407,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().Create(data)
 		})
 
-	pool.AccountInvoice().Methods().Write().Extend("",
-		func(rs pool.AccountInvoiceSet, vals *pool.AccountInvoiceData, fieldsToReset ...models.FieldNamer) bool {
+	h.AccountInvoice().Methods().Write().Extend("",
+		func(rs h.AccountInvoiceSet, vals *h.AccountInvoiceData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def _write(self, vals):
 			  pre_not_reconciled = self.filtered(lambda invoice: not invoice.reconciled)
@@ -423,8 +424,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().Write(vals, fieldsToReset...)
 		})
 
-	pool.AccountInvoice().Methods().FieldsViewGet().Extend("",
-		func(rs pool.AccountInvoiceSet, params webdata.FieldsViewGetParams) *webdata.FieldsViewData {
+	h.AccountInvoice().Methods().FieldsViewGet().Extend("",
+		func(rs h.AccountInvoiceSet, params webdata.FieldsViewGetParams) *webdata.FieldsViewData {
 			//@api.model
 			/*
 				  def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
@@ -453,9 +454,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().FieldsViewGet(params)
 		})
 
-	pool.AccountInvoice().Methods().InvoicePrint().DeclareMethod(
+	h.AccountInvoice().Methods().InvoicePrint().DeclareMethod(
 		`InvoicePrint`,
-		func(rs pool.AccountInvoiceSet) *actions.Action {
+		func(rs h.AccountInvoiceSet) *actions.Action {
 			//@api.multi
 			/*def invoice_print(self):
 			  """ Print the invoice and mark it as sent, so that we can see more
@@ -471,9 +472,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			}
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoiceSent().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoiceSent().DeclareMethod(
 		`ActionInvoiceSent`,
-		func(rs pool.AccountInvoiceSet) *actions.Action {
+		func(rs h.AccountInvoiceSet) *actions.Action {
 			//@api.multi
 			/*def action_invoice_sent(self):
 			  """ Open a window to compose an email, with the edi invoice template
@@ -509,9 +510,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			}
 		})
 
-	pool.AccountInvoice().Methods().ComputeTaxes().DeclareMethod(
+	h.AccountInvoice().Methods().ComputeTaxes().DeclareMethod(
 		`ComputeTaxes`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def compute_taxes(self):
 			  """Function used in other module to compute the taxes on a fresh invoice created (onchanges did not applied)"""
@@ -536,8 +537,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().Unlink().Extend("",
-		func(rs pool.AccountInvoiceSet) int64 {
+	h.AccountInvoice().Methods().Unlink().Extend("",
+		func(rs h.AccountInvoiceSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  for invoice in self:
@@ -551,9 +552,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountInvoice().Methods().OnchangeInvoiceLines().DeclareMethod(
+	h.AccountInvoice().Methods().OnchangeInvoiceLines().DeclareMethod(
 		`OnchangeInvoiceLines`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.onchange('invoice_line_ids')
 			/*def _onchange_invoice_line_ids(self):
 			  taxes_grouped = self.get_taxes_values()
@@ -564,12 +565,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().OnchangePartner().DeclareMethod(
+	h.AccountInvoice().Methods().OnchangePartner().DeclareMethod(
 		`OnchangePartner`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.onchange('partner_id','company_id')
 			/*def _onchange_partner_id(self):
 			  account_id = False
@@ -631,36 +632,36 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return res
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().GetDeliveryPartner().DeclareMethod(
+	h.AccountInvoice().Methods().GetDeliveryPartner().DeclareMethod(
 		`GetDeliveryPartner`,
-		func(rs pool.AccountInvoiceSet) pool.PartnerSet {
+		func(rs h.AccountInvoiceSet) h.PartnerSet {
 			//@api.multi
 			/*def get_delivery_partner_id(self):
 			  self.ensure_one()
 			  return self.partner_id.address_get(['delivery'])['delivery']
 
 			*/
-			return pool.Partner().NewSet(rs.Env())
+			return h.Partner().NewSet(rs.Env())
 		})
 
-	pool.AccountInvoice().Methods().OnchangeJournal().DeclareMethod(
+	h.AccountInvoice().Methods().OnchangeJournal().DeclareMethod(
 		`OnchangeJournal`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.onchange('journal_id')
 			/*def _onchange_journal_id(self):
 			  if self.journal_id:
 			      self.currency_id = self.journal_id.currency_id.id or self.journal_id.company_id.currency_id.id
 
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().OnchangePaymentTermDateInvoice().DeclareMethod(
+	h.AccountInvoice().Methods().OnchangePaymentTermDateInvoice().DeclareMethod(
 		`OnchangePaymentTermDateInvoice`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			//@api.onchange('payment_term_id','date_invoice')
 			/*
 				def _onchange_payment_term_date_invoice(self):
@@ -675,12 +676,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 						pterm_list = pterm.with_context(currency_id=self.company_id.currency_id.id).compute(value=1, date_ref=date_invoice)[0]
 						self.date_due = max(line[0] for line in pterm_list)
 			*/
-			return new(pool.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoiceDraft().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoiceDraft().DeclareMethod(
 		`ActionInvoiceDraft`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_invoice_draft(self):
 			  if self.filtered(lambda inv: inv.state != 'cancel'):
@@ -705,9 +706,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoiceProforma2().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoiceProforma2().DeclareMethod(
 		`ActionInvoiceProforma2`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_invoice_proforma2(self):
 			  if self.filtered(lambda inv: inv.state != 'draft'):
@@ -718,9 +719,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoiceOpen().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoiceOpen().DeclareMethod(
 		`ActionInvoiceOpen`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_invoice_open(self):
 			  # lots of duplicate calls to action_invoice_open, so we remove those already open
@@ -735,9 +736,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoicePaid().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoicePaid().DeclareMethod(
 		`ActionInvoicePaid`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_invoice_paid(self):
 			  # lots of duplicate calls to action_invoice_paid, so we remove those already paid
@@ -752,9 +753,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoiceReOpen().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoiceReOpen().DeclareMethod(
 		`ActionInvoiceReOpen`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_invoice_re_open(self):
 			  if self.filtered(lambda inv: inv.state != 'paid'):
@@ -765,9 +766,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().ActionInvoiceCancel().DeclareMethod(
+	h.AccountInvoice().Methods().ActionInvoiceCancel().DeclareMethod(
 		`ActionInvoiceCancel`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_invoice_cancel(self):
 			  if self.filtered(lambda inv: inv.state not in ['proforma2', 'draft', 'open']):
@@ -778,8 +779,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().GetFormviewId().Extend("",
-		func(rs pool.AccountInvoiceSet) string {
+	h.AccountInvoice().Methods().GetFormviewId().Extend("",
+		func(rs h.AccountInvoiceSet) string {
 			//@api.multi
 			/*def get_formview_id(self):
 			  """ Update form view id of action to open the invoice """
@@ -792,9 +793,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return ""
 		})
 
-	pool.AccountInvoice().Methods().PrepareTaxLineVals().DeclareMethod(
+	h.AccountInvoice().Methods().PrepareTaxLineVals().DeclareMethod(
 		`PrepareTaxLineVals`,
-		func(rs pool.AccountInvoiceSet, line pool.AccountInvoiceLineSet, tax pool.AccountTaxSet) *pool.AccountInvoiceTaxData {
+		func(rs h.AccountInvoiceSet, line h.AccountInvoiceLineSet, tax h.AccountTaxSet) *h.AccountInvoiceTaxData {
 			/*def _prepare_tax_line_vals(self, line, tax):
 			  """ Prepare values to create an account.invoice.tax line
 
@@ -823,12 +824,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return vals
 
 			*/
-			return new(pool.AccountInvoiceTaxData)
+			return new(h.AccountInvoiceTaxData)
 		})
 
-	pool.AccountInvoice().Methods().GetTaxesValues().DeclareMethod(
+	h.AccountInvoice().Methods().GetTaxesValues().DeclareMethod(
 		`GetTaxesValues`,
-		func(rs pool.AccountInvoiceSet) map[string]*pool.AccountInvoiceTaxData {
+		func(rs h.AccountInvoiceSet) map[string]*h.AccountInvoiceTaxData {
 			//@api.multi
 			/*def get_taxes_values(self):
 			  tax_grouped = {}
@@ -847,13 +848,13 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return tax_grouped
 
 			*/
-			return make(map[string]*pool.AccountInvoiceTaxData)
+			return make(map[string]*h.AccountInvoiceTaxData)
 		})
 
-	pool.AccountInvoice().Methods().RegisterPayment().DeclareMethod(
+	h.AccountInvoice().Methods().RegisterPayment().DeclareMethod(
 		`RegisterPayment`,
-		func(rs pool.AccountInvoiceSet, paymentLine pool.AccountMoveLineSet, writeOffAccount pool.AccountAccountSet,
-			writeOffJournal pool.AccountJournalSet) bool {
+		func(rs h.AccountInvoiceSet, paymentLine h.AccountMoveLineSet, writeOffAccount h.AccountAccountSet,
+			writeOffJournal h.AccountJournalSet) bool {
 			//@api.multi
 			/*def register_payment(self, payment_line, writeoff_acc_id=False, writeoff_journal_id=False):
 			  """ Reconcile payable/receivable lines from the invoice with payment_line """
@@ -866,9 +867,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().AssignOutstandingCredit().DeclareMethod(
+	h.AccountInvoice().Methods().AssignOutstandingCredit().DeclareMethod(
 		`AssignOutstandingCredit`,
-		func(rs pool.AccountInvoiceSet, creditAML pool.AccountMoveLineSet) bool {
+		func(rs h.AccountInvoiceSet, creditAML h.AccountMoveLineSet) bool {
 			//@api.multi
 			/*def assign_outstanding_credit(self, credit_aml_id):
 			  self.ensure_one()
@@ -885,9 +886,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().ActionDateAssign().DeclareMethod(
+	h.AccountInvoice().Methods().ActionDateAssign().DeclareMethod(
 		`ActionDateAssign`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_date_assign(self):
 			  for inv in self:
@@ -899,16 +900,16 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().FinalizeInvoiceMoveLines().DeclareMethod(
+	h.AccountInvoice().Methods().FinalizeInvoiceMoveLines().DeclareMethod(
 		`FinalizeInvoiceMoveLines is a hook method to be overridden in additional modules to verify and
 		possibly alter the move lines to be created by an invoice, for special cases.`,
-		func(rs pool.AccountInvoiceSet, moveLines pool.AccountMoveLineSet) pool.AccountMoveLineSet {
+		func(rs h.AccountInvoiceSet, moveLines h.AccountMoveLineSet) h.AccountMoveLineSet {
 			return moveLines
 		})
 
-	pool.AccountInvoice().Methods().ComputeInvoiceTotals().DeclareMethod(
+	h.AccountInvoice().Methods().ComputeInvoiceTotals().DeclareMethod(
 		`ComputeInvoiceTotals`,
-		func(rs pool.AccountInvoiceSet, companyCurrency pool.CurrencySet, invoiceMoveLines pool.AccountMoveLineSet) {
+		func(rs h.AccountInvoiceSet, companyCurrency h.CurrencySet, invoiceMoveLines h.AccountMoveLineSet) {
 			//@api.multi
 			/*def compute_invoice_totals(self, company_currency, invoice_move_lines):
 						  total = 0
@@ -934,9 +935,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			          return total, total_currency, invoice_move_lines*/
 		})
 
-	pool.AccountInvoice().Methods().InvoiceLineMoveLineGet().DeclareMethod(
+	h.AccountInvoice().Methods().InvoiceLineMoveLineGet().DeclareMethod(
 		`InvoiceLineMoveLineGet`,
-		func(rs pool.AccountInvoiceSet) []*pool.AccountInvoiceLineData {
+		func(rs h.AccountInvoiceSet) []*h.AccountInvoiceLineData {
 			//@api.model
 			/*def invoice_line_move_line_get(self):
 			  res = []
@@ -972,12 +973,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return res
 
 			*/
-			return []*pool.AccountInvoiceLineData{}
+			return []*h.AccountInvoiceLineData{}
 		})
 
-	pool.AccountInvoice().Methods().TaxLineMoveLineGet().DeclareMethod(
+	h.AccountInvoice().Methods().TaxLineMoveLineGet().DeclareMethod(
 		`TaxLineMoveLineGet`,
-		func(rs pool.AccountInvoiceSet) []*pool.AccountInvoiceLineData {
+		func(rs h.AccountInvoiceSet) []*h.AccountInvoiceLineData {
 			//@api.model
 			/*def tax_line_move_line_get(self):
 			  res = []
@@ -1007,12 +1008,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return res
 
 			*/
-			return []*pool.AccountInvoiceLineData{}
+			return []*h.AccountInvoiceLineData{}
 		})
 
-	pool.AccountInvoice().Methods().InvLineCharacteristicHashcode().DeclareMethod(
+	h.AccountInvoice().Methods().InvLineCharacteristicHashcode().DeclareMethod(
 		`InvLineCharacteristicHashcode`,
-		func(rs pool.AccountInvoiceSet, invoiceLine *pool.AccountInvoiceLineData) string {
+		func(rs h.AccountInvoiceSet, invoiceLine *h.AccountInvoiceLineData) string {
 			/*def inv_line_characteristic_hashcode(self, invoice_line):
 			  """Overridable hashcode generation for invoice lines. Lines having the same hashcode
 			  will be grouped together if the journal has the 'group line' option. Of course a module
@@ -1032,9 +1033,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return ""
 		})
 
-	pool.AccountInvoice().Methods().GroupLines().DeclareMethod(
+	h.AccountInvoice().Methods().GroupLines().DeclareMethod(
 		`GroupLines`,
-		func(rs pool.AccountInvoiceSet, iml []*pool.AccountInvoiceLineData, line *pool.AccountMoveLineData) []*pool.AccountMoveLineData {
+		func(rs h.AccountInvoiceSet, iml []*h.AccountInvoiceLineData, line *h.AccountMoveLineData) []*h.AccountMoveLineData {
 			/*def group_lines(self, iml, line):
 			  """Merge account move lines (and hence analytic lines) if invoice line hashcodes are equals"""
 			  if self.journal_id.group_invoice_lines:
@@ -1058,12 +1059,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return line
 
 			*/
-			return []*pool.AccountMoveLineData{}
+			return []*h.AccountMoveLineData{}
 		})
 
-	pool.AccountInvoice().Methods().ActionMoveCreate().DeclareMethod(
+	h.AccountInvoice().Methods().ActionMoveCreate().DeclareMethod(
 		`ActionMoveCreate creates invoice related analytics and financial move lines`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_move_create(self):
 			  """ Creates invoice related analytics and financial move lines """
@@ -1162,9 +1163,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().InvoiceValidate().DeclareMethod(
+	h.AccountInvoice().Methods().InvoiceValidate().DeclareMethod(
 		`InvoiceValidate`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def invoice_validate(self):
 			  for invoice in self:
@@ -1179,9 +1180,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().LineGetConvert().DeclareMethod(
+	h.AccountInvoice().Methods().LineGetConvert().DeclareMethod(
 		`LineGetConvert`,
-		func(rs pool.AccountInvoiceSet, line *pool.AccountInvoiceLineData, partner pool.PartnerSet) *pool.AccountMoveLineData {
+		func(rs h.AccountInvoiceSet, line *h.AccountInvoiceLineData, partner h.PartnerSet) *h.AccountMoveLineData {
 			//@api.model
 			/*def line_get_convert(self, line, part):
 			  return {
@@ -1205,12 +1206,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  }
 
 			*/
-			return new(pool.AccountMoveLineData)
+			return new(h.AccountMoveLineData)
 		})
 
-	pool.AccountInvoice().Methods().ActionCancel().DeclareMethod(
+	h.AccountInvoice().Methods().ActionCancel().DeclareMethod(
 		`ActionCancel`,
-		func(rs pool.AccountInvoiceSet) bool {
+		func(rs h.AccountInvoiceSet) bool {
 			//@api.multi
 			/*def action_cancel(self):
 			  moves = self.env['account.move']
@@ -1234,8 +1235,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().NameGet().Extend("",
-		func(rs pool.AccountInvoiceSet) string {
+	h.AccountInvoice().Methods().NameGet().Extend("",
+		func(rs h.AccountInvoiceSet) string {
 			//@api.multi
 			/*def name_get(self):
 			  TYPES = {
@@ -1253,8 +1254,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().NameGet()
 		})
 
-	pool.AccountInvoice().Methods().SearchByName().Extend("",
-		func(rs pool.AccountInvoiceSet, name string, op operator.Operator, additionalCond pool.AccountInvoiceCondition, limit int) pool.AccountInvoiceSet {
+	h.AccountInvoice().Methods().SearchByName().Extend("",
+		func(rs h.AccountInvoiceSet, name string, op operator.Operator, additionalCond q.AccountInvoiceCondition, limit int) h.AccountInvoiceSet {
 			//@api.model
 			/*def name_search(self, name, args=None, operator='ilike', limit=100):
 			  args = args or []
@@ -1269,9 +1270,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().SearchByName(name, op, additionalCond, limit)
 		})
 
-	pool.AccountInvoice().Methods().GetRefundCommonFields().DeclareMethod(
+	h.AccountInvoice().Methods().GetRefundCommonFields().DeclareMethod(
 		`GetRefundCommonFields`,
-		func(rs pool.AccountInvoiceSet) []models.FieldNamer {
+		func(rs h.AccountInvoiceSet) []models.FieldNamer {
 			/*def _get_refund_common_fields(self):
 			  return ['partner_id', 'payment_term_id', 'account_id', 'currency_id', 'journal_id']
 
@@ -1279,9 +1280,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().GetRefundPrepareFields().DeclareMethod(
+	h.AccountInvoice().Methods().GetRefundPrepareFields().DeclareMethod(
 		`GetRefundPrepareFields`,
-		func(rs pool.AccountInvoiceSet) []models.FieldNamer {
+		func(rs h.AccountInvoiceSet) []models.FieldNamer {
 			/*def _get_refund_prepare_fields(self):
 			  return ['name', 'reference', 'comment', 'date_due']
 
@@ -1289,9 +1290,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().GetRefundModifyReadFields().DeclareMethod(
+	h.AccountInvoice().Methods().GetRefundModifyReadFields().DeclareMethod(
 		`GetRefundModifyReadFields`,
-		func(rs pool.AccountInvoiceSet) []models.FieldNamer {
+		func(rs h.AccountInvoiceSet) []models.FieldNamer {
 			/*def _get_refund_modify_read_fields(self):
 			  read_fields = ['type', 'number', 'invoice_line_ids', 'tax_line_ids', 'date']
 			  return self._get_refund_common_fields() + self._get_refund_prepare_fields() + read_fields
@@ -1300,9 +1301,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().GetRefundCopyFields().DeclareMethod(
+	h.AccountInvoice().Methods().GetRefundCopyFields().DeclareMethod(
 		`GetRefundCopyFields`,
-		func(rs pool.AccountInvoiceSet) []models.FieldNamer {
+		func(rs h.AccountInvoiceSet) []models.FieldNamer {
 			/*def _get_refund_copy_fields(self):
 			  copy_fields = ['company_id', 'user_id', 'fiscal_position_id']
 			  return self._get_refund_common_fields() + self._get_refund_prepare_fields() + copy_fields
@@ -1311,10 +1312,10 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return []models.FieldNamer{}
 		})
 
-	pool.AccountInvoice().Methods().PrepareRefund().DeclareMethod(
+	h.AccountInvoice().Methods().PrepareRefund().DeclareMethod(
 		`PrepareRefund`,
-		func(rs pool.AccountInvoiceSet, invoice pool.AccountInvoiceSet, dateInvoice, date dates.Date,
-			description string, journal pool.AccountJournalSet) *pool.AccountInvoiceData {
+		func(rs h.AccountInvoiceSet, invoice h.AccountInvoiceSet, dateInvoice, date dates.Date,
+			description string, journal h.AccountJournalSet) *h.AccountInvoiceData {
 			//@api.model
 			/*def _prepare_refund(self, invoice, date_invoice=None, date=None, description=None, journal_id=None):
 						  """ Prepare the dict of values to create the new refund from the invoice.
@@ -1361,13 +1362,13 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 						  if description:
 							  values['name'] = description
 			              return values*/
-			return new(pool.AccountInvoiceData)
+			return new(h.AccountInvoiceData)
 		})
 
-	pool.AccountInvoice().Methods().Refund().DeclareMethod(
+	h.AccountInvoice().Methods().Refund().DeclareMethod(
 		`Refund`,
-		func(rs pool.AccountInvoiceSet, dateInvoice, date dates.Date,
-			description string, journal pool.AccountJournalSet) pool.AccountInvoiceSet {
+		func(rs h.AccountInvoiceSet, dateInvoice, date dates.Date,
+			description string, journal h.AccountJournalSet) h.AccountInvoiceSet {
 			//@api.returns('self')
 			/*def refund(self, date_invoice=None, date=None, description=None, journal_id=None):
 			  new_invoices = self.browse()
@@ -1384,13 +1385,13 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return new_invoices
 
 			*/
-			return pool.AccountInvoice().NewSet(rs.Env())
+			return h.AccountInvoice().NewSet(rs.Env())
 		})
 
-	pool.AccountInvoice().Methods().PayAndReconcile().DeclareMethod(
+	h.AccountInvoice().Methods().PayAndReconcile().DeclareMethod(
 		`PayAndReconcile`,
-		func(rs pool.AccountInvoiceSet, payJournal pool.AccountJournalSet, payAmount float64,
-			date dates.Date, writeoffAcc pool.AccountAccountSet) bool {
+		func(rs h.AccountInvoiceSet, payJournal h.AccountJournalSet, payAmount float64,
+			date dates.Date, writeoffAcc h.AccountAccountSet) bool {
 			//@api.multi
 			/*def pay_and_reconcile(self, pay_journal, pay_amount=None, date=None, writeoff_acc=None):
 			  """ Create and post an account.payment for the invoice self, which creates a journal entry that reconciles the invoice.
@@ -1437,9 +1438,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return true
 		})
 
-	pool.AccountInvoice().Methods().GetTaxAmountByGroup().DeclareMethod(
+	h.AccountInvoice().Methods().GetTaxAmountByGroup().DeclareMethod(
 		`GetTaxAmountByGroup`,
-		func(rs pool.AccountInvoiceSet) []accounttypes.TaxGroup {
+		func(rs h.AccountInvoiceSet) []accounttypes.TaxGroup {
 			//@api.multi
 			/*def _get_tax_amount_by_group(self):
 			  self.ensure_one()
@@ -1457,44 +1458,44 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return []accounttypes.TaxGroup{}
 		})
 
-	pool.AccountInvoiceLine().DeclareModel()
-	pool.AccountInvoiceLine().SetDefaultOrder("Invoice", "Sequence", "ID")
+	h.AccountInvoiceLine().DeclareModel()
+	h.AccountInvoiceLine().SetDefaultOrder("Invoice", "Sequence", "ID")
 
-	pool.AccountInvoiceLine().AddFields(map[string]models.FieldDefinition{
+	h.AccountInvoiceLine().AddFields(map[string]models.FieldDefinition{
 		"Name": models.TextField{String: "Description", Required: true},
 		"Origin": models.CharField{String: "Source Document",
 			Help: "Reference of the document that produced this invoice."},
 		"Sequence": models.IntegerField{Default: models.DefaultValue(10),
 			Help: "Gives the sequence of this line when displaying the invoice."},
-		"Invoice": models.Many2OneField{String: "Invoice Reference", RelationModel: pool.AccountInvoice(),
+		"Invoice": models.Many2OneField{String: "Invoice Reference", RelationModel: h.AccountInvoice(),
 			OnDelete: models.Cascade, Index: true},
-		"Uom": models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom(),
+		"Uom": models.Many2OneField{String: "Unit of Measure", RelationModel: h.ProductUom(),
 			OnDelete: models.SetNull, Index: true,
-			OnChange: pool.AccountInvoiceLine().Methods().OnchangeUom()},
-		"Product": models.Many2OneField{String: "Product", RelationModel: pool.ProductProduct(),
+			OnChange: h.AccountInvoiceLine().Methods().OnchangeUom()},
+		"Product": models.Many2OneField{String: "Product", RelationModel: h.ProductProduct(),
 			OnDelete: models.Restrict, Index: true,
-			OnChange: pool.AccountInvoiceLine().Methods().OnchangeProduct()},
-		"Account": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(),
-			Required: true, Filter: pool.AccountAccount().Deprecated().Equals(false),
+			OnChange: h.AccountInvoiceLine().Methods().OnchangeProduct()},
+		"Account": models.Many2OneField{String: "Account", RelationModel: h.AccountAccount(),
+			Required: true, Filter: q.AccountAccount().Deprecated().Equals(false),
 			Default: func(env models.Environment) interface{} {
 				if !env.Context().HasKey("journal_id") {
-					return pool.AccountJournal().NewSet(env)
+					return h.AccountJournal().NewSet(env)
 				}
-				journal := pool.AccountJournal().Browse(env, []int64{env.Context().GetInteger("journal_id")})
+				journal := h.AccountJournal().Browse(env, []int64{env.Context().GetInteger("journal_id")})
 				if env.Context().GetString("type") == "out_invoice" || env.Context().GetString("type") == "in_refund" {
 					return journal.DefaultCreditAccount()
 				}
 				return journal.DefaultDebitAccount()
 			}, Help: "The income or expense account related to the selected product.",
-			OnChange: pool.AccountInvoiceLine().Methods().OnchangeAccount()},
+			OnChange: h.AccountInvoiceLine().Methods().OnchangeAccount()},
 		"PriceUnit": models.FloatField{String: "Unit Price", Required: true,
 			Digits: decimalPrecision.GetPrecision("Product Price")},
 		"PriceSubtotal": models.FloatField{String: "Amount", Stored: true,
-			Compute: pool.AccountInvoiceLine().Methods().ComputePrice(),
+			Compute: h.AccountInvoiceLine().Methods().ComputePrice(),
 			Depends: []string{"PriceUnit", "Discount", "InvoiceLineTaxes", "Quantity", "Product", "Invoice.Partner",
 				"Invoice.Currency", "Invoice.Company", "Invoice.DateInvoice"}},
 		"PriceSubtotalSigned": models.FloatField{String: "Amount Signed", /*[ currency_field 'company_currency_id']*/
-			Stored: true, Compute: pool.AccountInvoiceLine().Methods().ComputePrice(),
+			Stored: true, Compute: h.AccountInvoiceLine().Methods().ComputePrice(),
 			Depends: []string{"PriceUnit", "Discount", "InvoiceLineTaxes", "Quantity", "Product", "Invoice.Partner",
 				"Invoice.Currency", "Invoice.Company", "Invoice.DateInvoice"},
 			Help: "Total amount in the currency of the company, negative for credit notes."},
@@ -1502,21 +1503,21 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			Required: true, Default: models.DefaultValue(1)},
 		"Discount": models.FloatField{String: "Discount (%)", Digits: decimalPrecision.GetPrecision("Discount"),
 			Default: models.DefaultValue(0.0)},
-		"InvoiceLineTaxes": models.Many2ManyField{String: "Taxes", RelationModel: pool.AccountTax(),
-			JSON: "invoice_line_tax_ids", Filter: pool.AccountTax().TypeTaxUse().NotEquals("none").AndCond(
-				pool.AccountTax().Active().Equals(true).Or().Active().Equals(false))},
-		"AccountAnalytic": models.Many2OneField{String: "Analytic Account", RelationModel: pool.AccountAnalyticAccount()},
-		"AnalyticTags":    models.Many2ManyField{RelationModel: pool.AccountAnalyticTag(), JSON: "analytic_tag_ids"},
-		"Company":         models.Many2OneField{RelationModel: pool.Company(), Related: "Invoice.Company" /* readonly=true */},
-		"Partner": models.Many2OneField{String: "Partner", RelationModel: pool.Partner(),
+		"InvoiceLineTaxes": models.Many2ManyField{String: "Taxes", RelationModel: h.AccountTax(),
+			JSON: "invoice_line_tax_ids", Filter: q.AccountTax().TypeTaxUse().NotEquals("none").AndCond(
+				q.AccountTax().Active().Equals(true).Or().Active().Equals(false))},
+		"AccountAnalytic": models.Many2OneField{String: "Analytic Account", RelationModel: h.AccountAnalyticAccount()},
+		"AnalyticTags":    models.Many2ManyField{RelationModel: h.AccountAnalyticTag(), JSON: "analytic_tag_ids"},
+		"Company":         models.Many2OneField{RelationModel: h.Company(), Related: "Invoice.Company" /* readonly=true */},
+		"Partner": models.Many2OneField{String: "Partner", RelationModel: h.Partner(),
 			Related: "Invoice.Partner" /* readonly=true */},
-		"Currency":        models.Many2OneField{RelationModel: pool.Currency(), Related: "Invoice.Currency"},
-		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Invoice.CompanyCurrency" /* readonly=true */},
+		"Currency":        models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.Currency"},
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.CompanyCurrency" /* readonly=true */},
 	})
 
-	pool.AccountInvoiceLine().Methods().GetAnalyticLine().DeclareMethod(
+	h.AccountInvoiceLine().Methods().GetAnalyticLine().DeclareMethod(
 		`GetAnalyticLine`,
-		func(rs pool.AccountInvoiceLineSet) *pool.AccountAnalyticLineData {
+		func(rs h.AccountInvoiceLineSet) *h.AccountAnalyticLineData {
 			//@api.multi
 			/*def _get_analytic_line(self):
 			  ref = self.invoice_id.number
@@ -1533,12 +1534,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  }
 
 			*/
-			return new(pool.AccountAnalyticLineData)
+			return new(h.AccountAnalyticLineData)
 		})
 
-	pool.AccountInvoiceLine().Methods().ComputePrice().DeclareMethod(
+	h.AccountInvoiceLine().Methods().ComputePrice().DeclareMethod(
 		`ComputePrice`,
-		func(rs pool.AccountInvoiceLineSet) (*pool.AccountInvoiceLineData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceLineSet) (*h.AccountInvoiceLineData, []models.FieldNamer) {
 			/*def _compute_price(self):
 			  currency = self.invoice_id and self.invoice_id.currency_id or None
 			  price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
@@ -1552,11 +1553,11 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  self.price_subtotal_signed = price_subtotal_signed * sign
 
 			*/
-			return new(pool.AccountInvoiceLineData), []models.FieldNamer{}
+			return new(h.AccountInvoiceLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoiceLine().Methods().FieldsViewGet().Extend("",
-		func(rs pool.AccountInvoiceLineSet, args webdata.FieldsViewGetParams) *webdata.FieldsViewData {
+	h.AccountInvoiceLine().Methods().FieldsViewGet().Extend("",
+		func(rs h.AccountInvoiceLineSet, args webdata.FieldsViewGetParams) *webdata.FieldsViewData {
 			//@api.model
 			/*def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
 			res = super(AccountInvoiceLine, self).fields_view_get(
@@ -1576,10 +1577,10 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().FieldsViewGet(args)
 		})
 
-	pool.AccountInvoiceLine().Methods().GetInvoiceLineAccount().DeclareMethod(
+	h.AccountInvoiceLine().Methods().GetInvoiceLineAccount().DeclareMethod(
 		`GetInvoiceLineAccount`,
-		func(rs pool.AccountInvoiceLineSet, typ string, product pool.ProductProductSet, fPos pool.AccountFiscalPositionSet,
-			company pool.CompanySet) pool.AccountAccountSet {
+		func(rs h.AccountInvoiceLineSet, typ string, product h.ProductProductSet, fPos h.AccountFiscalPositionSet,
+			company h.CompanySet) h.AccountAccountSet {
 			//@api.v8
 			/*def get_invoice_line_account(self, type, product, fpos, company):
 			  accounts = product.product_tmpl_id.get_product_accounts(fpos)
@@ -1588,12 +1589,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return accounts['expense']
 
 			*/
-			return pool.AccountAccount().NewSet(rs.Env())
+			return h.AccountAccount().NewSet(rs.Env())
 		})
 
-	pool.AccountInvoiceLine().Methods().DefineTaxes().DeclareMethod(
+	h.AccountInvoiceLine().Methods().DefineTaxes().DeclareMethod(
 		`DefineTaxes is used in Onchange to set taxes and price.`,
-		func(rs pool.AccountInvoiceLineSet) {
+		func(rs h.AccountInvoiceLineSet) {
 			/*def _set_taxes(self):
 			  """ Used in on_change to set taxes and price."""
 			  if self.invoice_id.type in ('out_invoice', 'out_refund'):
@@ -1618,9 +1619,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			*/
 		})
 
-	pool.AccountInvoiceLine().Methods().OnchangeProduct().DeclareMethod(
+	h.AccountInvoiceLine().Methods().OnchangeProduct().DeclareMethod(
 		`OnchangeProduct`,
-		func(rs pool.AccountInvoiceLineSet) (*pool.AccountInvoiceLineData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceLineSet) (*h.AccountInvoiceLineData, []models.FieldNamer) {
 			//@api.onchange('product_id')
 			/*def _onchange_product_id(self):
 			  domain = {}
@@ -1676,12 +1677,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return {'domain': domain}
 
 			*/
-			return new(pool.AccountInvoiceLineData), []models.FieldNamer{}
+			return new(h.AccountInvoiceLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoiceLine().Methods().OnchangeAccount().DeclareMethod(
+	h.AccountInvoiceLine().Methods().OnchangeAccount().DeclareMethod(
 		`OnchangeAccount`,
-		func(rs pool.AccountInvoiceLineSet) (*pool.AccountInvoiceLineData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceLineSet) (*h.AccountInvoiceLineData, []models.FieldNamer) {
 			//@api.onchange('account_id')
 			/*def _onchange_account_id(self):
 			  if not self.account_id:
@@ -1693,12 +1694,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			      self._set_taxes()
 
 			*/
-			return new(pool.AccountInvoiceLineData), []models.FieldNamer{}
+			return new(h.AccountInvoiceLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoiceLine().Methods().OnchangeUom().DeclareMethod(
+	h.AccountInvoiceLine().Methods().OnchangeUom().DeclareMethod(
 		`OnchangeUom`,
-		func(rs pool.AccountInvoiceLineSet) (*pool.AccountInvoiceLineData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceLineSet) (*h.AccountInvoiceLineData, []models.FieldNamer) {
 			//@api.onchange('uom_id')
 			/*def _onchange_uom_id(self):
 			  warning = {}
@@ -1717,12 +1718,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  return result
 
 			*/
-			return new(pool.AccountInvoiceLineData), []models.FieldNamer{}
+			return new(h.AccountInvoiceLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountInvoiceLine().Methods().DefineAdditionalFields().DeclareMethod(
+	h.AccountInvoiceLine().Methods().DefineAdditionalFields().DeclareMethod(
 		`DefineAdditionalFields`,
-		func(rs pool.AccountInvoiceLineSet, invoice pool.AccountInvoiceSet) pool.AccountInvoiceLineSet {
+		func(rs h.AccountInvoiceLineSet, invoice h.AccountInvoiceSet) h.AccountInvoiceLineSet {
 			/*def _set_additional_fields(self, invoice):
 			  """ Some modules, such as Purchase, provide a feature to add automatically pre-filled
 			      invoice lines. However, these modules might not be aware of extra fields which are
@@ -1735,11 +1736,11 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  pass
 
 			*/
-			return pool.AccountInvoiceLine().NewSet(rs.Env())
+			return h.AccountInvoiceLine().NewSet(rs.Env())
 		})
 
-	pool.AccountInvoiceLine().Methods().Unlink().Extend("",
-		func(rs pool.AccountInvoiceLineSet) int64 {
+	h.AccountInvoiceLine().Methods().Unlink().Extend("",
+		func(rs h.AccountInvoiceLineSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  if self.filtered(lambda r: r.invoice_id and r.invoice_id.state != 'draft'):
@@ -1750,28 +1751,28 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountInvoiceTax().DeclareModel()
-	pool.AccountInvoiceTax().SetDefaultOrder("Sequence")
+	h.AccountInvoiceTax().DeclareModel()
+	h.AccountInvoiceTax().SetDefaultOrder("Sequence")
 
-	pool.AccountInvoiceTax().AddFields(map[string]models.FieldDefinition{
-		"Invoice": models.Many2OneField{RelationModel: pool.AccountInvoice(), OnDelete: models.Cascade,
+	h.AccountInvoiceTax().AddFields(map[string]models.FieldDefinition{
+		"Invoice": models.Many2OneField{RelationModel: h.AccountInvoice(), OnDelete: models.Cascade,
 			Index: true},
 		"Name": models.CharField{String: "Tax Description", Required: true},
-		"Tax":  models.Many2OneField{RelationModel: pool.AccountTax(), OnDelete: models.Restrict},
-		"Account": models.Many2OneField{String: "Tax Account", RelationModel: pool.AccountAccount(),
-			Required: true, Filter: pool.AccountAccount().Deprecated().Equals(false)},
-		"AccountAnalytic": models.Many2OneField{String: "Analytic account", RelationModel: pool.AccountAnalyticAccount()},
+		"Tax":  models.Many2OneField{RelationModel: h.AccountTax(), OnDelete: models.Restrict},
+		"Account": models.Many2OneField{String: "Tax Account", RelationModel: h.AccountAccount(),
+			Required: true, Filter: q.AccountAccount().Deprecated().Equals(false)},
+		"AccountAnalytic": models.Many2OneField{String: "Analytic account", RelationModel: h.AccountAnalyticAccount()},
 		"Amount":          models.FloatField{},
 		"Manual":          models.BooleanField{Default: models.DefaultValue(true)},
 		"Sequence":        models.IntegerField{Help: "Gives the sequence order when displaying a list of invoice tax."},
-		"Company":         models.Many2OneField{RelationModel: pool.Company(), Related: "Account.Company" /* readonly=true */},
-		"Currency":        models.Many2OneField{RelationModel: pool.Currency(), Related: "Invoice.Currency" /* readonly=true */},
-		"Base":            models.FloatField{Compute: pool.AccountInvoiceTax().Methods().ComputeBaseAmount()},
+		"Company":         models.Many2OneField{RelationModel: h.Company(), Related: "Account.Company" /* readonly=true */},
+		"Currency":        models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.Currency" /* readonly=true */},
+		"Base":            models.FloatField{Compute: h.AccountInvoiceTax().Methods().ComputeBaseAmount()},
 	})
 
-	pool.AccountInvoiceTax().Methods().ComputeBaseAmount().DeclareMethod(
+	h.AccountInvoiceTax().Methods().ComputeBaseAmount().DeclareMethod(
 		`ComputeBaseAmount`,
-		func(rs pool.AccountInvoiceTaxSet) (*pool.AccountInvoiceTaxData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceTaxSet) (*h.AccountInvoiceTaxData, []models.FieldNamer) {
 			/*def _compute_base_amount(self):
 			  tax_grouped = {}
 			  for invoice in self.mapped('invoice_id'):
@@ -1789,37 +1790,37 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			          else:
 			              _logger.warning('Tax Base Amount not computable probably due to a change in an underlying tax (%s).', tax.tax_id.name)
 			*/
-			return new(pool.AccountInvoiceTaxData), []models.FieldNamer{}
+			return new(h.AccountInvoiceTaxData), []models.FieldNamer{}
 		})
 
-	pool.AccountPaymentTerm().DeclareModel()
-	pool.AccountPaymentTerm().SetDefaultOrder("Name")
+	h.AccountPaymentTerm().DeclareModel()
+	h.AccountPaymentTerm().SetDefaultOrder("Name")
 
-	pool.AccountPaymentTerm().AddFields(map[string]models.FieldDefinition{
+	h.AccountPaymentTerm().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Payment Terms", Translate: true, Required: true},
 		"Active": models.BooleanField{String: "Active", Default: models.DefaultValue(true),
 			Help: "If the active field is set to False, it will allow you to hide the payment term without removing it."},
 		"Note": models.TextField{String: "Description on the Invoice", Translate: true},
-		"Lines": models.One2ManyField{RelationModel: pool.AccountPaymentTermLine(), ReverseFK: "Payment",
+		"Lines": models.One2ManyField{RelationModel: h.AccountPaymentTermLine(), ReverseFK: "Payment",
 			JSON: "line_ids", String: "Terms",
 			Default: func(env models.Environment) interface{} {
-				return pool.AccountPaymentTermLine().Create(env, &pool.AccountPaymentTermLineData{
+				return h.AccountPaymentTermLine().Create(env, &h.AccountPaymentTermLineData{
 					Value:       "balance",
 					ValueAmount: 0,
 					Sequence:    9,
 					Days:        0,
 					Option:      "day_after_invoice_date",
 				})
-			}, Constraint: pool.AccountPaymentTerm().Methods().CheckLines()},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Required: true,
+			}, Constraint: h.AccountPaymentTerm().Methods().CheckLines()},
+		"Company": models.Many2OneField{RelationModel: h.Company(), Required: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company()
+				return h.User().NewSet(env).CurrentUser().Company()
 			}},
 	})
 
-	pool.AccountPaymentTerm().Methods().CheckLines().DeclareMethod(
+	h.AccountPaymentTerm().Methods().CheckLines().DeclareMethod(
 		`CheckLines`,
-		func(rs pool.AccountPaymentTermSet) {
+		func(rs h.AccountPaymentTermSet) {
 			//@api.one
 			/*def _check_lines(self):
 			  payment_term_lines = self.line_ids.sorted()
@@ -1832,9 +1833,9 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			*/
 		})
 
-	pool.AccountPaymentTerm().Methods().Compute().DeclareMethod(
+	h.AccountPaymentTerm().Methods().Compute().DeclareMethod(
 		`Compute`,
-		func(rs pool.AccountPaymentTermSet, value float64, dateRef dates.Date) []accounttypes.PaymentDueDates {
+		func(rs h.AccountPaymentTermSet, value float64, dateRef dates.Date) []accounttypes.PaymentDueDates {
 			//@api.one
 			/*def compute(self, value, date_ref=False):
 				date_ref = date_ref or fields.Date.today()
@@ -1874,8 +1875,8 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return []accounttypes.PaymentDueDates{}
 		})
 
-	pool.AccountPaymentTerm().Methods().Unlink().Extend("",
-		func(rs pool.AccountPaymentTermSet) int64 {
+	h.AccountPaymentTerm().Methods().Unlink().Extend("",
+		func(rs h.AccountPaymentTermSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			property_recs = self.env['ir.property'].search([('value_reference', 'in', ['account.payment.term,%s'%payment_term.id for payment_term in self])])
@@ -1886,19 +1887,19 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountPaymentTermLine().DeclareModel()
-	pool.AccountPaymentTermLine().SetDefaultOrder("Sequence", "ID")
+	h.AccountPaymentTermLine().DeclareModel()
+	h.AccountPaymentTermLine().SetDefaultOrder("Sequence", "ID")
 
-	pool.AccountPaymentTermLine().AddFields(map[string]models.FieldDefinition{
+	h.AccountPaymentTermLine().AddFields(map[string]models.FieldDefinition{
 		"Value": models.SelectionField{Selection: types.Selection{
 			"balance": "Balance",
 			"percent": "Percent",
 			"fixed":   "Fixed Amount",
 		}, String: "Type", Required: true, Default: models.DefaultValue("balance"),
-			Constraint: pool.AccountPaymentTermLine().Methods().CheckPercent(),
+			Constraint: h.AccountPaymentTermLine().Methods().CheckPercent(),
 			Help:       "Select here the kind of valuation related to this payment term line."},
 		"ValueAmount": models.FloatField{String: "Value", Digits: decimalPrecision.GetPrecision("Payment Terms"),
-			Constraint: pool.AccountPaymentTermLine().Methods().CheckPercent(),
+			Constraint: h.AccountPaymentTermLine().Methods().CheckPercent(),
 			Help:       "For percent enter a ratio between 0-100."},
 		"Days": models.IntegerField{String: "Number of Days", Required: true, Default: models.DefaultValue(0)},
 		"Option": models.SelectionField{String: "Options", Selection: types.Selection{
@@ -1907,16 +1908,16 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			"last_day_following_month": "Last day of following month",
 			"last_day_current_month":   "Last day of current month"},
 			Default: models.DefaultValue("day_after_invoice_date"), Required: true,
-			OnChange: pool.AccountPaymentTermLine().Methods().OnchangeOption()},
-		"Payment": models.Many2OneField{String: "Payment Terms", RelationModel: pool.AccountPaymentTerm(),
+			OnChange: h.AccountPaymentTermLine().Methods().OnchangeOption()},
+		"Payment": models.Many2OneField{String: "Payment Terms", RelationModel: h.AccountPaymentTerm(),
 			Required: true, Index: true, OnDelete: models.Cascade},
 		"Sequence": models.IntegerField{Default: models.DefaultValue(10),
 			Help: "Gives the sequence order when displaying a list of payment term lines."},
 	})
 
-	pool.AccountPaymentTermLine().Methods().CheckPercent().DeclareMethod(
+	h.AccountPaymentTermLine().Methods().CheckPercent().DeclareMethod(
 		`CheckPercent`,
-		func(rs pool.AccountPaymentTermLineSet) {
+		func(rs h.AccountPaymentTermLineSet) {
 			//@api.constrains('value','value_amount')
 			/*def _check_percent(self):
 			  if self.value == 'percent' and (self.value_amount < 0.0 or self.value_amount > 100.0):
@@ -1925,21 +1926,21 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			*/
 		})
 
-	pool.AccountPaymentTermLine().Methods().OnchangeOption().DeclareMethod(
+	h.AccountPaymentTermLine().Methods().OnchangeOption().DeclareMethod(
 		`OnchangeOption`,
-		func(rs pool.AccountPaymentTermLineSet) (*pool.AccountPaymentTermLineData, []models.FieldNamer) {
+		func(rs h.AccountPaymentTermLineSet) (*h.AccountPaymentTermLineData, []models.FieldNamer) {
 			//@api.onchange('option')
 			/*def _onchange_option(self):
 			  if self.option in ('last_day_current_month', 'last_day_following_month'):
 			      self.days = 0
 
 			*/
-			return new(pool.AccountPaymentTermLineData), []models.FieldNamer{}
+			return new(h.AccountPaymentTermLineData), []models.FieldNamer{}
 		})
 
-	//pool.MailComposeMessage().Methods().SendMail().DeclareMethod(
+	//h.MailComposeMessage().Methods().SendMail().DeclareMethod(
 	//	`SendMail`,
-	//	func(rs pool.MailComposeMessageSet, args struct {
+	//	func(rs h.MailComposeMessageSet, args struct {
 	//		AutoCommit interface{}
 	//	}) {
 	//		//@api.multi

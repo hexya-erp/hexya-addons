@@ -6,20 +6,20 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountCommonReport().DeclareMixinModel()
-	pool.AccountCommonReport().AddFields(map[string]models.FieldDefinition{
-		"Company": models.Many2OneField{RelationModel: pool.Company(), JSON: "company_id",
+	h.AccountCommonReport().DeclareMixinModel()
+	h.AccountCommonReport().AddFields(map[string]models.FieldDefinition{
+		"Company": models.Many2OneField{RelationModel: h.Company(), JSON: "company_id",
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company()
+				return h.User().NewSet(env).CurrentUser().Company()
 			}},
-		"Journals": models.Many2ManyField{RelationModel: pool.AccountJournal(), JSON: "journal_ids",
+		"Journals": models.Many2ManyField{RelationModel: h.AccountJournal(), JSON: "journal_ids",
 			Default: func(env models.Environment) interface{} {
-				return pool.AccountJournal().NewSet(env).SearchAll()
+				return h.AccountJournal().NewSet(env).SearchAll()
 			}},
 		"DateFrom": models.DateField{String: "Start Date"},
 		"DateTo":   models.DateField{String: "End Date"},
@@ -29,9 +29,9 @@ func init() {
 		}, Required: true, Default: models.DefaultValue("posted")},
 	})
 
-	pool.AccountCommonReport().Methods().BuildContexts().DeclareMethod(
+	h.AccountCommonReport().Methods().BuildContexts().DeclareMethod(
 		`BuildContexts`,
-		func(rs pool.AccountCommonReportSet, args struct {
+		func(rs h.AccountCommonReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _build_contexts(self, data):
@@ -46,9 +46,9 @@ func init() {
 			*/
 		})
 
-	pool.AccountCommonReport().Methods().PrintReport().DeclareMethod(
+	h.AccountCommonReport().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs pool.AccountCommonReportSet, args struct {
+		func(rs h.AccountCommonReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _print_report(self, data):
@@ -57,9 +57,9 @@ func init() {
 			*/
 		})
 
-	pool.AccountCommonReport().Methods().CheckReport().DeclareMethod(
+	h.AccountCommonReport().Methods().CheckReport().DeclareMethod(
 		`CheckReport`,
-		func(rs pool.AccountCommonReportSet) {
+		func(rs h.AccountCommonReportSet) {
 			//@api.multi
 			/*def check_report(self):
 			  self.ensure_one()

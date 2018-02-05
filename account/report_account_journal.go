@@ -3,15 +3,13 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
-	pool.ReportAccountReportJournal().DeclareTransientModel()
-	pool.ReportAccountReportJournal().Methods().Lines().DeclareMethod(
+	h.ReportAccountReportJournal().DeclareTransientModel()
+	h.ReportAccountReportJournal().Methods().Lines().DeclareMethod(
 		`Lines`,
-		func(rs pool.ReportAccountReportJournalSet, args struct {
+		func(rs h.ReportAccountReportJournalSet, args struct {
 			TargetMove    interface{}
 			JournalIds    interface{}
 			SortSelection interface{}
@@ -39,9 +37,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportJournal().Methods().SumDebit().DeclareMethod(
+	h.ReportAccountReportJournal().Methods().SumDebit().DeclareMethod(
 		`SumDebit`,
-		func(rs pool.ReportAccountReportJournalSet, args struct {
+		func(rs h.ReportAccountReportJournalSet, args struct {
 			Data      interface{}
 			JournalId interface{}
 		}) {
@@ -59,9 +57,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportJournal().Methods().SumCredit().DeclareMethod(
+	h.ReportAccountReportJournal().Methods().SumCredit().DeclareMethod(
 		`SumCredit`,
-		func(rs pool.ReportAccountReportJournalSet, args struct {
+		func(rs h.ReportAccountReportJournalSet, args struct {
 			Data      interface{}
 			JournalId interface{}
 		}) {
@@ -79,9 +77,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportJournal().Methods().GetTaxes().DeclareMethod(
+	h.ReportAccountReportJournal().Methods().GetTaxes().DeclareMethod(
 		`GetTaxes`,
-		func(rs pool.ReportAccountReportJournalSet, args struct {
+		func(rs h.ReportAccountReportJournalSet, args struct {
 			Data      interface{}
 			JournalId interface{}
 		}) {
@@ -126,9 +124,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportJournal().Methods().GetQueryGetClause().DeclareMethod(
+	h.ReportAccountReportJournal().Methods().GetQueryGetClause().DeclareMethod(
 		`GetQueryGetClause`,
-		func(rs pool.ReportAccountReportJournalSet, args struct {
+		func(rs h.ReportAccountReportJournalSet, args struct {
 			Data interface{}
 		}) {
 			/*def _get_query_get_clause(self, data):
@@ -136,9 +134,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportJournal().Methods().RenderHtml().DeclareMethod(
+	h.ReportAccountReportJournal().Methods().RenderHtml().DeclareMethod(
 		`RenderHtml`,
-		func(rs pool.ReportAccountReportJournalSet, args struct {
+		func(rs h.ReportAccountReportJournalSet, args struct {
 			Docids interface{}
 			Data   interface{}
 		}) {

@@ -10,12 +10,12 @@ import (
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.ProductTemplate().AddFields(map[string]models.FieldDefinition{
+	h.ProductTemplate().AddFields(map[string]models.FieldDefinition{
 		"TrackService": models.SelectionField{String: "Track Service", Selection: types.Selection{
 			"manual": "Manually set quantities on order",
 		}, Help: `Manually set quantities on order: Invoice based on the manually entered quantity without creating an
@@ -32,7 +32,7 @@ Create a task and track hours: Create a task on the sale order validation and tr
 			"sales_price": "At sale price",
 		}, Default: models.DefaultValue("no")},
 		"SalesCount": models.IntegerField{String: "# Sales",
-			Compute: pool.ProductTemplate().Methods().ComputeSalesCount(), GoType: new(int)},
+			Compute: h.ProductTemplate().Methods().ComputeSalesCount(), GoType: new(int)},
 		"InvoicePolicy": models.SelectionField{String: "Invoicing Policy", Selection: types.Selection{
 			"order":    "Ordered quantities",
 			"delivery": "Delivered quantities",
@@ -41,21 +41,21 @@ Delivered Quantity: Invoiced based on the quantity the vendor delivered (time or
 			Default: models.DefaultValue("order")},
 	})
 
-	pool.ProductTemplate().Methods().ComputeSalesCount().DeclareMethod(
+	h.ProductTemplate().Methods().ComputeSalesCount().DeclareMethod(
 		`ComputeSalesCount returns the number of sales for this product template.`,
-		func(rs pool.ProductTemplateSet) (*pool.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
 			var count int
 			for _, product := range rs.ProductVariants().Records() {
 				count += product.SalesCount()
 			}
-			return &pool.ProductTemplateData{
+			return &h.ProductTemplateData{
 				SalesCount: count,
-			}, []models.FieldNamer{pool.ProductTemplate().SalesCount()}
+			}, []models.FieldNamer{h.ProductTemplate().SalesCount()}
 		})
 
-	pool.ProductTemplate().Methods().ActionViewSales().DeclareMethod(
+	h.ProductTemplate().Methods().ActionViewSales().DeclareMethod(
 		`ActionViewSales`,
-		func(rs pool.ProductTemplateSet) *actions.Action {
+		func(rs h.ProductTemplateSet) *actions.Action {
 			rs.EnsureOne()
 			action := actions.Registry.MustGetById("sale_action_product_sale_list")
 			products := rs.WithContext("active_test", false).ProductVariants()

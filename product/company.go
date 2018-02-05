@@ -5,23 +5,24 @@ package product
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.Company().AddFields(map[string]models.FieldDefinition{
-		"DefaultPriceList": models.Many2OneField{RelationModel: pool.ProductPricelist(),
+	h.Company().AddFields(map[string]models.FieldDefinition{
+		"DefaultPriceList": models.Many2OneField{RelationModel: h.ProductPricelist(),
 			Help: "Default Price list for partners of this company"},
 	})
 
-	pool.Company().Methods().Create().Extend("",
-		func(rs pool.CompanySet, vals *pool.CompanyData) pool.CompanySet {
+	h.Company().Methods().Create().Extend("",
+		func(rs h.CompanySet, vals *h.CompanyData) h.CompanySet {
 			newCompany := rs.Super().Create(vals)
-			priceList := pool.ProductPricelist().Search(rs.Env(),
-				pool.ProductPricelist().Currency().Equals(newCompany.Currency()).And().Company().IsNull()).Limit(1)
+			priceList := h.ProductPricelist().Search(rs.Env(),
+				q.ProductPricelist().Currency().Equals(newCompany.Currency()).And().Company().IsNull()).Limit(1)
 			if priceList.IsEmpty() {
-				priceList = pool.ProductPricelist().Create(rs.Env(), &pool.ProductPricelistData{
+				priceList = h.ProductPricelist().Create(rs.Env(), &h.ProductPricelistData{
 					Name:     newCompany.Name(),
 					Currency: newCompany.Currency(),
 				})
@@ -30,22 +31,22 @@ func init() {
 			return newCompany
 		})
 
-	pool.Company().Methods().Write().Extend("",
-		func(rs pool.CompanySet, vals *pool.CompanyData, fieldsToUnset ...models.FieldNamer) bool {
+	h.Company().Methods().Write().Extend("",
+		func(rs h.CompanySet, vals *h.CompanyData, fieldsToUnset ...models.FieldNamer) bool {
 			// When we modify the currency of the company, we reflect the change on the list0 pricelist, if
 			// that pricelist is not used by another company. Otherwise, we create a new pricelist for the
 			// given currency.
 			currency := vals.Currency
-			mainPricelist := pool.ProductPricelist().Search(rs.Env(), pool.ProductPricelist().HexyaExternalID().Equals("product_list0"))
+			mainPricelist := h.ProductPricelist().Search(rs.Env(), q.ProductPricelist().HexyaExternalID().Equals("product_list0"))
 			if currency.IsEmpty() || mainPricelist.IsEmpty() {
 				return rs.Super().Write(vals, fieldsToUnset...)
 			}
-			nbCompanies := pool.Company().NewSet(rs.Env()).SearchAll().SearchCount()
+			nbCompanies := h.Company().NewSet(rs.Env()).SearchAll().SearchCount()
 			for _, company := range rs.Records() {
 				if mainPricelist.Company().Equals(company) || (mainPricelist.Company().IsEmpty() && nbCompanies == 1) {
 					mainPricelist.SetCurrency(currency)
 				} else {
-					priceList := pool.ProductPricelist().Create(rs.Env(), &pool.ProductPricelistData{
+					priceList := h.ProductPricelist().Create(rs.Env(), &h.ProductPricelistData{
 						Name:     company.Name(),
 						Currency: currency,
 					})

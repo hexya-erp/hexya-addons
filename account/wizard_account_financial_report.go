@@ -6,15 +6,15 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountingReport().DeclareTransientModel()
-	pool.AccountingReport().Methods().GetAccountReport().DeclareMethod(
+	h.AccountingReport().DeclareTransientModel()
+	h.AccountingReport().Methods().GetAccountReport().DeclareMethod(
 		`GetAccountReport`,
-		func(rs pool.AccountingReportSet) {
+		func(rs h.AccountingReportSet) {
 			//@api.model
 			/*def _get_account_report(self):
 			    reports = []
@@ -25,9 +25,9 @@ func init() {
 
 			enable_filter = */
 		})
-	pool.AccountingReport().AddFields(map[string]models.FieldDefinition{
+	h.AccountingReport().AddFields(map[string]models.FieldDefinition{
 		"EnableFilter": models.BooleanField{String: "EnableFilter" /*[string 'Enable Comparison']*/},
-		"AccountReport": models.Many2OneField{String: "Account Reports", RelationModel: pool.AccountFinancialReport(), JSON: "account_report_id" /*['account.financial.report']*/, Required: true, Default: func(env models.Environment) interface{} {
+		"AccountReport": models.Many2OneField{String: "Account Reports", RelationModel: h.AccountFinancialReport(), JSON: "account_report_id" /*['account.financial.report']*/, Required: true, Default: func(env models.Environment) interface{} {
 			/*_get_account_report(self):
 			    reports = []
 			    if self._context.get('active_id'):
@@ -47,9 +47,9 @@ func init() {
 		"DateToCmp":   models.DateField{String: "DateToCmp" /*[string 'End Date']*/},
 		"DebitCredit": models.BooleanField{String: "DebitCredit" /*[string 'Display Debit/Credit Columns']*/, Help: "This option allows you to get more details about the way your balances are computed. Because it is space consuming, we do not allow to use it while doing a comparison." /*[ we do not allow to use it while doing a comparison."]*/},
 	})
-	pool.AccountingReport().Methods().BuildComparisonContext().DeclareMethod(
+	h.AccountingReport().Methods().BuildComparisonContext().DeclareMethod(
 		`BuildComparisonContext`,
-		func(rs pool.AccountingReportSet, args struct {
+		func(rs h.AccountingReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _build_comparison_context(self, data):
@@ -64,9 +64,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountingReport().Methods().CheckReport().DeclareMethod(
+	h.AccountingReport().Methods().CheckReport().DeclareMethod(
 		`CheckReport`,
-		func(rs pool.AccountingReportSet) {
+		func(rs h.AccountingReportSet) {
 			//@api.multi
 			/*def check_report(self):
 			  res = super(AccountingReport, self).check_report()
@@ -81,9 +81,9 @@ func init() {
 
 			*/
 		})
-	pool.AccountingReport().Methods().PrintReport().DeclareMethod(
+	h.AccountingReport().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs pool.AccountingReportSet, args struct {
+		func(rs h.AccountingReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _print_report(self, data):

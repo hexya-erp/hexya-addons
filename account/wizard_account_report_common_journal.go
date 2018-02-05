@@ -5,20 +5,20 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountCommonJournalReport().DeclareMixinModel()
-	pool.AccountCommonJournalReport().InheritModel(pool.AccountCommonReport())
+	h.AccountCommonJournalReport().DeclareMixinModel()
+	h.AccountCommonJournalReport().InheritModel(h.AccountCommonReport())
 
-	pool.AccountCommonJournalReport().AddFields(map[string]models.FieldDefinition{
+	h.AccountCommonJournalReport().AddFields(map[string]models.FieldDefinition{
 		"AmountCurrency": models.BooleanField{String: "With Currency" /*['With Currency']*/, Help: "Print Report with the currency column if the currency differs from the company currency."},
 	})
-	pool.AccountCommonJournalReport().Methods().PrePrintReport().DeclareMethod(
+	h.AccountCommonJournalReport().Methods().PrePrintReport().DeclareMethod(
 		`PrePrintReport`,
-		func(rs pool.AccountCommonJournalReportSet, args struct {
+		func(rs h.AccountCommonJournalReportSet, args struct {
 			Data interface{}
 		}) {
 			//@api.multi
