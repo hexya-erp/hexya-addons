@@ -6,7 +6,7 @@ package product
 import (
 	"github.com/hexya-erp/hexya-base/base"
 	"github.com/hexya-erp/hexya/hexya/models/security"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 var (
@@ -27,19 +27,19 @@ var (
 )
 
 func init() {
-	pool.ProductUomCateg().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductUom().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductCategory().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductTemplate().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductPackaging().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductSupplierinfo().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductPricelist().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductPricelistItem().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductPricelist().Methods().Load().AllowGroup(base.GroupPartnerManager)
-	pool.ProductProduct().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductPriceHistory().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductAttribute().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductAttributeValue().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductAttributePrice().Methods().Load().AllowGroup(base.GroupUser)
-	pool.ProductAttributeLine().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductUomCateg().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductUom().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductCategory().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductTemplate().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductPackaging().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductSupplierinfo().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductPricelist().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductPricelistItem().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductPricelist().Methods().Load().AllowGroup(base.GroupPartnerManager)
+	h.ProductProduct().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductPriceHistory().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductAttribute().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductAttributeValue().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductAttributePrice().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductAttributeLine().Methods().Load().AllowGroup(base.GroupUser)
 }

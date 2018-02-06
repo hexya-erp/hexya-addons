@@ -4,12 +4,13 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.Company().AddFields(map[string]models.FieldDefinition{
+	h.Company().AddFields(map[string]models.FieldDefinition{
 		"FiscalyearLastDay": models.IntegerField{Default: models.DefaultValue(31), Required: true},
 		"FiscalyearLastMonth": models.SelectionField{Selection: types.Selection{
 			"1":  "January",
@@ -32,14 +33,14 @@ Use it for period locking inside an open fiscal year, for example.`},
 			Help: `No users, including Advisers, can edit accounts prior to and inclusive of this date.
 Use it for fiscal year locking for example.`},
 		"TransferAccount": models.Many2OneField{String: "Inter-Banks Transfer Account",
-			RelationModel: pool.AccountAccount(), Filter: pool.AccountAccount().Reconcile().Equals(true).
+			RelationModel: h.AccountAccount(), Filter: q.AccountAccount().Reconcile().Equals(true).
 					And().Deprecated().Equals(false).
 					And().UserTypeFilteredOn(
-				pool.AccountAccountType().HexyaExternalID().Equals("account.data_account_type_current_assets")),
+				q.AccountAccountType().HexyaExternalID().Equals("account.data_account_type_current_assets")),
 			Help: "Intermediary account used when moving money from a liquidity account to another"},
 		"ExpectsChartOfAccounts": models.BooleanField{String: "Expects a Chart of Accounts",
 			Default: models.DefaultValue(true)},
-		"ChartTemplate": models.Many2OneField{RelationModel: pool.AccountChartTemplate(),
+		"ChartTemplate": models.Many2OneField{RelationModel: h.AccountChartTemplate(),
 			Help: "The chart template for the company (if any)"},
 		"BankAccountCodePrefix": models.CharField{String: "Prefix of the bank accounts"},
 		"CashAccountCodePrefix": models.CharField{String: "Prefix of the cash accounts"},
@@ -58,26 +59,26 @@ total tax amount will be rounded. If you sell with tax included you should
 choose 'Round per line' because you certainly want the sum of your tax-included
 line subtotals to be equal to the total amount with taxes.`},
 		"CurrencyExchangeJournal": models.Many2OneField{String: "Exchange Gain or Loss Journal",
-			RelationModel: pool.AccountJournal(), Filter: pool.AccountJournal().Type().Equals("general")},
+			RelationModel: h.AccountJournal(), Filter: q.AccountJournal().Type().Equals("general")},
 		"IncomeCurrencyExchangeAccount": models.Many2OneField{String: "Gain Exchange Rate Account",
-			RelationModel: pool.AccountAccount(), Related: "CurrencyExchangeJournal.DefaultCreditAccount",
-			Filter: pool.AccountAccount().InternalType().Equals("other").
+			RelationModel: h.AccountAccount(), Related: "CurrencyExchangeJournal.DefaultCreditAccount",
+			Filter: q.AccountAccount().InternalType().Equals("other").
 				And().Deprecated().Equals(false).
 				And().Company().EqualsEval("id")},
 		"ExpenseCurrencyExchangeAccount": models.Many2OneField{String: "Loss Exchange Rate Account",
-			RelationModel: pool.AccountAccount(), Related: "CurrencyExchangeJournal.DefaultDebitAccount",
-			Filter: pool.AccountAccount().InternalType().Equals("other").
+			RelationModel: h.AccountAccount(), Related: "CurrencyExchangeJournal.DefaultDebitAccount",
+			Filter: q.AccountAccount().InternalType().Equals("other").
 				And().Deprecated().Equals(false).
 				And().Company().EqualsEval("id")},
 		"AngloSaxonAccounting": models.BooleanField{String: "Use anglo-saxon accounting"},
 		"PropertyStockAccountInputCateg": models.Many2OneField{String: "Input Account for Stock Valuation",
-			RelationModel: pool.AccountAccount()},
+			RelationModel: h.AccountAccount()},
 		"PropertyStockAccountOutputCateg": models.Many2OneField{String: "Output Account for Stock Valuation",
-			RelationModel: pool.AccountAccount()},
+			RelationModel: h.AccountAccount()},
 		"PropertyStockValuationAccount": models.Many2OneField{String: "Account Template for Stock Valuation",
-			RelationModel: pool.AccountAccount()},
-		"BankJournals": models.One2ManyField{RelationModel: pool.AccountJournal(), ReverseFK: "Company",
-			JSON: "bank_journal_ids", Filter: pool.AccountJournal().Type().Equals("bank")},
+			RelationModel: h.AccountAccount()},
+		"BankJournals": models.One2ManyField{RelationModel: h.AccountJournal(), ReverseFK: "Company",
+			JSON: "bank_journal_ids", Filter: q.AccountJournal().Type().Equals("bank")},
 		"OverdueMsg": models.TextField{String: "Overdue Payments Message", Translate: true,
 			Default: models.DefaultValue(`Dear Sir/Madam,
 
@@ -89,9 +90,9 @@ Thank you in advance for your cooperation.
 Best Regards,`)},
 	})
 
-	pool.Company().Methods().ComputeFiscalyearDates().DeclareMethod(
+	h.Company().Methods().ComputeFiscalyearDates().DeclareMethod(
 		`ComputeFiscalyearDates`,
-		func(rs pool.CompanySet, date dates.Date) (dates.Date, dates.Date) {
+		func(rs h.CompanySet, date dates.Date) (dates.Date, dates.Date) {
 			//@api.multi
 			/*def compute_fiscalyear_dates(self, date):
 			  """ Computes the start and end dates of the fiscalyear where the given 'date' belongs to
@@ -120,9 +121,9 @@ Best Regards,`)},
 			return dates.Today(), dates.Today()
 		})
 
-	pool.Company().Methods().GetNewAccountCode().DeclareMethod(
+	h.Company().Methods().GetNewAccountCode().DeclareMethod(
 		`GetNewAccountCode`,
-		func(rs pool.CompanySet, currentCode, oldPrefix, newPrefix string, digits int) string {
+		func(rs h.CompanySet, currentCode, oldPrefix, newPrefix string, digits int) string {
 			/*def get_new_account_code(self, current_code, old_prefix, new_prefix, digits):
 			  return new_prefix + current_code.replace(old_prefix, '', 1).lstrip('0').rjust(digits-len(new_prefix), '0')
 
@@ -130,9 +131,9 @@ Best Regards,`)},
 			return ""
 		})
 
-	pool.Company().Methods().ReflectCodePrefixChange().DeclareMethod(
+	h.Company().Methods().ReflectCodePrefixChange().DeclareMethod(
 		`ReflectCodePrefixChange`,
-		func(rs pool.CompanySet, oldCode, newCode string, digits int) {
+		func(rs h.CompanySet, oldCode, newCode string, digits int) {
 			/*def reflect_code_prefix_change(self, old_code, new_code, digits):
 			  accounts = self.env['account.account'].search([('code', 'like', old_code), ('internal_type', '=', 'liquidity'),
 			      ('company_id', '=', self.id)], order='code asc')
@@ -143,9 +144,9 @@ Best Regards,`)},
 			*/
 		})
 
-	pool.Company().Methods().ReflectCodeDigitsChange().DeclareMethod(
+	h.Company().Methods().ReflectCodeDigitsChange().DeclareMethod(
 		`ReflectCodeDigitsChange`,
-		func(rs pool.CompanySet, digits int) {
+		func(rs h.CompanySet, digits int) {
 			/*def reflect_code_digits_change(self, digits):
 			  accounts = self.env['account.account'].search([('company_id', '=', self.id)], order='code asc')
 			  for account in accounts:
@@ -154,9 +155,9 @@ Best Regards,`)},
 			*/
 		})
 
-	pool.Company().Methods().ValidateFiscalyearLock().DeclareMethod(
+	h.Company().Methods().ValidateFiscalyearLock().DeclareMethod(
 		`ValidateFiscalyearLock`,
-		func(rs pool.CompanySet, values *pool.CompanyData, fieldsToReset ...models.FieldNamer) {
+		func(rs h.CompanySet, values *h.CompanyData, fieldsToReset ...models.FieldNamer) {
 			//@api.multi
 			/*def _validate_fiscalyear_lock(self, values):
 			  if values.get('fiscalyear_lock_date'):
@@ -170,8 +171,8 @@ Best Regards,`)},
 			*/
 		})
 
-	pool.Company().Methods().Write().Extend("",
-		func(rs pool.CompanySet, data *pool.CompanyData, fieldsToReset ...models.FieldNamer) bool {
+	h.Company().Methods().Write().Extend("",
+		func(rs h.CompanySet, data *h.CompanyData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, values):
 			  #restrict the closing of FY if there are still unposted entries

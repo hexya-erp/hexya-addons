@@ -5,20 +5,20 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountAgedTrialBalance().DeclareTransientModel()
-	pool.AccountAgedTrialBalance().AddFields(map[string]models.FieldDefinition{
+	h.AccountAgedTrialBalance().DeclareTransientModel()
+	h.AccountAgedTrialBalance().AddFields(map[string]models.FieldDefinition{
 		"PeriodLength": models.IntegerField{String: "PeriodLength" /*[string 'Period Length (days)']*/, Required: true, Default: models.DefaultValue(30)},
-		"Journals":     models.Many2ManyField{String: "Journals", RelationModel: pool.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*[ required True]*/},
+		"Journals":     models.Many2ManyField{String: "Journals", RelationModel: h.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*[ required True]*/},
 		"DateFrom":     models.DateField{String: "DateFrom" /*[default lambda *a: time.strftime('%Y-%m-%d']*/},
 	})
-	pool.AccountAgedTrialBalance().Methods().PrintReport().DeclareMethod(
+	h.AccountAgedTrialBalance().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs pool.AccountAgedTrialBalanceSet, args struct {
+		func(rs h.AccountAgedTrialBalanceSet, args struct {
 			Data interface{}
 		}) {
 			/*def _print_report(self, data):

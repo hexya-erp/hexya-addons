@@ -12,24 +12,25 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.SaleAdvancePaymentInv().DeclareTransientModel()
+	h.SaleAdvancePaymentInv().DeclareTransientModel()
 
-	pool.SaleAdvancePaymentInv().AddFields(map[string]models.FieldDefinition{
+	h.SaleAdvancePaymentInv().AddFields(map[string]models.FieldDefinition{
 		"AdvancePaymentMethod": models.SelectionField{String: "What do you want to invoice?",
 			Selection: types.Selection{
 				"delivered":  "Invoiceable lines",
 				"all":        "Invoiceable lines (deduct down payments)",
 				"percentage": "Down payment (percentage)",
 				"fixed":      "Down payment (fixed amount)"},
-			OnChange: pool.SaleAdvancePaymentInv().Methods().OnchangeAdvancePaymentMethod(),
+			OnChange: h.SaleAdvancePaymentInv().Methods().OnchangeAdvancePaymentMethod(),
 			Default: func(env models.Environment) interface{} {
 				if len(env.Context().GetIntegerSlice("active_ids")) == 1 {
-					order := pool.SaleOrder().Browse(env, env.Context().GetIntegerSlice("active_ids"))
+					order := h.SaleOrder().Browse(env, env.Context().GetIntegerSlice("active_ids"))
 					if order.InvoiceCount() > 0 {
 						return "all"
 					}
@@ -42,10 +43,10 @@ func init() {
 				}
 				return "delivered"
 			}},
-		"Product": models.Many2OneField{String: "Down Payment Product", RelationModel: pool.ProductProduct(),
-			Filter: pool.ProductProduct().Type().Equals("service"),
+		"Product": models.Many2OneField{String: "Down Payment Product", RelationModel: h.ProductProduct(),
+			Filter: q.ProductProduct().Type().Equals("service"),
 			Default: func(env models.Environment) interface{} {
-				return pool.SaleAdvancePaymentInv().NewSet(env).DefaultProduct()
+				return h.SaleAdvancePaymentInv().NewSet(env).DefaultProduct()
 			}},
 		"Count": models.IntegerField{String: "# of Orders",
 			Default: func(env models.Environment) interface{} {
@@ -53,43 +54,43 @@ func init() {
 			}},
 		"Amount": models.FloatField{String: "Down Payment Amount", Digits: decimalPrecision.GetPrecision("Account"),
 			Help: "The amount to be invoiced in advance, taxes excluded."},
-		"DepositAccount": models.Many2OneField{String: "Income Account", RelationModel: pool.AccountAccount(),
-			Filter: pool.AccountAccount().Deprecated().Equals(false), Help: "Account used for deposits",
+		"DepositAccount": models.Many2OneField{String: "Income Account", RelationModel: h.AccountAccount(),
+			Filter: q.AccountAccount().Deprecated().Equals(false), Help: "Account used for deposits",
 			Default: func(env models.Environment) interface{} {
-				return pool.SaleAdvancePaymentInv().NewSet(env).DefaultProduct().PropertyAccountIncome()
+				return h.SaleAdvancePaymentInv().NewSet(env).DefaultProduct().PropertyAccountIncome()
 			}},
-		"DepositTaxes": models.Many2ManyField{String: "Customer Taxes", RelationModel: pool.AccountTax(),
+		"DepositTaxes": models.Many2ManyField{String: "Customer Taxes", RelationModel: h.AccountTax(),
 			JSON: "deposit_taxes_id", Help: "Taxes used for deposits",
 			Default: func(env models.Environment) interface{} {
-				return pool.SaleAdvancePaymentInv().NewSet(env).DefaultProduct().Taxes()
+				return h.SaleAdvancePaymentInv().NewSet(env).DefaultProduct().Taxes()
 			}},
 	})
 
-	pool.SaleAdvancePaymentInv().Methods().DefaultProduct().DeclareMethod(
+	h.SaleAdvancePaymentInv().Methods().DefaultProduct().DeclareMethod(
 		`DefaultProduct returns the default deposit product`,
-		func(rs pool.SaleAdvancePaymentInvSet) pool.ProductProductSet {
-			conf := pool.ConfigParameter().NewSet(rs.Env()).GetParam("deposit_product_id_setting", "")
+		func(rs h.SaleAdvancePaymentInvSet) h.ProductProductSet {
+			conf := h.ConfigParameter().NewSet(rs.Env()).GetParam("deposit_product_id_setting", "")
 			accountID, err := strconv.ParseInt(conf, 10, 64)
 			if err != nil {
-				return pool.ProductProduct().NewSet(rs.Env())
+				return h.ProductProduct().NewSet(rs.Env())
 			}
-			return pool.ProductProduct().Browse(rs.Env(), []int64{accountID})
+			return h.ProductProduct().Browse(rs.Env(), []int64{accountID})
 		})
 
-	pool.SaleAdvancePaymentInv().Methods().OnchangeAdvancePaymentMethod().DeclareMethod(
+	h.SaleAdvancePaymentInv().Methods().OnchangeAdvancePaymentMethod().DeclareMethod(
 		`OnchangeAdvancePaymentMethod sets the amount to 0 when percentage is selected.`,
-		func(rs pool.SaleAdvancePaymentInvSet) (*pool.SaleAdvancePaymentInvData, []models.FieldNamer) {
+		func(rs h.SaleAdvancePaymentInvSet) (*h.SaleAdvancePaymentInvData, []models.FieldNamer) {
 			var fieldsToReset []models.FieldNamer
 			if rs.AdvancePaymentMethod() == "percentage" {
-				fieldsToReset = append(fieldsToReset, pool.SaleAdvancePaymentInv().Amount())
+				fieldsToReset = append(fieldsToReset, h.SaleAdvancePaymentInv().Amount())
 			}
-			return &pool.SaleAdvancePaymentInvData{}, fieldsToReset
+			return &h.SaleAdvancePaymentInvData{}, fieldsToReset
 		})
 
-	pool.SaleAdvancePaymentInv().Methods().CreateInvoice().DeclareMethod(
+	h.SaleAdvancePaymentInv().Methods().CreateInvoice().DeclareMethod(
 		`CreateInvoice creates a deposit invoice for the given order and order line.`,
-		func(rs pool.SaleAdvancePaymentInvSet, order pool.SaleOrderSet, soLine pool.SaleOrderLineSet) pool.AccountInvoiceSet {
-			account := pool.AccountAccount().NewSet(rs.Env())
+		func(rs h.SaleAdvancePaymentInvSet, order h.SaleOrderSet, soLine h.SaleOrderLineSet) h.AccountInvoiceSet {
+			account := h.AccountAccount().NewSet(rs.Env())
 			if !rs.Product().IsEmpty() {
 				account = rs.Product().PropertyAccountIncome()
 			}
@@ -118,11 +119,11 @@ func init() {
 			}
 			taxes := rs.Product().Taxes()
 			if !order.Company().IsEmpty() {
-				taxes = taxes.Search(pool.AccountTax().Company().Equals(order.Company()))
+				taxes = taxes.Search(q.AccountTax().Company().Equals(order.Company()))
 			}
 			if !order.FiscalPosition().IsEmpty() && !taxes.IsEmpty() {
-				taxes = order.FiscalPosition().MapTax(taxes, pool.ProductProduct().NewSet(rs.Env()),
-					pool.Partner().NewSet(rs.Env()))
+				taxes = order.FiscalPosition().MapTax(taxes, h.ProductProduct().NewSet(rs.Env()),
+					h.Partner().NewSet(rs.Env()))
 			}
 			nameInv := order.Name()
 			if order.ClientOrderRef() != "" {
@@ -132,8 +133,8 @@ func init() {
 			if !order.FiscalPosition().IsEmpty() {
 				fPos = order.FiscalPosition()
 			}
-			invoiceLines := pool.AccountInvoiceLine().Create(rs.Env(),
-				&pool.AccountInvoiceLineData{
+			invoiceLines := h.AccountInvoiceLine().Create(rs.Env(),
+				&h.AccountInvoiceLineData{
 					Name:             name,
 					Origin:           order.Name(),
 					Account:          account,
@@ -146,8 +147,8 @@ func init() {
 					InvoiceLineTaxes: taxes,
 					AccountAnalytic:  order.Project(),
 				})
-			invoice := pool.AccountInvoice().Create(rs.Env(),
-				&pool.AccountInvoiceData{
+			invoice := h.AccountInvoice().Create(rs.Env(),
+				&h.AccountInvoiceData{
 					Name:            nameInv,
 					Origin:          order.Name(),
 					Type:            "out_invoice",
@@ -170,11 +171,11 @@ func init() {
 			return invoice
 		})
 
-	pool.SaleAdvancePaymentInv().Methods().CreateInvoices().DeclareMethod(
+	h.SaleAdvancePaymentInv().Methods().CreateInvoices().DeclareMethod(
 		`CreateInvoices is the main method called from the wizard to create the invoices.`,
-		func(rs pool.SaleAdvancePaymentInvSet) *actions.Action {
+		func(rs h.SaleAdvancePaymentInvSet) *actions.Action {
 			rs.EnsureOne()
-			saleOrders := pool.SaleOrder().Browse(rs.Env(), rs.Env().Context().GetIntegerSlice("active_ids"))
+			saleOrders := h.SaleOrder().Browse(rs.Env(), rs.Env().Context().GetIntegerSlice("active_ids"))
 			switch rs.AdvancePaymentMethod() {
 			case "delivered":
 				saleOrders.ActionInvoiceCreate(false, false)
@@ -183,9 +184,9 @@ func init() {
 			default:
 				// Create deposit product if necessary
 				if rs.Product().IsEmpty() {
-					depositProduct := pool.ProductProduct().Create(rs.Env(), rs.PrepareDepositProduct())
+					depositProduct := h.ProductProduct().Create(rs.Env(), rs.PrepareDepositProduct())
 					rs.SetProduct(depositProduct)
-					pool.ConfigParameter().NewSet(rs.Env()).SetParam("deposit_product_id_setting",
+					h.ConfigParameter().NewSet(rs.Env()).SetParam("deposit_product_id_setting",
 						fmt.Sprintf("%d", depositProduct.ID()))
 				}
 
@@ -204,14 +205,14 @@ Please use another product or update this product.`))
 					}
 					taxes := rs.Product().Taxes()
 					if !order.Company().IsEmpty() {
-						taxes = taxes.Search(pool.AccountTax().Company().Equals(order.Company()))
+						taxes = taxes.Search(q.AccountTax().Company().Equals(order.Company()))
 					}
 					if !order.FiscalPosition().IsEmpty() && !taxes.IsEmpty() {
-						taxes = order.FiscalPosition().MapTax(taxes, pool.ProductProduct().NewSet(rs.Env()),
-							pool.Partner().NewSet(rs.Env()))
+						taxes = order.FiscalPosition().MapTax(taxes, h.ProductProduct().NewSet(rs.Env()),
+							h.Partner().NewSet(rs.Env()))
 					}
-					SOLine := pool.SaleOrderLine().Create(rs.Env(),
-						&pool.SaleOrderLineData{
+					SOLine := h.SaleOrderLine().Create(rs.Env(),
+						&h.SaleOrderLineData{
 							Name:          rs.T("Advance: %v", dates.Today()),
 							PriceUnit:     amount,
 							ProductUomQty: 0,
@@ -232,10 +233,10 @@ Please use another product or update this product.`))
 			}
 		})
 
-	pool.SaleAdvancePaymentInv().Methods().PrepareDepositProduct().DeclareMethod(
+	h.SaleAdvancePaymentInv().Methods().PrepareDepositProduct().DeclareMethod(
 		`PrepareDepositProduct returns the data used to create the deposit product.`,
-		func(rs pool.SaleAdvancePaymentInvSet) *pool.ProductProductData {
-			return &pool.ProductProductData{
+		func(rs h.SaleAdvancePaymentInvSet) *h.ProductProductData {
+			return &h.ProductProductData{
 				Name:                  "Down payment",
 				Type:                  "service",
 				InvoicePolicy:         "order",

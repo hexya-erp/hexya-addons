@@ -5,19 +5,19 @@ package account
 
 func init() {
 
-	//pool.AccountConfigSettings().DeclareTransientModel()
-	//pool.AccountConfigSettings().Methods().GetCurrency().DeclareMethod(
+	//h.AccountConfigSettings().DeclareTransientModel()
+	//h.AccountConfigSettings().Methods().GetCurrency().DeclareMethod(
 	//	`GetCurrency`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.depends('company_id')
 	//		/*def _get_currency_id(self):
 	//		  self.currency_id = self.company_id.currency_id
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().InverseCurrency().DeclareMethod(
+	//h.AccountConfigSettings().Methods().InverseCurrency().DeclareMethod(
 	//	`InverseCurrency`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.one
 	//		/*def _set_currency_id(self):
 	//		    if self.currency_id != self.company_id.currency_id:
@@ -25,31 +25,31 @@ func init() {
 	//
 	//		company_id = */
 	//	})
-	//pool.AccountConfigSettings().AddFields(map[string]models.FieldDefinition{
-	//	"Company": models.Many2OneField{String: "Company", RelationModel: pool.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
+	//h.AccountConfigSettings().AddFields(map[string]models.FieldDefinition{
+	//	"Company": models.Many2OneField{String: "Company", RelationModel: h.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
 	//		/*lambda self: self.env.user.company_id*/
 	//		return 0
 	//	}},
 	//	"HasDefaultCompany":      models.BooleanField{String: "HasDefaultCompany" /*[readonly True]*/, Default: models.DefaultValue( /*lambda self: self._default_has_default_company()*/ 0)},
 	//	"ExpectsChartOfAccounts": models.BooleanField{String: "ExpectsChartOfAccounts" /*[related 'company_id.expects_chart_of_accounts']*/ /*[ string 'This company has its own chart of accounts']*/, Help: "Check this box if this company is a legal entity."},
-	//	"Currency":               models.Many2OneField{String: "Default company currency", RelationModel: pool.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: pool.AccountConfigSettings().Methods().GetCurrency(), Inverse: pool.AccountConfigSettings().Methods().InverseCurrency(), Required: true, Help: "Main currency of the company."},
+	//	"Currency":               models.Many2OneField{String: "Default company currency", RelationModel: h.Currency(), JSON: "currency_id" /*['res.currency']*/, Compute: h.AccountConfigSettings().Methods().GetCurrency(), Inverse: h.AccountConfigSettings().Methods().InverseCurrency(), Required: true, Help: "Main currency of the company."},
 	//	"CompanyFooter":          models.TextField{String: "CompanyFooter" /*[related 'company_id.rml_footer']*/ /*[ string 'Bank accounts footer preview']*/ /*[ readonly True]*/, Help: "Bank accounts as printed in the footer of each printed document"},
 	//	"HasChartOfAccounts":     models.BooleanField{String: "HasChartOfAccounts" /*[string 'Company has a chart of accounts']*/},
-	//	"ChartTemplate":          models.Many2OneField{String: "Template", RelationModel: pool.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/ /*, Filter: "[('visible'*/ /*[' ']*/ /*[ True)]"]*/},
+	//	"ChartTemplate":          models.Many2OneField{String: "Template", RelationModel: h.AccountChartTemplate(), JSON: "chart_template_id" /*['account.chart.template']*/ /*, Filter: "[('visible'*/ /*[' ']*/ /*[ True)]"]*/},
 	//	"UseAngloSaxon":          models.BooleanField{String: "UseAngloSaxon" /*[string 'Use Anglo-Saxon Accounting *']*/ /*[ related 'company_id.anglo_saxon_accounting']*/},
 	//	"CodeDigits":             models.IntegerField{String: "CodeDigits" /*[string '# of Digits *']*/ /*[ related 'company_id.accounts_code_digits']*/, Help: "No. of digits to use for account code"},
 	//	"TaxCalculationRoundingMethod": models.SelectionField{String: "Tax calculation rounding method *", Selection: types.Selection{
 	//		"round_per_line": "Round calculation of taxes per line",
 	//		"round_globally": "Round globally calculation of taxes ",
 	//		/*[ ('round_per_line', 'Round calculation of taxes per line'  ('round_globally', 'Round globally calculation of taxes '  ]*/}, /*[]*/ /*[related 'company_id.tax_calculation_rounding_method']*/ Help: "If you select 'Round per line' : for each tax" /*[ the tax amount will first be computed and rounded for each PO/SO/invoice line and then these rounded amounts will be summed]*/ /*[ leading to the total amount for that tax. If you select 'Round globally': for each tax]*/ /*[ the tax amount will be computed for each PO/SO/invoice line]*/ /*[ then these amounts will be summed and eventually this total tax amount will be rounded. If you sell with tax included]*/ /*[ you should choose 'Round per line' because you certainly want the sum of your tax-included line subtotals to be equal to the total amount with taxes."""]*/},
-	//	"SaleTax":                 models.Many2OneField{String: "Default sale tax", RelationModel: pool.AccountTaxTemplate(), JSON: "sale_tax_id" /*['account.tax.template']*/ /*[ oldname "sale_tax"]*/},
-	//	"PurchaseTax":             models.Many2OneField{String: "Default purchase tax", RelationModel: pool.AccountTaxTemplate(), JSON: "purchase_tax_id" /*['account.tax.template']*/ /*[ oldname "purchase_tax"]*/},
+	//	"SaleTax":                 models.Many2OneField{String: "Default sale tax", RelationModel: h.AccountTaxTemplate(), JSON: "sale_tax_id" /*['account.tax.template']*/ /*[ oldname "sale_tax"]*/},
+	//	"PurchaseTax":             models.Many2OneField{String: "Default purchase tax", RelationModel: h.AccountTaxTemplate(), JSON: "purchase_tax_id" /*['account.tax.template']*/ /*[ oldname "purchase_tax"]*/},
 	//	"SaleTaxRate":             models.FloatField{String: "SaleTaxRate" /*[string 'Sales tax (%)']*/},
 	//	"PurchaseTaxRate":         models.FloatField{String: "PurchaseTaxRate" /*[string 'Purchase tax (%)']*/},
 	//	"BankAccountCodePrefix":   models.CharField{String: "BankAccountCodePrefix" /*[string 'Bank Accounts Prefix *']*/, Help: "Define the code prefix for the bank accounts', oldname='bank_account_code_char" /*[ oldname 'bank_account_code_char']*/},
 	//	"CashAccountCodePrefix":   models.CharField{String: "CashAccountCodePrefix" /*[string 'Cash Accounts Prefix *']*/, Help: "Define the code prefix for the cash accounts"},
-	//	"TemplateTransferAccount": models.Many2OneField{String: "TemplateTransferAccountId", RelationModel: pool.AccountAccountTemplate(), JSON: "template_transfer_account_id" /*['account.account.template']*/, Help: "Intermediary account used when moving money from a liquidity account to another"},
-	//	"TransferAccount":         models.Many2OneField{String: "TransferAccountId", RelationModel: pool.AccountAccount(), JSON: "transfer_account_id" /*['account.account']*/, Related: "Company.TransferAccount" /*, Filter: lambda self: [('reconcile'*/ /*[ ' ']*/ /*[ True]*/ /*[ ('user_type_id.id']*/ /*[ ' ']*/ /*[ self.env.ref('account.data_account_type_current_assets').id)]]*/, Help: "Intermediary account used when moving money from a liquidity account to another"},
+	//	"TemplateTransferAccount": models.Many2OneField{String: "TemplateTransferAccountId", RelationModel: h.AccountAccountTemplate(), JSON: "template_transfer_account_id" /*['account.account.template']*/, Help: "Intermediary account used when moving money from a liquidity account to another"},
+	//	"TransferAccount":         models.Many2OneField{String: "TransferAccountId", RelationModel: h.AccountAccount(), JSON: "transfer_account_id" /*['account.account']*/, Related: "Company.TransferAccount" /*, Filter: lambda self: [('reconcile'*/ /*[ ' ']*/ /*[ True]*/ /*[ ('user_type_id.id']*/ /*[ ' ']*/ /*[ self.env.ref('account.data_account_type_current_assets').id)]]*/, Help: "Intermediary account used when moving money from a liquidity account to another"},
 	//	"CompleteTaxSet":          models.BooleanField{String: "CompleteTaxSet" /*[string 'Complete set of taxes']*/, Help: "This boolean helps you to choose if you want to propose to the user to encode#~#~# the sales and purchase rates or use the usual m2o fields. This last choice assumes that#~#~# the set of tax defined for the chosen template is complete"},
 	//	"FiscalyearLastDay":       models.IntegerField{String: "FiscalyearLastDay" /*[related 'company_id.fiscalyear_last_day']*/, Default: models.DefaultValue(31)},
 	//	"FiscalyearLastMonth": models.SelectionField{String: "FiscalyearLastMonth", Selection: types.Selection{
@@ -73,15 +73,15 @@ func init() {
 	//	"GroupMultiCurrency":                  models.BooleanField{String: "GroupMultiCurrency" /*[string 'Allow multi currencies']*/ /*[ implied_group 'base.group_multi_currency']*/, Help: "Allows to work in a multi currency environment"},
 	//	"GroupAnalyticAccounting":             models.BooleanField{String: "GroupAnalyticAccounting" /*[string 'Analytic accounting']*/ /*[ implied_group 'analytic.group_analytic_accounting']*/, Help: "Allows you to use the analytic accounting."},
 	//	"GroupWarningAccount":                 models.SelectionField{ /*group_warning_account = fields.Selection([ (0, 'All the partners can be used in invoices'), (1, 'An informative or blocking warning can be set on a partner')*/ },
-	//	"CurrencyExchangeJournal":             models.Many2OneField{String: "Rate Difference Journal", RelationModel: pool.AccountJournal(), JSON: "currency_exchange_journal_id" /*['account.journal']*/, Related: "Company.CurrencyExchangeJournal" /*[]*/},
+	//	"CurrencyExchangeJournal":             models.Many2OneField{String: "Rate Difference Journal", RelationModel: h.AccountJournal(), JSON: "currency_exchange_journal_id" /*['account.journal']*/, Related: "Company.CurrencyExchangeJournal" /*[]*/},
 	//	"ModuleAccountAsset":                  models.BooleanField{String: "ModuleAccountAsset" /*[string 'Assets management']*/, Help: "Asset management: This allows you to manage the assets owned by a company or a person. '#~#~# 'It keeps track of the depreciation occurred on those assets, and creates account move for those depreciation lines.\n\n'#~#~# '-This installs the module account_asset." /*[ and creates account move for those depreciation lines.\n\n' '-This installs the module account_asset.']*/},
 	//	"ModuleAccountDeferredRevenue":        models.BooleanField{String: "ModuleAccountDeferredRevenue" /*[string "Revenue Recognition"]*/, Help: "This allows you to manage the revenue recognition on selling products. '#~#~# 'It keeps track of the installments occurred on those revenue recognitions, '#~#~# 'and creates account moves for those installment lines\n'#~#~# '-This installs the module account_deferred_revenue." /*[ ' 'and creates account moves for those installment lines\n' '-This installs the module account_deferred_revenue.']*/},
 	//	"ModuleAccountBudget":                 models.BooleanField{String: "ModuleAccountBudget" /*[string 'Budget management']*/, Help: "This allows accountants to manage analytic and crossovered budgets. '#~#~# 'Once the master budgets and the budgets are defined, '#~#~# 'the project managers can set the planned amount on each analytic account.\n'#~#~# '-This installs the module account_budget." /*[ ' 'the project managers can set the planned amount on each analytic account.\n' '-This installs the module account_budget.']*/},
 	//	"ModuleAccountTaxCashBasis":           models.BooleanField{String: "ModuleAccountTaxCashBasis" /*[string "Allow Tax Cash Basis"]*/, Help: "Generate tax cash basis entrie when reconciliating entries"},
 	//	"GroupProformaInvoices":               models.BooleanField{String: "GroupProformaInvoices" /*[string 'Allow pro-forma invoices']*/ /*[ implied_group 'account.group_proforma_invoices']*/, Help: "Allows you to put invoices in pro-forma state."},
 	//	"ModuleAccountReportsFollowup":        models.BooleanField{String: "Enable payment followup management" /*["Enable payment followup management"]*/, Help: "This allows to automate letters for unpaid invoices, with multi-level recalls.\n'#~#~# '-This installs the module account_reports_followup." /*[ with multi-level recalls.\n' '-This installs the module account_reports_followup.']*/},
-	//	"DefaultSaleTax":                      models.Many2OneField{String: "Default Sale Tax", RelationModel: pool.AccountTax(), JSON: "default_sale_tax_id" /*['account.tax']*/, Help: "This sale tax will be assigned by default on new products." /*[ oldname "default_sale_tax"]*/},
-	//	"DefaultPurchaseTax":                  models.Many2OneField{String: "Default Purchase Tax", RelationModel: pool.AccountTax(), JSON: "default_purchase_tax_id" /*['account.tax']*/, Help: "This purchase tax will be assigned by default on new products." /*[ oldname "default_purchase_tax"]*/},
+	//	"DefaultSaleTax":                      models.Many2OneField{String: "Default Sale Tax", RelationModel: h.AccountTax(), JSON: "default_sale_tax_id" /*['account.tax']*/, Help: "This sale tax will be assigned by default on new products." /*[ oldname "default_sale_tax"]*/},
+	//	"DefaultPurchaseTax":                  models.Many2OneField{String: "Default Purchase Tax", RelationModel: h.AccountTax(), JSON: "default_purchase_tax_id" /*['account.tax']*/, Help: "This purchase tax will be assigned by default on new products." /*[ oldname "default_purchase_tax"]*/},
 	//	"ModuleL10nUsCheckPrinting":           models.BooleanField{String: "Allow check printing and deposits" /*["Allow check printing and deposits"]*/},
 	//	"ModuleAccountBatchDeposit":           models.BooleanField{String: "ModuleAccountBatchDeposit" /*[string 'Use batch deposit']*/, Help: "This allows you to group received checks before you deposit them to the bank.\n'#~#~# '-This installs the module account_batch_deposit."},
 	//	"ModuleAccountSepa":                   models.BooleanField{String: "ModuleAccountSepa" /*[string 'Use SEPA payments']*/, Help: "If you check this box, you will be able to register your payment using SEPA.\n'#~#~# '-This installs the module account_sepa." /*[ you will be able to register your payment using SEPA.\n' '-This installs the module account_sepa.']*/},
@@ -92,9 +92,9 @@ func init() {
 	//	"ModuleAccountBankStatementImportCsv": models.BooleanField{String: "Import in .csv format" /*["Import in .csv format"]*/, Help: "Get your bank statements from your bank and import them in Hexya in the .CSV format.\n'#~#~# '-This installs the module account_bank_statement_import_csv."},
 	//	"OverdueMsg":                          models.TextField{String: "OverdueMsg" /*[related 'company_id.overdue_msg']*/ /*[ string 'Overdue Payments Message *']*/},
 	//})
-	//pool.AccountConfigSettings().Methods().DefaultHasDefaultCompany().DeclareMethod(
+	//h.AccountConfigSettings().Methods().DefaultHasDefaultCompany().DeclareMethod(
 	//	`DefaultHasDefaultCompany`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.model
 	//		/*def _default_has_default_company(self):
 	//		  count = self.env['res.company'].search_count([])
@@ -103,9 +103,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OnchangeCompanyId().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OnchangeCompanyId().DeclareMethod(
 	//	`OnchangeCompanyId`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.onchange('company_id')
 	//		/*def onchange_company_id(self):
 	//		  # update related fields
@@ -133,9 +133,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OnchangeChartTemplateId().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OnchangeChartTemplateId().DeclareMethod(
 	//	`OnchangeChartTemplateId`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.onchange('chart_template_id')
 	//		/*def onchange_chart_template_id(self):
 	//		  tax_templ_obj = self.env['account.tax.template']
@@ -167,18 +167,18 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OnchangeTaxRate().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OnchangeTaxRate().DeclareMethod(
 	//	`OnchangeTaxRate`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.onchange('sale_tax_rate')
 	//		/*def onchange_tax_rate(self):
 	//		  self.purchase_tax_rate = self.sale_tax_rate or False
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().DeclareGroupMultiCurrency().DeclareMethod(
+	//h.AccountConfigSettings().Methods().DeclareGroupMultiCurrency().DeclareMethod(
 	//	`DeclareGroupMultiCurrency`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_group_multi_currency(self):
 	//		  ir_model = self.env['ir.model.data']
@@ -190,9 +190,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OpenBankAccounts().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OpenBankAccounts().DeclareMethod(
 	//	`OpenBankAccounts`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def open_bank_accounts(self):
 	//		  action_rec = self.env['ir.model.data'].xmlid_to_object('account.action_account_bank_journal_form')
@@ -200,9 +200,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().DeclareTransferAccount().DeclareMethod(
+	//h.AccountConfigSettings().Methods().DeclareTransferAccount().DeclareMethod(
 	//	`DeclareTransferAccount`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_transfer_account(self):
 	//		  if self.transfer_account_id and self.transfer_account_id != self.company_id.transfer_account_id:
@@ -210,9 +210,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().DeclareProductTaxes().DeclareMethod(
+	//h.AccountConfigSettings().Methods().DeclareProductTaxes().DeclareMethod(
 	//	`DeclareProductTaxes`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_product_taxes(self):
 	//		  """ Set the product taxes if they have changed """
@@ -224,9 +224,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().DeclareChartOfAccounts().DeclareMethod(
+	//h.AccountConfigSettings().Methods().DeclareChartOfAccounts().DeclareMethod(
 	//	`DeclareChartOfAccounts`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_chart_of_accounts(self):
 	//		  """ install a chart of accounts for the given company (if required) """
@@ -251,9 +251,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OnchangeAnalyticAccounting().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OnchangeAnalyticAccounting().DeclareMethod(
 	//	`OnchangeAnalyticAccounting`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.onchange('group_analytic_accounting')
 	//		/*def onchange_analytic_accounting(self):
 	//		  if self.group_analytic_accounting:
@@ -261,9 +261,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OnchangeModuleAccountBudget().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OnchangeModuleAccountBudget().DeclareMethod(
 	//	`OnchangeModuleAccountBudget`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.onchange('module_account_budget')
 	//		/*def onchange_module_account_budget(self):
 	//		  if self.module_account_budget:
@@ -271,9 +271,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().OpenCompany().DeclareMethod(
+	//h.AccountConfigSettings().Methods().OpenCompany().DeclareMethod(
 	//	`OpenCompany`,
-	//	func(rs pool.AccountConfigSettingsSet) {
+	//	func(rs h.AccountConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def open_company(self):
 	//		  return {
@@ -288,9 +288,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.AccountConfigSettings().Methods().Create().DeclareMethod(
+	//h.AccountConfigSettings().Methods().Create().DeclareMethod(
 	//	`Create`,
-	//	func(rs pool.AccountConfigSettingsSet, args struct {
+	//	func(rs h.AccountConfigSettingsSet, args struct {
 	//		Vals interface{}
 	//	}) {
 	//		//@api.model

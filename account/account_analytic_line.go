@@ -5,56 +5,57 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.AccountAnalyticLine().AddFields(map[string]models.FieldDefinition{
-		"ProductUom": models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom(),
-			OnChange: pool.AccountAnalyticLine().Methods().OnChangeUnitAmount()},
-		"Product": models.Many2OneField{RelationModel: pool.ProductProduct(),
-			OnChange: pool.AccountAnalyticLine().Methods().OnChangeUnitAmount()},
-		"GeneralAccount": models.Many2OneField{String: "Financial Account", RelationModel: pool.AccountAccount(),
+	h.AccountAnalyticLine().AddFields(map[string]models.FieldDefinition{
+		"ProductUom": models.Many2OneField{String: "Unit of Measure", RelationModel: h.ProductUom(),
+			OnChange: h.AccountAnalyticLine().Methods().OnChangeUnitAmount()},
+		"Product": models.Many2OneField{RelationModel: h.ProductProduct(),
+			OnChange: h.AccountAnalyticLine().Methods().OnChangeUnitAmount()},
+		"GeneralAccount": models.Many2OneField{String: "Financial Account", RelationModel: h.AccountAccount(),
 			OnDelete: models.Restrict /* readonly=true */, Related: "Move.Account",
-			Filter: pool.AccountAccount().Deprecated().Equals(false)},
-		"Move": models.Many2OneField{String: "Move Line", RelationModel: pool.AccountMoveLine(),
+			Filter: q.AccountAccount().Deprecated().Equals(false)},
+		"Move": models.Many2OneField{String: "Move Line", RelationModel: h.AccountMoveLine(),
 			JSON: "move_id", OnDelete: models.Cascade, Index: true},
 		"Code": models.CharField{String: "Code", Size: 8},
 		"Ref":  models.CharField{},
-		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(),
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(),
 			Related: "Company.Currency" /* readonly=true */, Help: "Utility field to express amount currency"},
 		"AmountCurrency": models.FloatField{Related: "Move.AmountCurrency",
 			Help: "The amount expressed in the related account currency if not equal to the company one." /* readonly=True */},
 		"AnalyticAmountCurrency": models.FloatField{String: "Amount Currency",
-			Compute: pool.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency(), /*[ readonly True]*/
+			Compute: h.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency(), /*[ readonly True]*/
 			Help:    "The amount expressed in the related account currency if not equal to the company one."},
 	})
 
-	pool.AccountAnalyticLine().Fields().Currency().
+	h.AccountAnalyticLine().Fields().Currency().
 		SetString("Account Currency").
 		SetRelated("Move.Currency").
-		SetOnchange(pool.AccountAnalyticLine().Methods().OnChangeUnitAmount()).
+		SetOnchange(h.AccountAnalyticLine().Methods().OnChangeUnitAmount()).
 		SetHelp("The related account currency if not equal to the company one.")
 
-	pool.AccountAnalyticLine().Fields().Partner().SetRelated("Account.Partner")
+	h.AccountAnalyticLine().Fields().Partner().SetRelated("Account.Partner")
 
-	pool.AccountAnalyticLine().Fields().UnitAmount().SetOnchange(pool.AccountAnalyticLine().Methods().OnChangeUnitAmount())
+	h.AccountAnalyticLine().Fields().UnitAmount().SetOnchange(h.AccountAnalyticLine().Methods().OnChangeUnitAmount())
 
-	pool.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency().DeclareMethod(
+	h.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency().DeclareMethod(
 		`GetAnalyticAmountCurrency`,
-		func(rs pool.AccountAnalyticLineSet) (*pool.AccountAnalyticAccountData, []models.FieldNamer) {
+		func(rs h.AccountAnalyticLineSet) (*h.AccountAnalyticAccountData, []models.FieldNamer) {
 			/*def _get_analytic_amount_currency(self):
 			  for line in self:
 			      line.analytic_amount_currency = abs(line.amount_currency) * copysign(1, line.amount)
 
 			*/
-			return new(pool.AccountAnalyticAccountData), []models.FieldNamer{}
+			return new(h.AccountAnalyticAccountData), []models.FieldNamer{}
 		})
 
-	pool.AccountAnalyticLine().Methods().OnChangeUnitAmount().DeclareMethod(
+	h.AccountAnalyticLine().Methods().OnChangeUnitAmount().DeclareMethod(
 		`OnChangeUnitAmount`,
-		func(rs pool.AccountAnalyticLineSet) (*pool.AccountAnalyticAccountData, []models.FieldNamer) {
+		func(rs h.AccountAnalyticLineSet) (*h.AccountAnalyticAccountData, []models.FieldNamer) {
 			//@api.onchange('product_id','product_uom_id','unit_amount','currency_id')
 			/*def on_change_unit_amount(self):
 			  if not self.product_id:
@@ -76,6 +77,6 @@ func init() {
 			  self.product_uom_id = unit
 
 			*/
-			return new(pool.AccountAnalyticAccountData), []models.FieldNamer{}
+			return new(h.AccountAnalyticAccountData), []models.FieldNamer{}
 		})
 }

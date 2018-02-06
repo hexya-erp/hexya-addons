@@ -6,35 +6,35 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountJournal().AddFields(map[string]models.FieldDefinition{
+	h.AccountJournal().AddFields(map[string]models.FieldDefinition{
 		"KanbanDashboard": models.TextField{String: "KanbanDashboard",
-			Compute: pool.AccountJournal().Methods().ComputeKanbanDashboard()},
+			Compute: h.AccountJournal().Methods().ComputeKanbanDashboard()},
 		"KanbanDashboardGraph": models.TextField{String: "KanbanDashboardGraph",
-			Compute: pool.AccountJournal().Methods().ComputeKanbanDashboardGraph()},
+			Compute: h.AccountJournal().Methods().ComputeKanbanDashboardGraph()},
 		"ShowOnDashboard": models.BooleanField{String: "Show journal on dashboard",
 			Help:    "Whether this journal should be displayed on the dashboard or not",
 			Default: models.DefaultValue(true)},
 	})
 
-	pool.AccountJournal().Methods().ComputeKanbanDashboard().DeclareMethod(
+	h.AccountJournal().Methods().ComputeKanbanDashboard().DeclareMethod(
 		`ComputeKanbanDashboard`,
-		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
 			//@api.one
 			/*def _kanban_dashboard(self):
 			  self.kanban_dashboard = json.dumps(self.get_journal_dashboard_datas())
 
 			*/
-			return new(pool.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData), []models.FieldNamer{}
 		})
 
-	pool.AccountJournal().Methods().ComputeKanbanDashboardGraph().DeclareMethod(
+	h.AccountJournal().Methods().ComputeKanbanDashboardGraph().DeclareMethod(
 		`ComputeKanbanDashboardGraph`,
-		func(rs pool.AccountJournalSet) (*pool.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
 			//@api.one
 			/*def _kanban_dashboard_graph(self):
 			  if (self.type in ['sale', 'purchase']):
@@ -42,12 +42,12 @@ func init() {
 			  elif (self.type in ['cash', 'bank']):
 			      self.kanban_dashboard_graph = json.dumps(self.get_line_graph_datas())
 			*/
-			return new(pool.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData), []models.FieldNamer{}
 		})
 
-	pool.AccountJournal().Methods().ToggleFavorite().DeclareMethod(
+	h.AccountJournal().Methods().ToggleFavorite().DeclareMethod(
 		`ToggleFavorite`,
-		func(rs pool.AccountJournalSet) bool {
+		func(rs h.AccountJournalSet) bool {
 			//@api.multi
 			/*def toggle_favorite(self):
 			  self.write({'show_on_dashboard': False if self.show_on_dashboard else True})
@@ -57,9 +57,9 @@ func init() {
 			return false
 		})
 
-	pool.AccountJournal().Methods().GetLineGraphDatas().DeclareMethod(
+	h.AccountJournal().Methods().GetLineGraphDatas().DeclareMethod(
 		`GetLineGraphDatas`,
-		func(rs pool.AccountJournalSet) []map[string]interface{} {
+		func(rs h.AccountJournalSet) []map[string]interface{} {
 			//@api.multi
 			/*def get_line_graph_datas(self):
 			  data = []
@@ -123,9 +123,9 @@ func init() {
 			return []map[string]interface{}{make(map[string]interface{})}
 		})
 
-	pool.AccountJournal().Methods().GetBarGraphDatas().DeclareMethod(
+	h.AccountJournal().Methods().GetBarGraphDatas().DeclareMethod(
 		`GetBarGraphDatas`,
-		func(rs pool.AccountJournalSet) []map[string]interface{} {
+		func(rs h.AccountJournalSet) []map[string]interface{} {
 			//@api.multi
 			/*def get_bar_graph_datas(self):
 			data = []
@@ -171,9 +171,9 @@ func init() {
 			return []map[string]interface{}{make(map[string]interface{})}
 		})
 
-	pool.AccountJournal().Methods().GetJournalDashboardDatas().DeclareMethod(
+	h.AccountJournal().Methods().GetJournalDashboardDatas().DeclareMethod(
 		`GetJournalDashboardDatas`,
-		func(rs pool.AccountJournalSet) map[string]interface{} {
+		func(rs h.AccountJournalSet) map[string]interface{} {
 			//@api.multi
 			/*def get_journal_dashboard_datas(self):
 			  currency = self.currency_id or self.company_id.currency_id
@@ -262,9 +262,9 @@ func init() {
 			return make(map[string]interface{})
 		})
 
-	pool.AccountJournal().Methods().ActionCreateNew().DeclareMethod(
+	h.AccountJournal().Methods().ActionCreateNew().DeclareMethod(
 		`ActionCreateNew`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def action_create_new(self):
 			  ctx = self._context.copy()
@@ -297,9 +297,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().CreateCashStatement().DeclareMethod(
+	h.AccountJournal().Methods().CreateCashStatement().DeclareMethod(
 		`CreateCashStatement`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def create_cash_statement(self):
 			  ctx = self._context.copy()
@@ -317,9 +317,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().ActionOpenReconcile().DeclareMethod(
+	h.AccountJournal().Methods().ActionOpenReconcile().DeclareMethod(
 		`ActionOpenReconcile`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def action_open_reconcile(self):
 			  if self.type in ['bank', 'cash']:
@@ -347,9 +347,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().OpenAction().DeclareMethod(
+	h.AccountJournal().Methods().OpenAction().DeclareMethod(
 		`OpenAction`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_action(self):
 			  """return action based on type for related journals"""
@@ -399,9 +399,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().OpenSpendMoney().DeclareMethod(
+	h.AccountJournal().Methods().OpenSpendMoney().DeclareMethod(
 		`OpenSpendMoney`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_spend_money(self):
 			  return self.open_payments_action('outbound')
@@ -410,9 +410,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().OpenCollectMoney().DeclareMethod(
+	h.AccountJournal().Methods().OpenCollectMoney().DeclareMethod(
 		`OpenCollectMoney`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_collect_money(self):
 			  return self.open_payments_action('inbound')
@@ -421,9 +421,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().OpenTransferMoney().DeclareMethod(
+	h.AccountJournal().Methods().OpenTransferMoney().DeclareMethod(
 		`OpenTransferMoney`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_transfer_money(self):
 			  return self.open_payments_action('transfer')
@@ -432,9 +432,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().OpenPaymentsAction().DeclareMethod(
+	h.AccountJournal().Methods().OpenPaymentsAction().DeclareMethod(
 		`OpenPaymentsAction`,
-		func(rs pool.AccountJournalSet, paymentType string) *actions.Action {
+		func(rs h.AccountJournalSet, paymentType string) *actions.Action {
 			//@api.multi
 			/*def open_payments_action(self, payment_type):
 			  ctx = self._context.copy()
@@ -454,9 +454,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().OpenActionWithContext().DeclareMethod(
+	h.AccountJournal().Methods().OpenActionWithContext().DeclareMethod(
 		`OpenActionWithContext`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def open_action_with_context(self):
 			  action_name = self.env.context.get('action_name', False)
@@ -479,9 +479,9 @@ func init() {
 			return new(actions.Action)
 		})
 
-	pool.AccountJournal().Methods().CreateBankStatement().DeclareMethod(
+	h.AccountJournal().Methods().CreateBankStatement().DeclareMethod(
 		`CreateBankStatement`,
-		func(rs pool.AccountJournalSet) *actions.Action {
+		func(rs h.AccountJournalSet) *actions.Action {
 			//@api.multi
 			/*def create_bank_statement(self):
 			  """return action to create a bank statements. This button should be called only on journals with type =='bank'"""

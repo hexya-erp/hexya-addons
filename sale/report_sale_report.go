@@ -8,34 +8,34 @@ import (
 
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.SaleReport().DeclareManualModel()
-	pool.SaleReport().AddFields(map[string]models.FieldDefinition{
+	h.SaleReport().DeclareManualModel()
+	h.SaleReport().AddFields(map[string]models.FieldDefinition{
 		"Name":              models.CharField{String: "Order Reference" /*[ readonly True]*/},
 		"Date":              models.DateTimeField{String: "Date Order" /*[ readonly True]*/},
-		"Product":           models.Many2OneField{RelationModel: pool.ProductProduct() /* readonly=true */},
-		"ProductUom":        models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom() /* readonly=true */},
+		"Product":           models.Many2OneField{RelationModel: h.ProductProduct() /* readonly=true */},
+		"ProductUom":        models.Many2OneField{String: "Unit of Measure", RelationModel: h.ProductUom() /* readonly=true */},
 		"ProductUomQty":     models.FloatField{String: "# of Qty" /*[ readonly True]*/},
 		"QtyDelivered":      models.FloatField{String: "Qty Delivered" /*[ readonly True]*/},
 		"QtyToInvoice":      models.FloatField{String: "Qty To Invoice" /*[ readonly True]*/},
 		"QtyInvoiced":       models.FloatField{String: "Qty Invoiced" /*[ readonly True]*/},
-		"Partner":           models.Many2OneField{RelationModel: pool.Partner() /* readonly=true */},
-		"Company":           models.Many2OneField{RelationModel: pool.Company() /* readonly=true */},
-		"User":              models.Many2OneField{String: "Salesperson", RelationModel: pool.User() /* readonly=true */},
+		"Partner":           models.Many2OneField{RelationModel: h.Partner() /* readonly=true */},
+		"Company":           models.Many2OneField{RelationModel: h.Company() /* readonly=true */},
+		"User":              models.Many2OneField{String: "Salesperson", RelationModel: h.User() /* readonly=true */},
 		"PriceTotal":        models.FloatField{String: "Total" /*[ readonly True]*/},
 		"PriceSubtotal":     models.FloatField{String: "Untaxed Total" /*[ readonly True]*/},
-		"ProductTmpl":       models.Many2OneField{String: "Product Template", RelationModel: pool.ProductTemplate() /* readonly=true */},
-		"Categ":             models.Many2OneField{String: "Product Category", RelationModel: pool.ProductCategory() /* readonly=true */},
+		"ProductTmpl":       models.Many2OneField{String: "Product Template", RelationModel: h.ProductTemplate() /* readonly=true */},
+		"Categ":             models.Many2OneField{String: "Product Category", RelationModel: h.ProductCategory() /* readonly=true */},
 		"Nbr":               models.IntegerField{String: "# of Lines" /*[ readonly True]*/},
-		"Pricelist":         models.Many2OneField{RelationModel: pool.ProductPricelist() /* readonly=true */},
-		"AnalyticAccount":   models.Many2OneField{RelationModel: pool.AccountAnalyticAccount() /* readonly=true */},
-		"Team":              models.Many2OneField{String: "Sales Team", RelationModel: pool.CRMTeam() /* readonly=true */},
-		"Country":           models.Many2OneField{String: "Partner Country", RelationModel: pool.Country() /* readonly=true */},
-		"CommercialPartner": models.Many2OneField{String: "Commercial Entity", RelationModel: pool.Partner() /* readonly=true */},
+		"Pricelist":         models.Many2OneField{RelationModel: h.ProductPricelist() /* readonly=true */},
+		"AnalyticAccount":   models.Many2OneField{RelationModel: h.AccountAnalyticAccount() /* readonly=true */},
+		"Team":              models.Many2OneField{String: "Sales Team", RelationModel: h.CRMTeam() /* readonly=true */},
+		"Country":           models.Many2OneField{String: "Partner Country", RelationModel: h.Country() /* readonly=true */},
+		"CommercialPartner": models.Many2OneField{String: "Commercial Entity", RelationModel: h.Partner() /* readonly=true */},
 		"State": models.SelectionField{String: "Status", Selection: types.Selection{
 			"draft":  "Draft Quotation",
 			"sent":   "Quotation Sent",
@@ -47,9 +47,9 @@ func init() {
 		"Volume": models.FloatField{ /*[ readonly True]*/ },
 	})
 
-	pool.SaleReport().Methods().Select().DeclareMethod(
+	h.SaleReport().Methods().Select().DeclareMethod(
 		`Select returns the select clause of the SQL view.`,
-		func(rs pool.SaleReportSet) string {
+		func(rs h.SaleReportSet) string {
 			selectStr := fmt.Sprintf(`
 			      WITH cur_rate as (%s)
 			       SELECT min(l.id) as id,
@@ -78,13 +78,13 @@ func init() {
 			              partner.commercial_partner_id as commercial_partner_id,
 			              sum(p.weight * l.product_uom_qty / u.factor * u2.factor) as weight,
 			              sum(p.volume * l.product_uom_qty / u.factor * u2.factor) as volume
-			  `, pool.Currency().NewSet(rs.Env()).SelectCompaniesRates())
+			  `, h.Currency().NewSet(rs.Env()).SelectCompaniesRates())
 			return selectStr
 		})
 
-	pool.SaleReport().Methods().From().DeclareMethod(
+	h.SaleReport().Methods().From().DeclareMethod(
 		`From returns the from clause of the SQL view.`,
-		func(rs pool.SaleReportSet) string {
+		func(rs h.SaleReportSet) string {
 			fromStr := `
 			          sale_order_line l
 			                join sale_order s on (l.order_id=s.id)
@@ -102,9 +102,9 @@ func init() {
 			return fromStr
 		})
 
-	pool.SaleReport().Methods().GroupByClause().DeclareMethod(
+	h.SaleReport().Methods().GroupByClause().DeclareMethod(
 		`GroupByClause returns the group by clause of the SQL view`,
-		func(rs pool.SaleReportSet) string {
+		func(rs h.SaleReportSet) string {
 			groupByStr := `
 				GROUP BY l.product_id,
 					l.order_id,
@@ -126,9 +126,9 @@ func init() {
 			return groupByStr
 		})
 
-	pool.SaleReport().Methods().Init().DeclareMethod(
+	h.SaleReport().Methods().Init().DeclareMethod(
 		`Init initializes the SaleReport view`,
-		func(rs pool.SaleReportSet) {
+		func(rs h.SaleReportSet) {
 			rs.Env().Cr().Execute(fmt.Sprintf(`
 				DROP VIEW IF EXISTS sale_report;
 				CREATE or REPLACE VIEW sale_report as (

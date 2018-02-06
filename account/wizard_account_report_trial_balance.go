@@ -3,16 +3,16 @@
 
 package account
 
-import "github.com/hexya-erp/hexya/pool"
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
 
-	pool.AccountBalanceReport().DeclareTransientModel()
-	pool.AccountBalanceReport().InheritModel(pool.AccountCommonAccountReport())
+	h.AccountBalanceReport().DeclareTransientModel()
+	h.AccountBalanceReport().InheritModel(h.AccountCommonAccountReport())
 
-	pool.AccountBalanceReport().Methods().PrintReport().DeclareMethod(
+	h.AccountBalanceReport().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs pool.AccountCommonAccountReportSet, args struct {
+		func(rs h.AccountCommonAccountReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _print_report(self, data):

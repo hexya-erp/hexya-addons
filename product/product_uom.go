@@ -9,29 +9,29 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/tools/nbutils"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.ProductUomCateg().DeclareModel()
+	h.ProductUomCateg().DeclareModel()
 
-	pool.ProductUomCateg().AddFields(map[string]models.FieldDefinition{
+	h.ProductUomCateg().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Name", Required: true, Translate: true},
 	})
 
-	pool.ProductUom().DeclareModel()
-	pool.ProductUom().SetDefaultOrder("Name")
+	h.ProductUom().DeclareModel()
+	h.ProductUom().SetDefaultOrder("Name")
 
-	pool.ProductUom().AddFields(map[string]models.FieldDefinition{
+	h.ProductUom().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Unit of Measure", Required: true, Translate: true},
-		"Category": models.Many2OneField{RelationModel: pool.ProductUomCateg(), Required: true, OnDelete: models.Cascade,
+		"Category": models.Many2OneField{RelationModel: h.ProductUomCateg(), Required: true, OnDelete: models.Cascade,
 			Help: `Conversion between Units of Measure can only occur if they belong to the same category.
 The conversion will be made based on the ratios.`},
 		"Factor": models.FloatField{String: "Ratio", Default: models.DefaultValue(1.0), Required: true,
 			Help: `How much bigger or smaller this unit is compared to the reference Unit of Measure for this category:
 1 * (reference unit) = ratio * (this unit)`},
-		"FactorInv": models.FloatField{String: "Bigger Ratio", Compute: pool.ProductUom().Methods().ComputeFactorInv(),
+		"FactorInv": models.FloatField{String: "Bigger Ratio", Compute: h.ProductUom().Methods().ComputeFactorInv(),
 			/* readonly True]*/ Required: true,
 			Help: `How many times this Unit of Measure is bigger than the reference Unit of Measure in this category:
 1 * (this unit) = ratio * (reference unit)`,
@@ -46,38 +46,38 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 			"reference": "Reference Unit of Measure for this category",
 			"smaller":   "Smaller than the reference Unit of Measure",
 		}, Default: models.DefaultValue("reference"), Required: true,
-			OnChange: pool.ProductUom().Methods().OnchangeUomType()},
+			OnChange: h.ProductUom().Methods().OnchangeUomType()},
 	})
 
-	pool.ProductUom().AddSQLConstraint("FactorGtZero", "CHECK (factor!=0)", "The conversion ratio for a unit of measure cannot be 0!")
-	pool.ProductUom().AddSQLConstraint("RoundingGtZero", "CHECK (rounding>0)", "The rounding precision must be greater than 0!")
+	h.ProductUom().AddSQLConstraint("FactorGtZero", "CHECK (factor!=0)", "The conversion ratio for a unit of measure cannot be 0!")
+	h.ProductUom().AddSQLConstraint("RoundingGtZero", "CHECK (rounding>0)", "The rounding precision must be greater than 0!")
 
-	pool.ProductUom().Methods().ComputeFactorInv().DeclareMethod(
+	h.ProductUom().Methods().ComputeFactorInv().DeclareMethod(
 		`ComputeFactorInv computes the inverse factor`,
-		func(rs pool.ProductUomSet) (*pool.ProductUomData, []models.FieldNamer) {
+		func(rs h.ProductUomSet) (*h.ProductUomData, []models.FieldNamer) {
 			var factorInv float64
 			if rs.Factor() != 0 {
 				factorInv = 1 / rs.Factor()
 			}
-			return &pool.ProductUomData{
+			return &h.ProductUomData{
 				FactorInv: factorInv,
-			}, []models.FieldNamer{pool.ProductUom().FactorInv()}
+			}, []models.FieldNamer{h.ProductUom().FactorInv()}
 		})
 
-	pool.ProductUom().Methods().OnchangeUomType().DeclareMethod(
+	h.ProductUom().Methods().OnchangeUomType().DeclareMethod(
 		`OnchangeUomType updates factor when the UoM type is changed`,
-		func(rs pool.ProductUomSet) (*pool.ProductUomData, []models.FieldNamer) {
+		func(rs h.ProductUomSet) (*h.ProductUomData, []models.FieldNamer) {
 			if rs.UomType() == "reference" {
-				return &pool.ProductUomData{
+				return &h.ProductUomData{
 					Factor: 1,
-				}, []models.FieldNamer{pool.ProductUom().Factor()}
+				}, []models.FieldNamer{h.ProductUom().Factor()}
 			}
-			return new(pool.ProductUomData), []models.FieldNamer{}
+			return new(h.ProductUomData), []models.FieldNamer{}
 
 		})
 
-	pool.ProductUom().Methods().Create().Extend("",
-		func(rs pool.ProductUomSet, data *pool.ProductUomData) pool.ProductUomSet {
+	h.ProductUom().Methods().Create().Extend("",
+		func(rs h.ProductUomSet, data *h.ProductUomData) h.ProductUomSet {
 			if data.FactorInv != 0 {
 				data.Factor = 1 / data.FactorInv
 				data.FactorInv = 0
@@ -85,9 +85,9 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 			return rs.Super().Create(data)
 		})
 
-	pool.ProductUom().Methods().Write().Extend("",
-		func(rs pool.ProductUomSet, vals *pool.ProductUomData, fieldsToReset ...models.FieldNamer) bool {
-			if factorInv, exists := vals.Get(pool.ProductUom().FactorInv(), fieldsToReset...); exists {
+	h.ProductUom().Methods().Write().Extend("",
+		func(rs h.ProductUomSet, vals *h.ProductUomData, fieldsToReset ...models.FieldNamer) bool {
+			if factorInv, exists := vals.Get(h.ProductUom().FactorInv(), fieldsToReset...); exists {
 				var factor float64
 				if factorInv != 0 {
 					factor = 1 / factorInv.(float64)
@@ -98,12 +98,12 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 			return rs.Super().Write(vals, fieldsToReset...)
 		})
 
-	pool.ProductUom().Methods().ComputeQuantity().DeclareMethod(
+	h.ProductUom().Methods().ComputeQuantity().DeclareMethod(
 		`ComputeQuantity converts the given qty from this UoM to toUnit UoM. If round is true,
 		the result will be rounded to toUnit rounding.
 
 		It panics if both units are not from the same category`,
-		func(rs pool.ProductUomSet, qty float64, toUnit pool.ProductUomSet, round bool) float64 {
+		func(rs h.ProductUomSet, qty float64, toUnit h.ProductUomSet, round bool) float64 {
 			if rs.IsEmpty() {
 				return qty
 			}
@@ -122,9 +122,9 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 			return amount
 		})
 
-	pool.ProductUom().Methods().ComputePrice().DeclareMethod(
+	h.ProductUom().Methods().ComputePrice().DeclareMethod(
 		`ComputePrice computes the price per 'toUnit' from the given price per this unit`,
-		func(rs pool.ProductUomSet, price float64, toUnit pool.ProductUomSet) float64 {
+		func(rs h.ProductUomSet, price float64, toUnit h.ProductUomSet) float64 {
 			rs.EnsureOne()
 			if price == 0 || toUnit.IsEmpty() || rs.Equals(toUnit) {
 				return price

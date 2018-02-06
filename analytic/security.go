@@ -3,10 +3,10 @@
 
 package analytic
 
-import "github.com/hexya-erp/hexya/pool"
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
-	pool.AccountAnalyticAccount().Methods().AllowAllToGroup(GroupAnalyticAccounting)
-	pool.AccountAnalyticLine().Methods().AllowAllToGroup(GroupAnalyticAccounting)
-	pool.AccountAnalyticTag().Methods().AllowAllToGroup(GroupAnalyticAccounting)
+	h.AccountAnalyticAccount().Methods().AllowAllToGroup(GroupAnalyticAccounting)
+	h.AccountAnalyticLine().Methods().AllowAllToGroup(GroupAnalyticAccounting)
+	h.AccountAnalyticTag().Methods().AllowAllToGroup(GroupAnalyticAccounting)
 }

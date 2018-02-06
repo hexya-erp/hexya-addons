@@ -3,16 +3,14 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
 
-	pool.ValidateAccountMove().DeclareTransientModel()
-	pool.ValidateAccountMove().Methods().ValidateMove().DeclareMethod(
+	h.ValidateAccountMove().DeclareTransientModel()
+	h.ValidateAccountMove().Methods().ValidateMove().DeclareMethod(
 		`ValidateMove`,
-		func(rs pool.ValidateAccountMoveSet) {
+		func(rs h.ValidateAccountMoveSet) {
 			//@api.multi
 			/*def validate_move(self):
 			  context = dict(self._context or {})

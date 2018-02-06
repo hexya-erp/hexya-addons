@@ -5,63 +5,63 @@ package sale
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountInvoice().AddFields(map[string]models.FieldDefinition{
-		"Team": models.Many2OneField{String: "Sales Team", RelationModel: pool.CRMTeam(),
+	h.AccountInvoice().AddFields(map[string]models.FieldDefinition{
+		"Team": models.Many2OneField{String: "Sales Team", RelationModel: h.CRMTeam(),
 			Default: func(env models.Environment) interface{} {
-				return pool.CRMTeam().NewSet(env).GetDefaultTeam(pool.User().NewSet(env))
+				return h.CRMTeam().NewSet(env).GetDefaultTeam(h.User().NewSet(env))
 			}},
-		"PartnerShipping": models.Many2OneField{String: "Delivery Address", RelationModel: pool.Partner(),
-			OnChange: pool.AccountInvoice().Methods().OnchangePartnerShipping(),
+		"PartnerShipping": models.Many2OneField{String: "Delivery Address", RelationModel: h.Partner(),
+			OnChange: h.AccountInvoice().Methods().OnchangePartnerShipping(),
 			Help:     "Delivery address for current invoice."}, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 	})
 
-	pool.AccountInvoice().Fields().Comment().SetDefault(
+	h.AccountInvoice().Fields().Comment().SetDefault(
 		func(env models.Environment) interface{} {
 			invoiceType := "out_invoice"
 			if env.Context().HasKey("type") {
 				invoiceType = env.Context().GetString("type")
 			}
 			if invoiceType == "out_invoice" {
-				return pool.User().NewSet(env).CurrentUser().Company().SaleNote()
+				return h.User().NewSet(env).CurrentUser().Company().SaleNote()
 			}
 			return ""
 		})
 
-	pool.AccountInvoice().Methods().OnchangePartnerShipping().DeclareMethod(
+	h.AccountInvoice().Methods().OnchangePartnerShipping().DeclareMethod(
 		`OnchangePartnerShipping triggers the change of fiscal position
 		when the shipping address is modified.`,
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
-			fiscalPosition := pool.AccountFiscalPosition().NewSet(rs.Env()).GetFiscalPosition(rs.Partner(), rs.PartnerShipping())
-			return &pool.AccountInvoiceData{
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
+			fiscalPosition := h.AccountFiscalPosition().NewSet(rs.Env()).GetFiscalPosition(rs.Partner(), rs.PartnerShipping())
+			return &h.AccountInvoiceData{
 				FiscalPosition: fiscalPosition,
-			}, []models.FieldNamer{pool.AccountInvoice().FiscalPosition()}
+			}, []models.FieldNamer{h.AccountInvoice().FiscalPosition()}
 		})
 
-	pool.AccountInvoice().Methods().OnchangePartner().Extend("",
-		func(rs pool.AccountInvoiceSet) (*pool.AccountInvoiceData, []models.FieldNamer) {
+	h.AccountInvoice().Methods().OnchangePartner().Extend("",
+		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
 			data, fields := rs.Super().OnchangePartner()
 			data.PartnerShipping = rs.Partner().AddressGet([]string{"delivery"})["delivery"]
-			fields = append(fields, pool.AccountInvoice().PartnerShipping())
+			fields = append(fields, h.AccountInvoice().PartnerShipping())
 			return data, fields
 		})
 
-	//pool.AccountInvoice().Methods().ActionInvoicePaid().Extend("",
-	//	func(rs pool.AccountInvoiceSet) bool {
+	//h.AccountInvoice().Methods().ActionInvoicePaid().Extend("",
+	//	func(rs h.AccountInvoiceSet) bool {
 	//		res := rs.Super().ActionInvoicePaid()
 	//		todo := make(map[struct {
-	//			order pool.SaleOrderSet
+	//			order h.SaleOrderSet
 	//			name  string
 	//		}]bool)
 	//		for _, invoice := range rs.Records() {
 	//			for _, line := range invoice.InvoiceLines().Records() {
 	//				for _, saleLine := range line.SaleLines {
 	//					todo[struct {
-	//						order pool.SaleOrderSet
+	//						order h.SaleOrderSet
 	//						name  string
 	//					}{
 	//						order: saleLine.Order(), name: invoice.Number()}] = true
@@ -74,10 +74,10 @@ func init() {
 	//		return res
 	//	})
 
-	//pool.AccountInvoice().Methods().OrderLinesLayouted().DeclareMethod(
+	//h.AccountInvoice().Methods().OrderLinesLayouted().DeclareMethod(
 	//	`OrderLinesLayouted returns this sale order lines ordered by sale_layout_category sequence.
 	//	Used to render the report.`,
-	//	func(rs pool.AccountInvoiceSet) {
+	//	func(rs h.AccountInvoiceSet) {
 	//		//@api.multi
 	//		/*
 	//		  self.ensure_one()
@@ -99,8 +99,8 @@ func init() {
 	//		*/
 	//	})
 
-	pool.AccountInvoice().Methods().GetDeliveryPartner().Extend("",
-		func(rs pool.AccountInvoiceSet) pool.PartnerSet {
+	h.AccountInvoice().Methods().GetDeliveryPartner().Extend("",
+		func(rs h.AccountInvoiceSet) h.PartnerSet {
 			rs.EnsureOne()
 			if !rs.PartnerShipping().IsEmpty() {
 				return rs.PartnerShipping()
@@ -108,18 +108,18 @@ func init() {
 			return rs.Super().GetDeliveryPartner()
 		})
 
-	pool.AccountInvoice().Methods().GetRefundCommonFields().Extend("",
-		func(rs pool.AccountInvoiceSet) []models.FieldNamer {
+	h.AccountInvoice().Methods().GetRefundCommonFields().Extend("",
+		func(rs h.AccountInvoiceSet) []models.FieldNamer {
 			return append(rs.Super().GetRefundCommonFields(),
-				pool.AccountInvoice().Team(), pool.AccountInvoice().PartnerShipping())
+				h.AccountInvoice().Team(), h.AccountInvoice().PartnerShipping())
 		})
 
-	pool.AccountInvoiceLine().SetDefaultOrder("Invoice", "LayoutCategory", "Sequence", "ID")
+	h.AccountInvoiceLine().SetDefaultOrder("Invoice", "LayoutCategory", "Sequence", "ID")
 
-	pool.AccountInvoiceLine().AddFields(map[string]models.FieldDefinition{
-		"SaleLines": models.Many2ManyField{String: "Sale Order Lines", RelationModel: pool.SaleOrderLine(),
+	h.AccountInvoiceLine().AddFields(map[string]models.FieldDefinition{
+		"SaleLines": models.Many2ManyField{String: "Sale Order Lines", RelationModel: h.SaleOrderLine(),
 			JSON: "sale_line_ids", NoCopy: true /*[ readonly True]*/},
-		"LayoutCategory":         models.Many2OneField{String: "Section", RelationModel: pool.SaleLayoutCategory()},
+		"LayoutCategory":         models.Many2OneField{String: "Section", RelationModel: h.SaleLayoutCategory()},
 		"LayoutCategorySequence": models.IntegerField{String: "Layout Sequence"},
 	})
 

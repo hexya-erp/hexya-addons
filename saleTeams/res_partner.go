@@ -5,13 +5,13 @@ package saleTeams
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.Partner().AddFields(map[string]models.FieldDefinition{
-		"Team": models.Many2OneField{String: "Sales Team", RelationModel: pool.CRMTeam(),
+	h.Partner().AddFields(map[string]models.FieldDefinition{
+		"Team": models.Many2OneField{String: "Sales Team", RelationModel: h.CRMTeam(),
 			Help: "If set, sale team used notably for sales and assignations related to this partner"},
 	})
 

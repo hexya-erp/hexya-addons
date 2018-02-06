@@ -6,25 +6,25 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountReportGeneralLedger().DeclareTransientModel()
-	pool.AccountReportGeneralLedger().InheritModel(pool.AccountCommonAccountReport())
+	h.AccountReportGeneralLedger().DeclareTransientModel()
+	h.AccountReportGeneralLedger().InheritModel(h.AccountCommonAccountReport())
 
-	pool.AccountReportGeneralLedger().AddFields(map[string]models.FieldDefinition{
+	h.AccountReportGeneralLedger().AddFields(map[string]models.FieldDefinition{
 		"InitialBalance": models.BooleanField{String: "InitialBalance" /*[string 'Include Initial Balances']*/, Help: `If you selected date, this field allow you to add a row to display the amount of debit/credit/balance that precedes the filter you\'ve set."/*[ this field allow you to add a row to display the amount of debit/credit/balance that precedes the filter you\'ve set.']`},
 		"Sortby": models.SelectionField{String: "Sort by", Selection: types.Selection{
 			"sort_date":            "Date",
 			"sort_journal_partner": "Journal & Partner",
 		}, /*[]*/ Required: true, Default: models.DefaultValue("sort_date")},
-		"Journals": models.Many2ManyField{String: "Journals", RelationModel: pool.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*['account_report_general_ledger_journal_rel']*/ /*[ 'account_id']*/ /*[ 'journal_id']*/ /*[ required True]*/},
+		"Journals": models.Many2ManyField{String: "Journals", RelationModel: h.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*['account_report_general_ledger_journal_rel']*/ /*[ 'account_id']*/ /*[ 'journal_id']*/ /*[ required True]*/},
 	})
-	pool.AccountReportGeneralLedger().Methods().PrintReport().DeclareMethod(
+	h.AccountReportGeneralLedger().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs pool.AccountCommonAccountReportSet, args struct {
+		func(rs h.AccountCommonAccountReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _print_report(self, data):

@@ -11,31 +11,32 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.AccountMove().DeclareModel()
-	pool.AccountMove().SetDefaultOrder("Date DESC", "ID DESC")
+	h.AccountMove().DeclareModel()
+	h.AccountMove().SetDefaultOrder("Date DESC", "ID DESC")
 
-	pool.AccountMove().AddFields(map[string]models.FieldDefinition{
+	h.AccountMove().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Number", Required: true, NoCopy: true, Default: models.DefaultValue("/")},
 		"Ref":  models.CharField{String: "Reference", NoCopy: true},
 		"Date": models.DateField{String: "Date", Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
 			Index: true, Default: func(env models.Environment) interface{} {
 				return dates.Today()
 			}},
-		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
+		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(), Required: true, /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/
 			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("default_journal_type") {
-					return pool.AccountJournal().Search(env,
-						pool.AccountJournal().Type().Equals(env.Context().GetString("default_journal_type"))).Limit(1)
+					return h.AccountJournal().Search(env,
+						q.AccountJournal().Type().Equals(env.Context().GetString("default_journal_type"))).Limit(1)
 				}
-				return pool.AccountJournal().NewSet(env)
+				return h.AccountJournal().NewSet(env)
 			}},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
-			Compute: pool.AccountMove().Methods().ComputeCurrency(), Stored: true, Depends: []string{"Company"}},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(),
+			Compute: h.AccountMove().Methods().ComputeCurrency(), Stored: true, Depends: []string{"Company"}},
 		"State": models.SelectionField{String: "Status", Selection: types.Selection{
 			"draft":  "Unposted",
 			"posted": "Posted",
@@ -44,32 +45,32 @@ func init() {
 to skip that status on the related journal. In that case they will behave as journal entries
 automatically created by the system on document validation (invoices, bank statements...) and
 will be created in 'Posted' status.'`},
-		"Lines": models.One2ManyField{String: "Journal Items", RelationModel: pool.AccountMoveLine(),
+		"Lines": models.One2ManyField{String: "Journal Items", RelationModel: h.AccountMoveLine(),
 			ReverseFK: "Move", JSON: "line_ids" /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, NoCopy: false},
-		"Partner": models.Many2OneField{RelationModel: pool.Partner(),
-			Compute: pool.AccountMove().Methods().ComputePartner(),
+		"Partner": models.Many2OneField{RelationModel: h.Partner(),
+			Compute: h.AccountMove().Methods().ComputePartner(),
 			Depends: []string{"Lines", "Lines.Partner"}, Stored: true /* readonly=true */},
-		"Amount": models.FloatField{Compute: pool.AccountMove().Methods().AmountCompute(),
+		"Amount": models.FloatField{Compute: h.AccountMove().Methods().AmountCompute(),
 			Depends: []string{"Lines", "Lines.Debit", "Lines.Credit"}, Stored: true},
 		"Narration": models.TextField{String: "Internal Note"},
-		"Company": models.Many2OneField{RelationModel: pool.Company(), Related: "Journal.Company", /* readonly=true */
+		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company", /* readonly=true */
 			Default: func(env models.Environment) interface{} {
-				return pool.User().NewSet(env).CurrentUser().Company()
+				return h.User().NewSet(env).CurrentUser().Company()
 			}},
 		"MatchedPercentage": models.FloatField{String: "Percentage Matched",
-			Compute: pool.AccountMove().Methods().ComputeMatchedPercentage(),
+			Compute: h.AccountMove().Methods().ComputeMatchedPercentage(),
 			Depends: []string{"Lines", "Lines.Debit", "Lines.Credit", "Lines.MatchedDebits",
 				"Lines.MatchedDebits.Amount", "Lines.MatchedCredits", "Lines.MatchedCredits.Amount",
 				"Lines.Account", "Lines.Account.UserType", "Lines.Account.UserType.Type"}, Stored: true,
 			Help: "Technical field used in cash basis method"},
 		"StatementLine": models.Many2OneField{String: "Bank statement line reconciled with this entry",
-			RelationModel: pool.AccountBankStatementLine(), Index: true, NoCopy: true /* readonly=true */},
-		"DummyAccount": models.Many2OneField{String: "Account", RelationModel: pool.AccountAccount(),
+			RelationModel: h.AccountBankStatementLine(), Index: true, NoCopy: true /* readonly=true */},
+		"DummyAccount": models.Many2OneField{String: "Account", RelationModel: h.AccountAccount(),
 			Related: "Lines.Account"},
 	})
 
-	pool.AccountMove().Methods().NameGet().Extend("",
-		func(rs pool.AccountMoveSet) string {
+	h.AccountMove().Methods().NameGet().Extend("",
+		func(rs h.AccountMoveSet) string {
 			//@api.depends('name','state')
 			/*def name_get(self):
 			  result = []
@@ -85,9 +86,9 @@ will be created in 'Posted' status.'`},
 			return rs.Super().NameGet()
 		})
 
-	pool.AccountMove().Methods().AmountCompute().DeclareMethod(
+	h.AccountMove().Methods().AmountCompute().DeclareMethod(
 		`AmountCompute`,
-		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('line_ids.debit','line_ids.credit')
 			/*def _amount_compute(self):
 			  for move in self:
@@ -97,12 +98,12 @@ will be created in 'Posted' status.'`},
 			      move.amount = total
 
 			*/
-			return new(pool.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData), []models.FieldNamer{}
 		})
 
-	pool.AccountMove().Methods().ComputeMatchedPercentage().DeclareMethod(
+	h.AccountMove().Methods().ComputeMatchedPercentage().DeclareMethod(
 		`ComputeMatchedPercentage`,
-		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('line_ids.debit','line_ids.credit','line_ids.matched_debit_ids.amount','line_ids.matched_credit_ids.amount','line_ids.account_id.user_type_id.type')
 			/*def _compute_matched_percentage(self):
 			  """Compute the percentage to apply for cash basis method. This value is relevant only for moves that
@@ -123,34 +124,34 @@ will be created in 'Posted' status.'`},
 			          move.matched_percentage = total_reconciled / total_amount
 
 			*/
-			return new(pool.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData), []models.FieldNamer{}
 		})
 
-	pool.AccountMove().Methods().ComputeCurrency().DeclareMethod(
+	h.AccountMove().Methods().ComputeCurrency().DeclareMethod(
 		`ComputeCurrency`,
-		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('company_id')
 			/*def _compute_currency(self):
 			  self.currency_id = self.company_id.currency_id or self.env.user.company_id.currency_id
 
 			*/
-			return new(pool.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData), []models.FieldNamer{}
 		})
 
-	pool.AccountMove().Methods().ComputePartner().DeclareMethod(
+	h.AccountMove().Methods().ComputePartner().DeclareMethod(
 		`ComputePartner`,
-		func(rs pool.AccountMoveSet) (*pool.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
 			//@api.depends('line_ids.partner_id')
 			/*def _compute_partner_id(self):
 			  for move in self:
 			      partner = move.line_ids.mapped('partner_id')
 			      move.partner_id = partner.id if len(partner) == 1 else False
 			*/
-			return new(pool.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData), []models.FieldNamer{}
 		})
 
-	pool.AccountMove().Methods().FieldsViewGet().Extend("",
-		func(rs pool.AccountMoveSet, args webdata.FieldsViewGetParams) *webdata.FieldsViewData {
+	h.AccountMove().Methods().FieldsViewGet().Extend("",
+		func(rs h.AccountMoveSet, args webdata.FieldsViewGetParams) *webdata.FieldsViewData {
 			//@api.model
 			/*def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
 			  res = super(AccountMove, self).fields_view_get(
@@ -163,8 +164,8 @@ will be created in 'Posted' status.'`},
 			return rs.Super().FieldsViewGet(args)
 		})
 
-	pool.AccountMove().Methods().Create().Extend("",
-		func(rs pool.AccountMoveSet, data *pool.AccountMoveData) pool.AccountMoveSet {
+	h.AccountMove().Methods().Create().Extend("",
+		func(rs h.AccountMoveSet, data *h.AccountMoveData) h.AccountMoveSet {
 			//@api.model
 			/*def create(self, vals):
 			  move = super(AccountMove, self.with_context(check_move_validity=False, partner_id=vals.get('partner_id'))).create(vals)
@@ -175,8 +176,8 @@ will be created in 'Posted' status.'`},
 			return rs.Super().Create(data)
 		})
 
-	pool.AccountMove().Methods().Write().Extend("",
-		func(rs pool.AccountMoveSet, data *pool.AccountMoveData, fieldsToReset ...models.FieldNamer) bool {
+	h.AccountMove().Methods().Write().Extend("",
+		func(rs h.AccountMoveSet, data *h.AccountMoveData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 			  if 'line_ids' in vals:
@@ -190,9 +191,9 @@ will be created in 'Posted' status.'`},
 			return rs.Super().Write(data, fieldsToReset...)
 		})
 
-	pool.AccountMove().Methods().Post().DeclareMethod(
+	h.AccountMove().Methods().Post().DeclareMethod(
 		`Post`,
-		func(rs pool.AccountMoveSet) bool {
+		func(rs h.AccountMoveSet) bool {
 			//@api.multi
 			/*def post(self):
 			  invoice = self._context.get('invoice', False)
@@ -226,9 +227,9 @@ will be created in 'Posted' status.'`},
 			return true
 		})
 
-	pool.AccountMove().Methods().ButtonCancel().DeclareMethod(
+	h.AccountMove().Methods().ButtonCancel().DeclareMethod(
 		`ButtonCancel`,
-		func(rs pool.AccountMoveSet) bool {
+		func(rs h.AccountMoveSet) bool {
 			//@api.multi
 			/*def button_cancel(self):
 			  for move in self:
@@ -247,8 +248,8 @@ will be created in 'Posted' status.'`},
 			return true
 		})
 
-	pool.AccountMove().Methods().Unlink().Extend("",
-		func(rs pool.AccountMoveSet) int64 {
+	h.AccountMove().Methods().Unlink().Extend("",
+		func(rs h.AccountMoveSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			  for move in self:
@@ -261,9 +262,9 @@ will be created in 'Posted' status.'`},
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountMove().Methods().PostValidate().DeclareMethod(
+	h.AccountMove().Methods().PostValidate().DeclareMethod(
 		`PostValidate`,
-		func(rs pool.AccountMoveSet) bool {
+		func(rs h.AccountMoveSet) bool {
 			//@api.multi
 			/*def _post_validate(self):
 			  for move in self:
@@ -277,9 +278,9 @@ will be created in 'Posted' status.'`},
 			return true
 		})
 
-	pool.AccountMove().Methods().CheckLockDate().DeclareMethod(
+	h.AccountMove().Methods().CheckLockDate().DeclareMethod(
 		`CheckLockDate`,
-		func(rs pool.AccountMoveSet) bool {
+		func(rs h.AccountMoveSet) bool {
 			//@api.multi
 			/*def _check_lock_date(self):
 			  for move in self:
@@ -298,9 +299,9 @@ will be created in 'Posted' status.'`},
 			return true
 		})
 
-	pool.AccountMove().Methods().AssertBalanced().DeclareMethod(
+	h.AccountMove().Methods().AssertBalanced().DeclareMethod(
 		`AssertBalanced`,
-		func(rs pool.AccountMoveSet) bool {
+		func(rs h.AccountMoveSet) bool {
 			//@api.multi
 			/*def assert_balanced(self):
 			  if not self.ids:
@@ -322,9 +323,9 @@ will be created in 'Posted' status.'`},
 			return true
 		})
 
-	pool.AccountMove().Methods().ReverseMove().DeclareMethod(
+	h.AccountMove().Methods().ReverseMove().DeclareMethod(
 		`ReverseMove`,
-		func(rs pool.AccountMoveSet, date dates.Date, journal pool.AccountJournalSet) pool.AccountMoveSet {
+		func(rs h.AccountMoveSet, date dates.Date, journal h.AccountJournalSet) h.AccountMoveSet {
 			//@api.multi
 			/*def _reverse_move(self, date=None, journal_id=None):
 			  self.ensure_one()
@@ -341,12 +342,12 @@ will be created in 'Posted' status.'`},
 			  return reversed_move
 
 			*/
-			return pool.AccountMove().NewSet(rs.Env())
+			return h.AccountMove().NewSet(rs.Env())
 		})
 
-	pool.AccountMove().Methods().ReverseMoves().DeclareMethod(
+	h.AccountMove().Methods().ReverseMoves().DeclareMethod(
 		`ReverseMoves`,
-		func(rs pool.AccountMoveSet, date dates.Date, journal pool.AccountJournalSet) pool.AccountMoveSet {
+		func(rs h.AccountMoveSet, date dates.Date, journal h.AccountJournalSet) h.AccountMoveSet {
 			//@api.multi
 			/*def reverse_moves(self, date=None, journal_id=None):
 			date = date or fields.Date.today()
@@ -361,12 +362,12 @@ will be created in 'Posted' status.'`},
 				return [x.id for x in reversed_moves]
 			return []
 			*/
-			return pool.AccountMove().NewSet(rs.Env())
+			return h.AccountMove().NewSet(rs.Env())
 		})
 
-	pool.AccountMove().Methods().OpenReconcileView().DeclareMethod(
+	h.AccountMove().Methods().OpenReconcileView().DeclareMethod(
 		`OpenReconcileView`,
-		func(rs pool.AccountMoveSet) *actions.Action {
+		func(rs h.AccountMoveSet) *actions.Action {
 			//@api.multi
 			/*def open_reconcile_view(self):
 			  return self.line_ids.open_reconcile_view()
@@ -376,82 +377,82 @@ will be created in 'Posted' status.'`},
 			return new(actions.Action)
 		})
 
-	pool.AccountMoveLine().DeclareModel()
-	pool.AccountMoveLine().SetDefaultOrder("Date DESC", "ID DESC")
+	h.AccountMoveLine().DeclareModel()
+	h.AccountMoveLine().SetDefaultOrder("Date DESC", "ID DESC")
 
-	pool.AccountMoveLine().AddFields(map[string]models.FieldDefinition{
+	h.AccountMoveLine().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Label", Required: true},
 		"Quantity": models.FloatField{Digits: decimalPrecision.GetPrecision("Product Unit of Measure"),
 			Help: `The optional quantity expressed by this line, eg: number of product sold.
 The quantity is not a legal requirement but is very useful for some reports.`},
-		"ProductUom": models.Many2OneField{String: "Unit of Measure", RelationModel: pool.ProductUom()},
-		"Product":    models.Many2OneField{String: "Product", RelationModel: pool.ProductProduct()},
+		"ProductUom": models.Many2OneField{String: "Unit of Measure", RelationModel: h.ProductUom()},
+		"Product":    models.Many2OneField{String: "Product", RelationModel: h.ProductProduct()},
 		"Debit":      models.FloatField{Default: models.DefaultValue(0.0)},
 		"Credit":     models.FloatField{Default: models.DefaultValue(0.0)},
-		"Balance": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeBalance(), Stored: true,
+		"Balance": models.FloatField{Compute: h.AccountMoveLine().Methods().ComputeBalance(), Stored: true,
 			Depends: []string{"Debit", "Credit"},
 			Help:    "Technical field holding the debit - credit in order to open meaningful graph views from reports"},
-		"DebitCashBasis": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(),
+		"DebitCashBasis": models.FloatField{Compute: h.AccountMoveLine().Methods().ComputeCashBasis(),
 			Depends: []string{"Debit", "Credit", "Move.MatchedPercentage", "Move.Journal"},
 			Stored:  true},
-		"CreditCashBasis": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(),
+		"CreditCashBasis": models.FloatField{Compute: h.AccountMoveLine().Methods().ComputeCashBasis(),
 			Depends: []string{"Debit", "Credit", "Move.MatchedPercentage", "Move.Journal"},
 			Stored:  true},
-		"BalanceCashBasis": models.FloatField{Compute: pool.AccountMoveLine().Methods().ComputeCashBasis(),
+		"BalanceCashBasis": models.FloatField{Compute: h.AccountMoveLine().Methods().ComputeCashBasis(),
 			Depends: []string{"Debit", "Credit", "Move.MatchedPercentage", "Move.Journal"},
 			Stored:  true,
 			Help: `Technical field holding the debit_cash_basis - credit_cash_basis in order to open meaningful graph
 views from reports`},
 		"AmountCurrency": models.FloatField{Default: models.DefaultValue(0.0),
-			Constraint: pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
+			Constraint: h.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
 			Help:       "The amount expressed in an optional other currency if it is a multi-currency entry."},
-		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Company.Currency",
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency",
 			/* readonly=true */ Help: "Utility field to express amount currency', store=True"},
-		"Currency": models.Many2OneField{RelationModel: pool.Currency(),
+		"Currency": models.Many2OneField{RelationModel: h.Currency(),
 			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("default_journal_id") {
-					return pool.AccountJournal().Browse(env, []int64{env.Context().GetInteger("default_journal_id")}).Currency()
+					return h.AccountJournal().Browse(env, []int64{env.Context().GetInteger("default_journal_id")}).Currency()
 				}
-				return pool.Currency().NewSet(env)
-			}, Constraint: pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
+				return h.Currency().NewSet(env)
+			}, Constraint: h.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
 			Help: "The optional other currency if it is a multi-currency entry."},
 		"AmountResidual": models.FloatField{String: "Residual Amount",
-			Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual(), Stored: true,
+			Compute: h.AccountMoveLine().Methods().ComputeAmountResidual(), Stored: true,
 			Depends: []string{"Debit", "Credit", "AmountCurrency", "Currency", "MatchedDebits", "MatchedCredits",
 				"MatchedDebits.Amount", "MatchedCredits.Amount", "Account.Currency", "Move.State"},
 			Help: "The residual amount on a journal item expressed in the company currency."},
 		"AmountResidualCurrency": models.FloatField{String: "Residual Amount in Currency",
-			Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual(), Stored: true,
+			Compute: h.AccountMoveLine().Methods().ComputeAmountResidual(), Stored: true,
 			Depends: []string{"Debit", "Credit", "AmountCurrency", "Currency", "MatchedDebits", "MatchedCredits",
 				"MatchedDebits.Amount", "MatchedCredits.Amount", "Account.Currency", "Move.State"},
 			Help: "The residual amount on a journal item expressed in its currency (possibly not the company currency)."},
-		"Account": models.Many2OneField{RelationModel: pool.AccountAccount(), Required: true, Index: true,
-			OnDelete: models.Cascade, Filter: pool.AccountAccount().Deprecated().Equals(false),
+		"Account": models.Many2OneField{RelationModel: h.AccountAccount(), Required: true, Index: true,
+			OnDelete: models.Cascade, Filter: q.AccountAccount().Deprecated().Equals(false),
 			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("account_id") {
-					return pool.AccountAccount().Browse(env, []int64{env.Context().GetInteger("account_id")})
+					return h.AccountAccount().Browse(env, []int64{env.Context().GetInteger("account_id")})
 				}
-				return pool.AccountAccount().NewSet(env)
-			}, Constraint: pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount()},
-		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: pool.AccountMove(),
+				return h.AccountAccount().NewSet(env)
+			}, Constraint: h.AccountMoveLine().Methods().CheckCurrencyAccountAmount()},
+		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: h.AccountMove(),
 			OnDelete: models.Cascade, Help: "The move of this entry line.", Index: true, Required: true},
 		"Narration": models.TextField{Related: "Move.Narration"},
 		"Ref":       models.CharField{String: "Reference", NoCopy: true, Index: true},
-		"Payment": models.Many2OneField{String: "Originator Payment", RelationModel: pool.AccountPayment(),
+		"Payment": models.Many2OneField{String: "Originator Payment", RelationModel: h.AccountPayment(),
 			Help: "Payment that created this entry"},
-		"Statement": models.Many2OneField{RelationModel: pool.AccountBankStatement(),
+		"Statement": models.Many2OneField{RelationModel: h.AccountBankStatement(),
 			Help: "The bank statement used for bank reconciliation", Index: true, NoCopy: true},
-		"Reconciled": models.BooleanField{Compute: pool.AccountMoveLine().Methods().ComputeAmountResidual(),
+		"Reconciled": models.BooleanField{Compute: h.AccountMoveLine().Methods().ComputeAmountResidual(),
 			Depends: []string{"Debit", "Credit", "AmountCurrency", "Currency", "MatchedDebits", "MatchedCredits",
 				"MatchedDebits.Amount", "MatchedCredits.Amount", "Account.Currency", "Move.State"},
 			Stored: true},
-		"FullReconcile": models.Many2OneField{String: "Matching Number", RelationModel: pool.AccountFullReconcile(),
+		"FullReconcile": models.Many2OneField{String: "Matching Number", RelationModel: h.AccountFullReconcile(),
 			NoCopy: true},
-		"MatchedDebits": models.One2ManyField{RelationModel: pool.AccountPartialReconcile(), ReverseFK: "CreditMove",
+		"MatchedDebits": models.One2ManyField{RelationModel: h.AccountPartialReconcile(), ReverseFK: "CreditMove",
 			JSON: "matched_debit_ids", Help: "Debit journal items that are matched with this journal item."},
-		"MatchedCredits": models.One2ManyField{RelationModel: pool.AccountPartialReconcile(), ReverseFK: "DebitMove",
+		"MatchedCredits": models.One2ManyField{RelationModel: h.AccountPartialReconcile(), ReverseFK: "DebitMove",
 			JSON: "matched_credit_ids", Help: "Credit journal items that are matched with this journal item."},
-		"Journal": models.Many2OneField{RelationModel: pool.AccountJournal(), Related: "Move.Journal", Index: true,
+		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(), Related: "Move.Journal", Index: true,
 			NoCopy: true},
 		"Blocked": models.BooleanField{String: "No Follow-up", Default: models.DefaultValue(false),
 			Help: "You can check this box to mark this journal item as a litigation with the associated partner"},
@@ -459,23 +460,23 @@ views from reports`},
 			Help: `This field is used for payable and receivable journal entries.
 You can put the limit date for the payment of this line.`},
 		"Date": models.DateField{Related: "Move.Date", Index: true, NoCopy: true},
-		"AnalyticLines": models.One2ManyField{RelationModel: pool.AccountAnalyticLine(), ReverseFK: "Move",
+		"AnalyticLines": models.One2ManyField{RelationModel: h.AccountAnalyticLine(), ReverseFK: "Move",
 			JSON: "analytic_line_ids"},
-		"Taxes": models.Many2ManyField{RelationModel: pool.AccountTax()},
-		"TaxLine": models.Many2OneField{String: "Originator tax", RelationModel: pool.AccountTax(),
+		"Taxes": models.Many2ManyField{RelationModel: h.AccountTax()},
+		"TaxLine": models.Many2OneField{String: "Originator tax", RelationModel: h.AccountTax(),
 			OnDelete: models.Restrict},
 		"AnalyticAccount": models.Many2OneField{String: "Analytic Account",
-			RelationModel: pool.AccountAnalyticAccount()},
-		"AnalyticTags": models.Many2ManyField{String: "Analytic tags", RelationModel: pool.AccountAnalyticTag(),
+			RelationModel: h.AccountAnalyticAccount()},
+		"AnalyticTags": models.Many2ManyField{String: "Analytic tags", RelationModel: h.AccountAnalyticTag(),
 			JSON: "analytic_tag_ids"},
-		"Company": models.Many2OneField{RelationModel: pool.Company(),
+		"Company": models.Many2OneField{RelationModel: h.Company(),
 			Related: "Account.Company"},
-		"Counterpart": models.CharField{Compute: pool.AccountMoveLine().Methods().ComputeCounterpart(),
+		"Counterpart": models.CharField{Compute: h.AccountMoveLine().Methods().ComputeCounterpart(),
 			Help: `Compute the counter part accounts of this journal item for this journal entry.
 This can be needed in reports.`},
-		"Invoice": models.Many2OneField{RelationModel: pool.AccountInvoice()},
-		"Partner": models.Many2OneField{RelationModel: pool.Partner(), OnDelete: models.Restrict},
-		"UserType": models.Many2OneField{RelationModel: pool.AccountAccountType(), Related: "Account.UserType",
+		"Invoice": models.Many2OneField{RelationModel: h.AccountInvoice()},
+		"Partner": models.Many2OneField{RelationModel: h.Partner(), OnDelete: models.Restrict},
+		"UserType": models.Many2OneField{RelationModel: h.AccountAccountType(), Related: "Account.UserType",
 			Index: true},
 		"TaxExigible": models.BooleanField{String: "Appears in VAT report", Default: models.DefaultValue(true),
 			Help: `Technical field used to mark a tax line as exigible in the vat report or not
@@ -483,14 +484,14 @@ This can be needed in reports.`},
 but with the module account_tax_cash_basis, some will become exigible only when the payment is recorded`},
 	})
 
-	pool.AccountMoveLine().AddSQLConstraint("credit_debit1", "CHECK (credit*debit=0)",
+	h.AccountMoveLine().AddSQLConstraint("credit_debit1", "CHECK (credit*debit=0)",
 		"Wrong credit or debit value in accounting entry !")
-	pool.AccountMoveLine().AddSQLConstraint("credit_debit2", "CHECK (credit+debit>=0)",
+	h.AccountMoveLine().AddSQLConstraint("credit_debit2", "CHECK (credit+debit>=0)",
 		"Wrong credit or debit value in accounting entry !")
 
-	pool.AccountMoveLine().Methods().Init().DeclareMethod(
+	h.AccountMoveLine().Methods().Init().DeclareMethod(
 		`Init`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs h.AccountMoveLineSet) {
 			//@api.model_cr
 			/*def init(self):
 			  """ change index on partner_id to a multi-column index on (partner_id, ref), the new index will behave in the
@@ -506,9 +507,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			*/
 		})
 
-	pool.AccountMoveLine().Methods().ComputeAmountResidual().DeclareMethod(
+	h.AccountMoveLine().Methods().ComputeAmountResidual().DeclareMethod(
 		`ComputeAmountResidual`,
-		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('debit','credit','amount_currency','currency_id','matched_debit_ids','matched_credit_ids','matched_debit_ids.amount','matched_credit_ids.amount','account_id.currency_id','move_id.state')
 			/*def _amount_residual(self):
 			  """ Computes the residual amount of a move line from a reconciliable account in the company currency and the line's currency.
@@ -565,24 +566,24 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      line.amount_residual_currency = line.currency_id and line.currency_id.round(amount_residual_currency * sign) or 0.0
 
 			*/
-			return new(pool.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountMoveLine().Methods().ComputeBalance().DeclareMethod(
+	h.AccountMoveLine().Methods().ComputeBalance().DeclareMethod(
 		`ComputeBalance`,
-		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('debit','credit')
 			/*def _store_balance(self):
 			  for line in self:
 			      line.balance = line.debit - line.credit
 
 			*/
-			return new(pool.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountMoveLine().Methods().ComputeCashBasis().DeclareMethod(
+	h.AccountMoveLine().Methods().ComputeCashBasis().DeclareMethod(
 		`ComputeCashBasis`,
-		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('debit','credit','move_id.matched_percentage','move_id.journal_id')
 			/*def _compute_cash_basis(self):
 			  for move_line in self:
@@ -595,12 +596,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      move_line.balance_cash_basis = move_line.debit_cash_basis - move_line.credit_cash_basis
 
 			*/
-			return new(pool.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountMoveLine().Methods().ComputeCounterpart().DeclareMethod(
+	h.AccountMoveLine().Methods().ComputeCounterpart().DeclareMethod(
 		`ComputeCounterpart`,
-		func(rs pool.AccountMoveLineSet) (*pool.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
 			//@api.depends('move_id.line_ids')
 			/*def _get_counterpart(self):
 			  counterpart = set()
@@ -611,12 +612,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      counterpart = list(counterpart)[0:2] + ["..."]
 			  self.counterpart = ",".join(counterpart)
 			*/
-			return new(pool.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData), []models.FieldNamer{}
 		})
 
-	pool.AccountMoveLine().Methods().CheckCurrencyAccountAmount().DeclareMethod(
+	h.AccountMoveLine().Methods().CheckCurrencyAccountAmount().DeclareMethod(
 		`CheckCurrency`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs h.AccountMoveLineSet) {
 			//@api.constrains('currency_id','account_id')
 			/*def _check_currency(self):
 			  for line in self:
@@ -641,9 +642,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			*/
 		})
 
-	pool.AccountMoveLine().Methods().GetDataForManualReconciliationWidget().DeclareMethod(
+	h.AccountMoveLine().Methods().GetDataForManualReconciliationWidget().DeclareMethod(
 		`GetDataForManualReconciliationWidget`,
-		func(rs pool.AccountMoveLineSet, partners pool.PartnerSet, accounts pool.AccountAccountSet) *accounttypes.DataForReconciliationWidget {
+		func(rs h.AccountMoveLineSet, partners h.PartnerSet, accounts h.AccountAccountSet) *accounttypes.DataForReconciliationWidget {
 			//@api.model
 			/*def get_data_for_manual_reconciliation_widget(self, partner_ids, account_ids):
 			  """ Returns the data required for the invoices & payments matching of partners/accounts.
@@ -659,9 +660,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return new(accounttypes.DataForReconciliationWidget)
 		})
 
-	pool.AccountMoveLine().Methods().GetDataForManualReconciliation().DeclareMethod(
+	h.AccountMoveLine().Methods().GetDataForManualReconciliation().DeclareMethod(
 		`GetDataForManualReconciliation`,
-		func(rs pool.AccountMoveLineSet, resType string, resIds []int64, accountType string) []map[string]interface{} {
+		func(rs h.AccountMoveLineSet, resType string, resIds []int64, accountType string) []map[string]interface{} {
 			//@api.model
 			/*def get_data_for_manual_reconciliation(self, res_type, res_ids=None, account_type=None):
 			  """ Returns the data required for the invoices & payments matching of partners/accounts (list of dicts).
@@ -760,9 +761,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return []map[string]interface{}{}
 		})
 
-	pool.AccountMoveLine().Methods().GetReconciliationProposition().DeclareMethod(
+	h.AccountMoveLine().Methods().GetReconciliationProposition().DeclareMethod(
 		`GetReconciliationProposition`,
-		func(rs pool.AccountMoveLineSet, account pool.AccountAccountSet, partner pool.PartnerSet) []map[string]interface{} {
+		func(rs h.AccountMoveLineSet, account h.AccountAccountSet, partner h.PartnerSet) []map[string]interface{} {
 			//@api.model
 			/*def get_reconciliation_proposition(self, account_id, partner_id=False):
 			  """ Returns two lines whose amount are opposite """
@@ -798,9 +799,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return []map[string]interface{}{}
 		})
 
-	pool.AccountMoveLine().Methods().DomainMoveLinesForReconciliation().DeclareMethod(
+	h.AccountMoveLine().Methods().DomainMoveLinesForReconciliation().DeclareMethod(
 		`DomainMoveLinesForReconciliation`,
-		func(rs pool.AccountMoveLineSet, excludedIds []int64, str string) pool.AccountMoveLineCondition {
+		func(rs h.AccountMoveLineSet, excludedIds []int64, str string) q.AccountMoveLineCondition {
 			//@api.model
 			/*def domain_move_lines_for_reconciliation(self, excluded_ids=None, str=False):
 			  """ Returns the domain which is common to both manual and bank statement reconciliation.
@@ -845,12 +846,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  return domain
 
 			*/
-			return pool.AccountMoveLineCondition{}
+			return q.AccountMoveLineCondition{}
 		})
 
-	pool.AccountMoveLine().Methods().DomainMoveLinesForManualReconciliation().DeclareMethod(
+	h.AccountMoveLine().Methods().DomainMoveLinesForManualReconciliation().DeclareMethod(
 		`DomainMoveLinesForManualReconciliation`,
-		func(rs pool.AccountMoveLineSet, account pool.AccountAccountSet, partner pool.PartnerSet, excludedIds []int64, str string) pool.AccountMoveLineCondition {
+		func(rs h.AccountMoveLineSet, account h.AccountAccountSet, partner h.PartnerSet, excludedIds []int64, str string) q.AccountMoveLineCondition {
 			/*def _domain_move_lines_for_manual_reconciliation(self, account_id, partner_id=False, excluded_ids=None, str=False):
 			  """ Create domain criteria that are relevant to manual reconciliation. """
 			  domain = ['&', ('reconciled', '=', False), ('account_id', '=', account_id)]
@@ -861,13 +862,13 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  return expression.AND([generic_domain, domain])
 
 			*/
-			return pool.AccountMoveLineCondition{}
+			return q.AccountMoveLineCondition{}
 		})
 
-	pool.AccountMoveLine().Methods().GetMoveLinesForManualReconciliation().DeclareMethod(
+	h.AccountMoveLine().Methods().GetMoveLinesForManualReconciliation().DeclareMethod(
 		`GetMoveLinesForManualReconciliation`,
-		func(rs pool.AccountMoveLineSet, account pool.AccountAccountSet, partner pool.PartnerSet, excludedIds []int64,
-			str string, offset, limit int, targetCurrency pool.CurrencySet) []map[string]interface{} {
+		func(rs h.AccountMoveLineSet, account h.AccountAccountSet, partner h.PartnerSet, excludedIds []int64,
+			str string, offset, limit int, targetCurrency h.CurrencySet) []map[string]interface{} {
 			//@api.model
 			/*def get_move_lines_for_manual_reconciliation(self, account_id, partner_id=False, excluded_ids=None, str=False, offset=0, limit=None, target_currency_id=False):
 			  """ Returns unreconciled move lines for an account or a partner+account, formatted for the manual reconciliation widget """
@@ -884,9 +885,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return []map[string]interface{}{}
 		})
 
-	pool.AccountMoveLine().Methods().PrepareMoveLinesForReconciliationWidget().DeclareMethod(
+	h.AccountMoveLine().Methods().PrepareMoveLinesForReconciliationWidget().DeclareMethod(
 		`PrepareMoveLinesForReconciliationWidget`,
-		func(rs pool.AccountMoveLineSet, targetCurrency pool.CurrencySet, targetDate dates.Date) []map[string]interface{} {
+		func(rs h.AccountMoveLineSet, targetCurrency h.CurrencySet, targetDate dates.Date) []map[string]interface{} {
 			//@api.multi
 			/*def prepare_move_lines_for_reconciliation_widget(self, target_currency=False, target_date=False):
 			  """ Returns move lines formatted for the manual/bank reconciliation widget
@@ -983,13 +984,13 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return []map[string]interface{}{}
 		})
 
-	pool.AccountMoveLine().Methods().ProcessReconciliations().DeclareMethod(
+	h.AccountMoveLine().Methods().ProcessReconciliations().DeclareMethod(
 		`ProcessReconciliations`,
-		func(rs pool.AccountMoveLineSet, data []struct {
+		func(rs h.AccountMoveLineSet, data []struct {
 			Type        string  `json:"type"`
 			ID          int64   `json:"id"`
 			MoveLineIds []int64 `json:"mv_line_ids"`
-			//NewMoveLinesData []*pool.AccountMoveLineData `json:"new_mv_line_dicts"`
+			//NewMoveLinesData []*h.AccountMoveLineData `json:"new_mv_line_dicts"`
 		}) {
 			//@api.model
 			/*def process_reconciliations(self, data):
@@ -1014,9 +1015,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			*/
 		})
 
-	pool.AccountMoveLine().Methods().ProcessReconciliation().DeclareMethod(
+	h.AccountMoveLine().Methods().ProcessReconciliation().DeclareMethod(
 		`ProcessReconciliation`,
-		func(rs pool.AccountMoveLineSet, newMoveLinesData []*pool.AccountMoveLineData) {
+		func(rs h.AccountMoveLineSet, newMoveLinesData []*h.AccountMoveLineData) {
 			//@api.multi
 			/*def process_reconciliation(self, new_mv_line_dicts):
 			  """ Create new move lines from new_mv_line_dicts (if not empty) then call reconcile_partial on self and new move lines
@@ -1044,9 +1045,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			*/
 		})
 
-	pool.AccountMoveLine().Methods().GetPairToReconcile().DeclareMethod(
+	h.AccountMoveLine().Methods().GetPairToReconcile().DeclareMethod(
 		`GetPairToReconcile`,
-		func(rs pool.AccountMoveLineSet) (float64, float64) {
+		func(rs h.AccountMoveLineSet) (float64, float64) {
 			/*def _get_pair_to_reconcile(self):
 			  #field is either 'amount_residual' or 'amount_residual_currency' (if the reconciled account has a secondary currency set)
 			  field = self[0].account_id.currency_id and 'amount_residual_currency' or 'amount_residual'
@@ -1075,9 +1076,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return 0, 0
 		})
 
-	pool.AccountMoveLine().Methods().AutoReconcileLines().DeclareMethod(
+	h.AccountMoveLine().Methods().AutoReconcileLines().DeclareMethod(
 		`AutoReconcileLines`,
-		func(rs pool.AccountMoveLineSet) pool.AccountMoveLineSet {
+		func(rs h.AccountMoveLineSet) h.AccountMoveLineSet {
 			/*def auto_reconcile_lines(self):
 			  """ This function iterates recursively on the recordset given as parameter as long as it
 			      can find a debit and a credit to reconcile together. It returns the recordset of the
@@ -1136,12 +1137,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  return self.auto_reconcile_lines()
 
 			*/
-			return pool.AccountMoveLine().NewSet(rs.Env())
+			return h.AccountMoveLine().NewSet(rs.Env())
 		})
 
-	pool.AccountMoveLine().Methods().Reconcile().DeclareMethod(
+	h.AccountMoveLine().Methods().Reconcile().DeclareMethod(
 		`Reconcile`,
-		func(rs pool.AccountMoveLineSet, writeoffAccount pool.AccountAccountSet, writeoffJournal pool.AccountJournalSet) bool {
+		func(rs h.AccountMoveLineSet, writeoffAccount h.AccountAccountSet, writeoffJournal h.AccountJournalSet) bool {
 			//@api.multi
 			/*def reconcile(self, writeoff_acc_id=False, writeoff_journal_id=False):
 			  # Empty self can happen if the user tries to reconcile entries which are already reconciled.
@@ -1191,9 +1192,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return true
 		})
 
-	pool.AccountMoveLine().Methods().CreateWriteoff().DeclareMethod(
+	h.AccountMoveLine().Methods().CreateWriteoff().DeclareMethod(
 		`CreateWriteoff`,
-		func(rs pool.AccountMoveLineSet, data *pool.AccountMoveLineData) pool.AccountMoveLineSet {
+		func(rs h.AccountMoveLineSet, data *h.AccountMoveLineData) h.AccountMoveLineSet {
 			/*def _create_writeoff(self, vals):
 			  """ Create a writeoff move for the account.move.lines in self. If debit/credit is not specified in vals,
 			      the writeoff amount will be computed as the sum of amount_residual of the given recordset.
@@ -1260,12 +1261,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  return writeoff_move.line_ids.filtered(lambda r: r.account_id == self[0].account_id)
 
 			*/
-			return pool.AccountMoveLine().NewSet(rs.Env())
+			return h.AccountMoveLine().NewSet(rs.Env())
 		})
 
-	pool.AccountMoveLine().Methods().ComputeFullAfterBatchReconcile().DeclareMethod(
+	h.AccountMoveLine().Methods().ComputeFullAfterBatchReconcile().DeclareMethod(
 		`ComputeFullAfterBatchReconcile`,
-		func(rs pool.AccountMoveLineSet) {
+		func(rs h.AccountMoveLineSet) {
 			//@api.model
 			/*def compute_full_after_batch_reconcile(self):
 			  """ After running the manual reconciliation wizard and making full reconciliation, we need to run this method to create
@@ -1318,9 +1319,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			*/
 		})
 
-	pool.AccountMoveLine().Methods().RemoveMoveReconcile().DeclareMethod(
+	h.AccountMoveLine().Methods().RemoveMoveReconcile().DeclareMethod(
 		`RemoveMoveReconcile`,
-		func(rs pool.AccountMoveLineSet) int64 {
+		func(rs h.AccountMoveLineSet) int64 {
 			//@api.multi
 			/*def remove_move_reconcile(self):
 			  """ Undo a reconciliation """
@@ -1339,8 +1340,8 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return 0
 		})
 
-	pool.AccountMoveLine().Methods().Create().Extend("",
-		func(rs pool.AccountMoveLineSet, data *pool.AccountMoveLineData) pool.AccountMoveLineSet {
+	h.AccountMoveLine().Methods().Create().Extend("",
+		func(rs h.AccountMoveLineSet, data *h.AccountMoveLineData) h.AccountMoveLineSet {
 			/*
 				@api.model
 				def create(self, vals):
@@ -1457,8 +1458,8 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().Create(data)
 		})
 
-	pool.AccountMoveLine().Methods().Unlink().Extend("",
-		func(rs pool.AccountMoveLineSet) int64 {
+	h.AccountMoveLine().Methods().Unlink().Extend("",
+		func(rs h.AccountMoveLineSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			self._update_check()
@@ -1474,8 +1475,8 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountMoveLine().Methods().Write().Extend("",
-		func(rs pool.AccountMoveLineSet, data *pool.AccountMoveLineData, fieldsToReset ...models.FieldNamer) bool {
+	h.AccountMoveLine().Methods().Write().Extend("",
+		func(rs h.AccountMoveLineSet, data *h.AccountMoveLineData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 				if ('account_id' in vals) and self.env['account.account'].browse(vals['account_id']).deprecated:
@@ -1509,9 +1510,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().Write(data, fieldsToReset...)
 		})
 
-	pool.AccountMoveLine().Methods().UpdateCheck().DeclareMethod(
+	h.AccountMoveLine().Methods().UpdateCheck().DeclareMethod(
 		`UpdateCheck`,
-		func(rs pool.AccountMoveLineSet) bool {
+		func(rs h.AccountMoveLineSet) bool {
 			//@api.multi
 			/*def _update_check(self):
 			  """ Raise Warning to cause rollback if the move is posted, some entries are reconciled or the move is older than the lock date"""
@@ -1531,8 +1532,8 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return true
 		})
 
-	pool.AccountMoveLine().Methods().NameGet().Extend("",
-		func(rs pool.AccountMoveLineSet) string {
+	h.AccountMoveLine().Methods().NameGet().Extend("",
+		func(rs h.AccountMoveLineSet) string {
 			//@api.depends('ref','move_id')
 			/*def name_get(self):
 			for line in self:
@@ -1545,9 +1546,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().NameGet()
 		})
 
-	pool.AccountMoveLine().Methods().ComputeAmountFields().DeclareMethod(
+	h.AccountMoveLine().Methods().ComputeAmountFields().DeclareMethod(
 		`ComputeAmountFields`,
-		func(rs pool.AccountMoveLineSet, amount float64, srcCurrency, companyCurrency, invoiceCurrenct pool.CurrencySet) (float64, float64, float64, pool.CurrencySet) {
+		func(rs h.AccountMoveLineSet, amount float64, srcCurrency, companyCurrency, invoiceCurrenct h.CurrencySet) (float64, float64, float64, h.CurrencySet) {
 			//@api.model
 			/*def compute_amount_fields(self, amount, src_currency, company_currency, invoice_currency=False):
 			  """ Helper function to compute value for fields debit/credit/amount_currency based on an amount and the currencies given in parameter"""
@@ -1565,12 +1566,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  return debit, credit, amount_currency, currency_id
 
 			*/
-			return 0, 0, 0, pool.Currency().NewSet(rs.Env())
+			return 0, 0, 0, h.Currency().NewSet(rs.Env())
 		})
 
-	pool.AccountMoveLine().Methods().CreateAnalyticLines().DeclareMethod(
+	h.AccountMoveLine().Methods().CreateAnalyticLines().DeclareMethod(
 		`CreateAnalyticLines`,
-		func(rs pool.AccountMoveLineSet) pool.AccountAnalyticLineSet {
+		func(rs h.AccountMoveLineSet) h.AccountAnalyticLineSet {
 			//@api.multi
 			/*def create_analytic_lines(self):
 			  """ Create analytic items upon validation of an account.move.line having an analytic account. This
@@ -1583,12 +1584,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			          self.env['account.analytic.line'].create(vals_line)
 
 			*/
-			return pool.AccountAnalyticLine().NewSet(rs.Env())
+			return h.AccountAnalyticLine().NewSet(rs.Env())
 		})
 
-	pool.AccountMoveLine().Methods().PrepareAnalyticLine().DeclareMethod(
+	h.AccountMoveLine().Methods().PrepareAnalyticLine().DeclareMethod(
 		`PrepareAnalyticLine`,
-		func(rs pool.AccountMoveLineSet) *pool.AccountAnalyticLineData {
+		func(rs h.AccountMoveLineSet) *h.AccountAnalyticLineData {
 			//@api.one
 			/*def _prepare_analytic_line(self):
 			  """ Prepare the values used to create() an account.analytic.line upon validation of an account.move.line having
@@ -1609,12 +1610,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 				  'move_id': self.id,
 				  'user_id': self.invoice_id.user_id.id or self._uid,
 			  }*/
-			return new(pool.AccountAnalyticLineData)
+			return new(h.AccountAnalyticLineData)
 		})
 
-	pool.AccountMoveLine().Methods().QueryGet().DeclareMethod(
+	h.AccountMoveLine().Methods().QueryGet().DeclareMethod(
 		`QueryGet`,
-		func(rs pool.AccountMoveLineSet, condition pool.AccountMoveLineCondition) pool.AccountMoveLineCondition {
+		func(rs h.AccountMoveLineSet, condition q.AccountMoveLineCondition) q.AccountMoveLineCondition {
 			//@api.model
 			/*def _query_get(self, domain=None):
 			  context = dict(self._context or {})
@@ -1667,12 +1668,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  return tables, where_clause, where_clause_params
 
 			*/
-			return pool.AccountMoveLineCondition{}
+			return q.AccountMoveLineCondition{}
 		})
 
-	pool.AccountMoveLine().Methods().OpenReconcileView().DeclareMethod(
+	h.AccountMoveLine().Methods().OpenReconcileView().DeclareMethod(
 		`OpenReconcileView`,
-		func(rs pool.AccountMoveLineSet) *actions.Action {
+		func(rs h.AccountMoveLineSet) *actions.Action {
 			//@api.multi
 			/*def open_reconcile_view(self):
 			[action] = self.env.ref('account.action_account_moves_all_a').read()
@@ -1687,24 +1688,24 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return new(actions.Action)
 		})
 
-	pool.AccountPartialReconcile().DeclareModel()
+	h.AccountPartialReconcile().DeclareModel()
 
-	pool.AccountPartialReconcile().AddFields(map[string]models.FieldDefinition{
-		"DebitMove":      models.Many2OneField{RelationModel: pool.AccountMoveLine(), Index: true, Required: true},
-		"CreditMove":     models.Many2OneField{RelationModel: pool.AccountMoveLine(), Index: true, Required: true},
+	h.AccountPartialReconcile().AddFields(map[string]models.FieldDefinition{
+		"DebitMove":      models.Many2OneField{RelationModel: h.AccountMoveLine(), Index: true, Required: true},
+		"CreditMove":     models.Many2OneField{RelationModel: h.AccountMoveLine(), Index: true, Required: true},
 		"Amount":         models.FloatField{Help: "Amount concerned by this matching. Assumed to be always positive"},
 		"AmountCurrency": models.FloatField{String: "Amount in Currency"},
-		"Currency":       models.Many2OneField{RelationModel: pool.Currency()},
-		"CompanyCurrency": models.Many2OneField{RelationModel: pool.Currency(), Related: "Company.Currency", /* readonly=true */
+		"Currency":       models.Many2OneField{RelationModel: h.Currency()},
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency", /* readonly=true */
 			Help: "Utility field to express amount currency"},
-		"Company":       models.Many2OneField{RelationModel: pool.Company(), Related: "DebitMove.Company"},
-		"FullReconcile": models.Many2OneField{RelationModel: pool.AccountFullReconcile(), NoCopy: true},
+		"Company":       models.Many2OneField{RelationModel: h.Company(), Related: "DebitMove.Company"},
+		"FullReconcile": models.Many2OneField{RelationModel: h.AccountFullReconcile(), NoCopy: true},
 	})
 
-	pool.AccountPartialReconcile().Methods().CreateExchangeRateEntry().DeclareMethod(
+	h.AccountPartialReconcile().Methods().CreateExchangeRateEntry().DeclareMethod(
 		`CreateExchangeRateEntry`,
-		func(rs pool.AccountPartialReconcileSet, amlToFix pool.AccountMoveLineSet, amountDiff float64, diffInCurrency float64,
-			currenct pool.CurrencySet, moveDate dates.Date) (pool.AccountMoveLineSet, pool.AccountPartialReconcileSet) {
+		func(rs h.AccountPartialReconcileSet, amlToFix h.AccountMoveLineSet, amountDiff float64, diffInCurrency float64,
+			currenct h.CurrencySet, moveDate dates.Date) (h.AccountMoveLineSet, h.AccountPartialReconcileSet) {
 			/*def create_exchange_rate_entry(self, aml_to_fix, amount_diff, diff_in_currency, currency, move_date):
 			  """ Automatically create a journal entry to book the exchange rate difference.
 			      That new journal entry is made in the company `currency_exchange_journal_id` and one of its journal
@@ -1758,13 +1759,13 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      move.post()
 			  return line_to_reconcile, partial_rec
 			*/
-			return pool.AccountMoveLine().NewSet(rs.Env()), pool.AccountPartialReconcile().NewSet(rs.Env())
+			return h.AccountMoveLine().NewSet(rs.Env()), h.AccountPartialReconcile().NewSet(rs.Env())
 		})
 
-	pool.AccountPartialReconcile().Methods().FixMultipleExchangeRatesDiff().DeclareMethod(
+	h.AccountPartialReconcile().Methods().FixMultipleExchangeRatesDiff().DeclareMethod(
 		`FixMultipleExchangeRatesDiff`,
-		func(rs pool.AccountPartialReconcileSet, amlsToFix pool.AccountMoveLineSet, amountDiff float64, diffInCurrency float64,
-			currenct pool.CurrencySet, move pool.AccountMoveSet) (pool.AccountMoveLineSet, pool.AccountPartialReconcileSet) {
+		func(rs h.AccountPartialReconcileSet, amlsToFix h.AccountMoveLineSet, amountDiff float64, diffInCurrency float64,
+			currenct h.CurrencySet, move h.AccountMoveSet) (h.AccountMoveLineSet, h.AccountPartialReconcileSet) {
 			/*def _fix_multiple_exchange_rates_diff(self, amls_to_fix, amount_diff, diff_in_currency, currency, move):
 			  self.ensure_one()
 			  move_lines = self.env['account.move.line'].with_context(check_move_validity=False)
@@ -1808,12 +1809,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			  partial_reconciles._compute_partial_lines()
 			  return move_lines, partial_reconciles
 			*/
-			return pool.AccountMoveLine().NewSet(rs.Env()), pool.AccountPartialReconcile().NewSet(rs.Env())
+			return h.AccountMoveLine().NewSet(rs.Env()), h.AccountPartialReconcile().NewSet(rs.Env())
 		})
 
-	pool.AccountPartialReconcile().Methods().ComputePartialLines().DeclareMethod(
+	h.AccountPartialReconcile().Methods().ComputePartialLines().DeclareMethod(
 		`ComputePartialLines`,
-		func(rs pool.AccountPartialReconcileSet) pool.AccountFullReconcileSet {
+		func(rs h.AccountPartialReconcileSet) h.AccountFullReconcileSet {
 			/*def _compute_partial_lines(self):
 			  if self._context.get('skip_full_reconcile_check'):
 			      #when running the manual reconciliation wizard, don't check the partials separately for full
@@ -1879,11 +1880,11 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			          'exchange_partial_rec_id': exchange_partial_rec_id,
 			      })
 			*/
-			return pool.AccountFullReconcile().NewSet(rs.Env())
+			return h.AccountFullReconcile().NewSet(rs.Env())
 		})
 
-	pool.AccountPartialReconcile().Methods().Create().Extend("",
-		func(rs pool.AccountPartialReconcileSet, data *pool.AccountPartialReconcileData) pool.AccountPartialReconcileSet {
+	h.AccountPartialReconcile().Methods().Create().Extend("",
+		func(rs h.AccountPartialReconcileSet, data *h.AccountPartialReconcileData) h.AccountPartialReconcileSet {
 			//@api.model
 			/*def create(self, vals):
 							res = super(AccountPartialReconcile, self).create(vals)
@@ -1893,8 +1894,8 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().Create(data)
 		})
 
-	pool.AccountPartialReconcile().Methods().Unlink().Extend("",
-		func(rs pool.AccountPartialReconcileSet) int64 {
+	h.AccountPartialReconcile().Methods().Unlink().Extend("",
+		func(rs h.AccountPartialReconcileSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			 """ When removing a partial reconciliation, also unlink its full reconciliation if it exists """
@@ -1918,25 +1919,25 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountFullReconcile().DeclareModel()
+	h.AccountFullReconcile().DeclareModel()
 
-	pool.AccountFullReconcile().AddFields(map[string]models.FieldDefinition{
+	h.AccountFullReconcile().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Number", Required: true, NoCopy: true,
 			Default: func(env models.Environment) interface{} {
-				return pool.Sequence().NewSet(env).NextByCode("account.reconcile")
+				return h.Sequence().NewSet(env).NextByCode("account.reconcile")
 			},
 			/*[ default lambda self: self.env['ir.sequence'].next_by_code('account.reconcile']*/},
 		"PartialReconciles": models.One2ManyField{String: "Reconciliation Parts",
-			RelationModel: pool.AccountPartialReconcile(),
+			RelationModel: h.AccountPartialReconcile(),
 			ReverseFK:     "FullReconcile", JSON: "partial_reconcile_ids"},
-		"ReconciledLines": models.One2ManyField{String: "Matched Journal Items", RelationModel: pool.AccountMoveLine(),
+		"ReconciledLines": models.One2ManyField{String: "Matched Journal Items", RelationModel: h.AccountMoveLine(),
 			ReverseFK: "FullReconcile", JSON: "reconciled_line_ids"},
-		"ExchangeMove":       models.Many2OneField{RelationModel: pool.AccountMove()},
-		"ExchangePartialRec": models.Many2OneField{RelationModel: pool.AccountPartialReconcile()},
+		"ExchangeMove":       models.Many2OneField{RelationModel: h.AccountMove()},
+		"ExchangePartialRec": models.Many2OneField{RelationModel: h.AccountPartialReconcile()},
 	})
 
-	pool.AccountFullReconcile().Methods().Unlink().Extend("",
-		func(rs pool.AccountFullReconcileSet) int64 {
+	h.AccountFullReconcile().Methods().Unlink().Extend("",
+		func(rs h.AccountFullReconcileSet) int64 {
 			//@api.multi
 			/*def unlink(self):
 			""" When removing a full reconciliation, we need to revert the eventual journal entries we created to book the
@@ -1970,9 +1971,9 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			return rs.Super().Unlink()
 		})
 
-	pool.AccountFullReconcile().Methods().PrepareExchangeDiffMove().DeclareMethod(
+	h.AccountFullReconcile().Methods().PrepareExchangeDiffMove().DeclareMethod(
 		`PrepareExchangeDiffMove`,
-		func(rs pool.AccountFullReconcileSet, moveDate dates.Date, company pool.CompanySet) *pool.AccountMoveData {
+		func(rs h.AccountFullReconcileSet, moveDate dates.Date, company h.CompanySet) *h.AccountMoveData {
 			//@api.model
 			/*def _prepare_exchange_diff_move(self, move_date, company):
 			  if not company.currency_exchange_journal_id:
@@ -1989,7 +1990,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      res['date'] = move_date
 			  return res
 			*/
-			return new(pool.AccountMoveData)
+			return new(h.AccountMoveData)
 		})
 
 }

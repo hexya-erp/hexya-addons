@@ -5,21 +5,21 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountReportPartnerLedger().DeclareTransientModel()
-	pool.AccountReportPartnerLedger().InheritModel(pool.AccountCommonPartnerReport())
+	h.AccountReportPartnerLedger().DeclareTransientModel()
+	h.AccountReportPartnerLedger().InheritModel(h.AccountCommonPartnerReport())
 
-	pool.AccountCommonPartnerReport().AddFields(map[string]models.FieldDefinition{
+	h.AccountCommonPartnerReport().AddFields(map[string]models.FieldDefinition{
 		"AmountCurrency": models.BooleanField{String: "With Currency" /*["With Currency"]*/, Help: "It adds the currency column on report if the currency differs from the company currency."},
 		"Reconciled":     models.BooleanField{String: "Reconciled Entries')" /*['Reconciled Entries']*/},
 	})
-	pool.AccountCommonPartnerReport().Methods().PrintReport().DeclareMethod(
+	h.AccountCommonPartnerReport().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs pool.AccountCommonPartnerReportSet, args struct {
+		func(rs h.AccountCommonPartnerReportSet, args struct {
 			Data interface{}
 		}) {
 			/*def _print_report(self, data):

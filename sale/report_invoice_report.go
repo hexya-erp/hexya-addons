@@ -5,27 +5,27 @@ package sale
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountInvoiceReport().AddFields(map[string]models.FieldDefinition{
-		"Team": models.Many2OneField{String: "Sales Team", RelationModel: pool.CRMTeam()},
+	h.AccountInvoiceReport().AddFields(map[string]models.FieldDefinition{
+		"Team": models.Many2OneField{String: "Sales Team", RelationModel: h.CRMTeam()},
 	})
 
-	pool.AccountInvoiceReport().Methods().Select().Extend("",
-		func(rs pool.AccountInvoiceReportSet) string {
+	h.AccountInvoiceReport().Methods().Select().Extend("",
+		func(rs h.AccountInvoiceReportSet) string {
 			return rs.Super().Select() + ", sub.team_id as team_id"
 		})
 
-	pool.AccountInvoiceReport().Methods().SubSelect().Extend("",
-		func(rs pool.AccountInvoiceReportSet) string {
+	h.AccountInvoiceReport().Methods().SubSelect().Extend("",
+		func(rs h.AccountInvoiceReportSet) string {
 			return rs.Super().SubSelect() + ", ai.team_id as team_id"
 		})
 
-	pool.AccountInvoiceReport().Methods().GroupByClause().Extend("",
-		func(rs pool.AccountInvoiceReportSet) string {
+	h.AccountInvoiceReport().Methods().GroupByClause().Extend("",
+		func(rs h.AccountInvoiceReportSet) string {
 			return rs.Super().GroupByClause() + ", ai.team_id"
 		})
 

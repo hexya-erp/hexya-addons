@@ -4,20 +4,20 @@
 package account
 
 import (
-	"github.com/hexya-erp/hexya/pool"
 	"github.com/hexya-erp/hexya/hexya/models"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountMoveReversal().DeclareTransientModel()
-	pool.AccountMoveReversal().AddFields(map[string]models.FieldDefinition{
+	h.AccountMoveReversal().DeclareTransientModel()
+	h.AccountMoveReversal().AddFields(map[string]models.FieldDefinition{
 		"Date":    models.DateField{String: "Date" /*[string 'Reversal date']*/ /*[ default fields.Date.context_today]*/ /*[ required True]*/},
-		"Journal": models.Many2OneField{String: "Use Specific Journal", RelationModel: pool.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Help: "If empty, uses the journal of the journal entry to be reversed." /*[ uses the journal of the journal entry to be reversed.']*/},
+		"Journal": models.Many2OneField{String: "Use Specific Journal", RelationModel: h.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Help: "If empty, uses the journal of the journal entry to be reversed." /*[ uses the journal of the journal entry to be reversed.']*/},
 	})
-	pool.AccountMoveReversal().Methods().ReverseMoves().DeclareMethod(
+	h.AccountMoveReversal().Methods().ReverseMoves().DeclareMethod(
 		`ReverseMoves`,
-		func(rs pool.AccountMoveReversalSet) {
+		func(rs h.AccountMoveReversalSet) {
 			//@api.multi
 			/*def reverse_moves(self):
 			  ac_move_ids = self._context.get('active_ids', False)

@@ -3,16 +3,14 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
 
-	pool.AccountUnreconcile().DeclareTransientModel()
-	pool.AccountUnreconcile().Methods().TransUnrec().DeclareMethod(
+	h.AccountUnreconcile().DeclareTransientModel()
+	h.AccountUnreconcile().Methods().TransUnrec().DeclareMethod(
 		`TransUnrec`,
-		func(rs pool.AccountUnreconcileSet) {
+		func(rs h.AccountUnreconcileSet) {
 			//@api.multi
 			/*def trans_unrec(self):
 			  context = dict(self._context or {})

@@ -5,7 +5,7 @@ package saleTeams
 
 func init() {
 
-	//pool.SaleConfigSettings().DeclareTransientModel()
-	//pool.SaleConfigSettings().InheritModel(pool.ConfigSettings())
+	//h.SaleConfigSettings().DeclareTransientModel()
+	//h.SaleConfigSettings().InheritModel(h.ConfigSettings())
 
 }

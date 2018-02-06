@@ -6,15 +6,15 @@ package account
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.AccountFinancialReport().DeclareModel()
-	pool.AccountFinancialReport().Methods().GetLevel().DeclareMethod(
+	h.AccountFinancialReport().DeclareModel()
+	h.AccountFinancialReport().Methods().GetLevel().DeclareMethod(
 		`GetLevel`,
-		func(rs pool.AccountFinancialReportSet) (*pool.AccountFinancialReportData, []models.FieldNamer) {
+		func(rs h.AccountFinancialReportSet) (*h.AccountFinancialReportData, []models.FieldNamer) {
 			//@api.depends('parent_id','parent_id.level')
 			/*def _get_level(self):
 			  '''Returns a dictionary with key=the ID of a record and value = the level of this
@@ -26,11 +26,11 @@ func init() {
 			      report.level = level
 
 			*/
-			return &pool.AccountFinancialReportData{}, []models.FieldNamer{}
+			return &h.AccountFinancialReportData{}, []models.FieldNamer{}
 		})
-	pool.AccountFinancialReport().Methods().GetChildrenByOrder().DeclareMethod(
+	h.AccountFinancialReport().Methods().GetChildrenByOrder().DeclareMethod(
 		`GetChildrenByOrder`,
-		func(rs pool.AccountFinancialReportSet) {
+		func(rs h.AccountFinancialReportSet) {
 			/*def _get_children_by_order(self):
 			    '''returns a recordset of all the children computed recursively, and sorted by sequence. Ready for the printing'''
 			    res = self
@@ -42,21 +42,21 @@ func init() {
 
 			name = */
 		})
-	pool.AccountFinancialReport().AddFields(map[string]models.FieldDefinition{
+	h.AccountFinancialReport().AddFields(map[string]models.FieldDefinition{
 		"Name":      models.CharField{String: "Report Name" /*['Report Name']*/, Required: true, Translate: true},
-		"Parent":    models.Many2OneField{String: "Parent", RelationModel: pool.AccountFinancialReport(), JSON: "parent_id" /*['account.financial.report']*/ /*['Parent']*/},
-		"Childrens": models.One2ManyField{String: "Account Report", RelationModel: pool.AccountFinancialReport(), ReverseFK: "Parent", JSON: "children_ids" /*['account.financial.report']*/ /*[ 'parent_id']*/ /*['Account Report']*/},
+		"Parent":    models.Many2OneField{String: "Parent", RelationModel: h.AccountFinancialReport(), JSON: "parent_id" /*['account.financial.report']*/ /*['Parent']*/},
+		"Childrens": models.One2ManyField{String: "Account Report", RelationModel: h.AccountFinancialReport(), ReverseFK: "Parent", JSON: "children_ids" /*['account.financial.report']*/ /*[ 'parent_id']*/ /*['Account Report']*/},
 		"Sequence":  models.IntegerField{String: "Sequence')" /*['Sequence']*/},
-		"Level":     models.IntegerField{String: "Level", Compute: pool.AccountFinancialReport().Methods().GetLevel() /*[ string 'Level']*/ /*[ store True]*/},
+		"Level":     models.IntegerField{String: "Level", Compute: h.AccountFinancialReport().Methods().GetLevel() /*[ string 'Level']*/ /*[ store True]*/},
 		"Type": models.SelectionField{String: "Type", Selection: types.Selection{
 			"sum":            "View",
 			"accounts":       "Accounts",
 			"account_type":   "Account Type",
 			"account_report": "Report Value",
 			/*[ ('sum', 'View'  ('accounts', 'Accounts'  ('account_type', 'Account Type'  ('account_report', 'Report Value'  ]*/}, /*[]*/ /*['Type']*/ Default: models.DefaultValue("sum")},
-		"Accounts":      models.Many2ManyField{String: "account_account_financial_report", RelationModel: pool.AccountAccount(), JSON: "account_ids" /*['account.account']*/ /*['account_account_financial_report']*/ /*[ 'report_line_id']*/ /*[ 'account_id']*/ /*[ 'Accounts']*/},
-		"AccountReport": models.Many2OneField{String: "Report Value", RelationModel: pool.AccountFinancialReport(), JSON: "account_report_id" /*['account.financial.report']*/ /*['Report Value']*/},
-		"AccountTypes":  models.Many2ManyField{String: "account_account_financial_report_type", RelationModel: pool.AccountAccountType(), JSON: "account_type_ids" /*['account.account.type']*/ /*['account_account_financial_report_type']*/ /*[ 'report_id']*/ /*[ 'account_type_id']*/ /*[ 'Account Types']*/},
+		"Accounts":      models.Many2ManyField{String: "account_account_financial_report", RelationModel: h.AccountAccount(), JSON: "account_ids" /*['account.account']*/ /*['account_account_financial_report']*/ /*[ 'report_line_id']*/ /*[ 'account_id']*/ /*[ 'Accounts']*/},
+		"AccountReport": models.Many2OneField{String: "Report Value", RelationModel: h.AccountFinancialReport(), JSON: "account_report_id" /*['account.financial.report']*/ /*['Report Value']*/},
+		"AccountTypes":  models.Many2ManyField{String: "account_account_financial_report_type", RelationModel: h.AccountAccountType(), JSON: "account_type_ids" /*['account.account.type']*/ /*['account_account_financial_report_type']*/ /*[ 'report_id']*/ /*[ 'account_type_id']*/ /*[ 'Account Types']*/},
 		"Sign": models.SelectionField{String: "Sign on Reports", Selection: types.Selection{
 			"-1": "Reverse balance sign",
 			"1":  "Preserve balance sign",

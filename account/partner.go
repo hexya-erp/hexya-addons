@@ -10,71 +10,72 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.AccountFiscalPosition().DeclareModel()
-	pool.AccountFiscalPosition().SetDefaultOrder("Sequence")
+	h.AccountFiscalPosition().DeclareModel()
+	h.AccountFiscalPosition().SetDefaultOrder("Sequence")
 
-	pool.AccountFiscalPosition().AddFields(map[string]models.FieldDefinition{
+	h.AccountFiscalPosition().AddFields(map[string]models.FieldDefinition{
 		"Sequence": models.IntegerField{},
 		"Name":     models.CharField{String: "Fiscal Position", Required: true},
 		"Active": models.BooleanField{Default: models.DefaultValue(true),
 			Help: "By unchecking the active field, you may hide a fiscal position without deleting it."},
-		"Company": models.Many2OneField{RelationModel: pool.Company()},
+		"Company": models.Many2OneField{RelationModel: h.Company()},
 		"Accounts": models.One2ManyField{String: "Account Mapping",
-			RelationModel: pool.AccountFiscalPositionAccount(), ReverseFK: "Position", JSON: "account_ids",
+			RelationModel: h.AccountFiscalPositionAccount(), ReverseFK: "Position", JSON: "account_ids",
 			NoCopy: false},
-		"Taxes": models.One2ManyField{String: "Tax Mapping", RelationModel: pool.AccountFiscalPositionTax(),
+		"Taxes": models.One2ManyField{String: "Tax Mapping", RelationModel: h.AccountFiscalPositionTax(),
 			ReverseFK: "Position", JSON: "tax_ids", NoCopy: false},
 		"Note": models.TextField{String: "Notes", Translate: true,
 			Help: "Legal mentions that have to be printed on the invoices."},
 		"AutoApply": models.BooleanField{String: "Detect Automatically",
 			Help: "Apply automatically this fiscal position."},
 		"VatRequired": models.BooleanField{String: "VAT required", Help: "Apply only if partner has a VAT number."},
-		"Country": models.Many2OneField{String: "Country", RelationModel: pool.Country(),
-			OnChange: pool.AccountFiscalPosition().Methods().OnchangeCountry(),
+		"Country": models.Many2OneField{String: "Country", RelationModel: h.Country(),
+			OnChange: h.AccountFiscalPosition().Methods().OnchangeCountry(),
 			Help:     "Apply only if delivery or invoicing country match."},
-		"CountryGroup": models.Many2OneField{String: "Country Group", RelationModel: pool.CountryGroup(),
-			OnChange: pool.AccountFiscalPosition().Methods().OnchangeCountryGroup(),
+		"CountryGroup": models.Many2OneField{String: "Country Group", RelationModel: h.CountryGroup(),
+			OnChange: h.AccountFiscalPosition().Methods().OnchangeCountryGroup(),
 			Help:     "Apply only if delivery or invocing country match the group."},
-		"States": models.Many2ManyField{String: "Federal States", RelationModel: pool.CountryState(),
+		"States": models.Many2ManyField{String: "Federal States", RelationModel: h.CountryState(),
 			JSON: "state_ids"},
 		"ZipFrom": models.IntegerField{String: "Zip Range From", Default: models.DefaultValue(0),
-			Constraint: pool.AccountFiscalPosition().Methods().CheckZip()},
+			Constraint: h.AccountFiscalPosition().Methods().CheckZip()},
 		"ZipTo": models.IntegerField{String: "Zip Range To", Default: models.DefaultValue(0),
-			Constraint: pool.AccountFiscalPosition().Methods().CheckZip()},
-		"StatesCount": models.IntegerField{Compute: pool.AccountFiscalPosition().Methods().ComputeStatesCount(),
+			Constraint: h.AccountFiscalPosition().Methods().CheckZip()},
+		"StatesCount": models.IntegerField{Compute: h.AccountFiscalPosition().Methods().ComputeStatesCount(),
 			GoType: new(int)},
 	})
 
-	pool.AccountFiscalPosition().Methods().ComputeStatesCount().DeclareMethod(
+	h.AccountFiscalPosition().Methods().ComputeStatesCount().DeclareMethod(
 		`ComputeStatesCount`,
-		func(rs pool.AccountFiscalPositionSet) (*pool.AccountFiscalPositionData, []models.FieldNamer) {
+		func(rs h.AccountFiscalPositionSet) (*h.AccountFiscalPositionData, []models.FieldNamer) {
 			//@api.one
 			/*def _compute_states_count(self):
 			  self.states_count = len(self.country_id.state_ids)
 
 			*/
-			return &pool.AccountFiscalPositionData{
+			return &h.AccountFiscalPositionData{
 				StatesCount: rs.Country().States().Len(),
-			}, []models.FieldNamer{pool.AccountFiscalPosition().StatesCount()}
+			}, []models.FieldNamer{h.AccountFiscalPosition().StatesCount()}
 		})
 
-	pool.AccountFiscalPosition().Methods().CheckZip().DeclareMethod(
+	h.AccountFiscalPosition().Methods().CheckZip().DeclareMethod(
 		`CheckZip`,
-		func(rs pool.AccountFiscalPositionSet) {
+		func(rs h.AccountFiscalPositionSet) {
 			if rs.ZipFrom() > rs.ZipTo() {
 				log.Panic("Invalid 'Zip Range', please configure it properly.")
 			}
 		})
 
-	pool.AccountFiscalPosition().Methods().MapTax().DeclareMethod(
+	h.AccountFiscalPosition().Methods().MapTax().DeclareMethod(
 		`MapTax`,
-		func(rs pool.AccountFiscalPositionSet, taxes pool.AccountTaxSet, product pool.ProductProductSet,
-			partner pool.PartnerSet) pool.AccountTaxSet {
+		func(rs h.AccountFiscalPositionSet, taxes h.AccountTaxSet, product h.ProductProductSet,
+			partner h.PartnerSet) h.AccountTaxSet {
 			//@api.model#noqa
 			/*def map_tax(self, taxes, product=None, partner=None):
 			  result = self.env['account.tax'].browse()
@@ -90,12 +91,12 @@ func init() {
 			  return result
 
 			*/
-			return pool.AccountTax().NewSet(rs.Env())
+			return h.AccountTax().NewSet(rs.Env())
 		})
 
-	pool.AccountFiscalPosition().Methods().MapAccount().DeclareMethod(
+	h.AccountFiscalPosition().Methods().MapAccount().DeclareMethod(
 		`MapAccount`,
-		func(rs pool.AccountFiscalPositionSet, account pool.AccountAccountSet) pool.AccountAccountSet {
+		func(rs h.AccountFiscalPositionSet, account h.AccountAccountSet) h.AccountAccountSet {
 			//@api.model
 			/*def map_account(self, account):
 			  for pos in self.account_ids:
@@ -104,12 +105,12 @@ func init() {
 			  return account
 
 			*/
-			return pool.AccountAccount().NewSet(rs.Env())
+			return h.AccountAccount().NewSet(rs.Env())
 		})
 
-	pool.AccountFiscalPosition().Methods().MapAccounts().DeclareMethod(
+	h.AccountFiscalPosition().Methods().MapAccounts().DeclareMethod(
 		`MapAccounts`,
-		func(rs pool.AccountFiscalPositionSet, accounts pool.AccountAccountSet) pool.AccountAccountSet {
+		func(rs h.AccountFiscalPositionSet, accounts h.AccountAccountSet) h.AccountAccountSet {
 			//@api.model
 			/*def map_accounts(self, accounts):
 			  """ Receive a dictionary having accounts in values and try to replace those accounts accordingly to the fiscal position.
@@ -123,12 +124,12 @@ func init() {
 			  return accounts
 
 			*/
-			return pool.AccountAccount().NewSet(rs.Env())
+			return h.AccountAccount().NewSet(rs.Env())
 		})
 
-	pool.AccountFiscalPosition().Methods().OnchangeCountry().DeclareMethod(
+	h.AccountFiscalPosition().Methods().OnchangeCountry().DeclareMethod(
 		`OnchangeCountryId`,
-		func(rs pool.AccountFiscalPositionSet) (*pool.AccountFiscalPositionData, []models.FieldNamer) {
+		func(rs h.AccountFiscalPositionSet) (*h.AccountFiscalPositionData, []models.FieldNamer) {
 			//@api.onchange('country_id')
 			/*def _onchange_country_id(self):
 			  if self.country_id:
@@ -137,12 +138,12 @@ func init() {
 			      self.states_count = len(self.country_id.state_ids)
 
 			*/
-			return &pool.AccountFiscalPositionData{}, []models.FieldNamer{}
+			return &h.AccountFiscalPositionData{}, []models.FieldNamer{}
 		})
 
-	pool.AccountFiscalPosition().Methods().OnchangeCountryGroup().DeclareMethod(
+	h.AccountFiscalPosition().Methods().OnchangeCountryGroup().DeclareMethod(
 		`OnchangeCountryGroupId`,
-		func(rs pool.AccountFiscalPositionSet) (*pool.AccountFiscalPositionData, []models.FieldNamer) {
+		func(rs h.AccountFiscalPositionSet) (*h.AccountFiscalPositionData, []models.FieldNamer) {
 			//@api.onchange('country_group_id')
 			/*def _onchange_country_group_id(self):
 			  if self.country_group_id:
@@ -150,13 +151,13 @@ func init() {
 			      self.state_ids = [(5,)]
 
 			*/
-			return &pool.AccountFiscalPositionData{}, []models.FieldNamer{}
+			return &h.AccountFiscalPositionData{}, []models.FieldNamer{}
 		})
 
-	pool.AccountFiscalPosition().Methods().GetFposByRegion().DeclareMethod(
+	h.AccountFiscalPosition().Methods().GetFposByRegion().DeclareMethod(
 		`GetFposByRegion`,
-		func(rs pool.AccountFiscalPositionSet, country pool.CountrySet, state pool.CountryStateSet, zipCode int64,
-			vatRequired bool) pool.AccountFiscalPositionSet {
+		func(rs h.AccountFiscalPositionSet, country h.CountrySet, state h.CountryStateSet, zipCode int64,
+			vatRequired bool) h.AccountFiscalPositionSet {
 			//@api.model
 			/*def _get_fpos_by_region(self, country_id=False, state_id=False, zipcode=False, vat_required=False):
 			  if not country_id:
@@ -200,12 +201,12 @@ func init() {
 			  return fpos or False
 
 			*/
-			return pool.AccountFiscalPosition().NewSet(rs.Env())
+			return h.AccountFiscalPosition().NewSet(rs.Env())
 		})
 
-	pool.AccountFiscalPosition().Methods().GetFiscalPosition().DeclareMethod(
+	h.AccountFiscalPosition().Methods().GetFiscalPosition().DeclareMethod(
 		`GetFiscalPosition`,
-		func(rs pool.AccountFiscalPositionSet, partner, delivery pool.PartnerSet) pool.AccountFiscalPositionSet {
+		func(rs h.AccountFiscalPositionSet, partner, delivery h.PartnerSet) h.AccountFiscalPositionSet {
 			//@api.model
 			/*def get_fiscal_position(self, partner_id, delivery_id=None):
 			  if not partner_id:
@@ -236,100 +237,100 @@ func init() {
 
 
 			*/
-			return pool.AccountFiscalPosition().NewSet(rs.Env())
+			return h.AccountFiscalPosition().NewSet(rs.Env())
 		})
 
-	pool.AccountFiscalPositionTax().DeclareModel()
-	pool.AccountFiscalPositionTax().AddFields(map[string]models.FieldDefinition{
-		"Position": models.Many2OneField{String: "Fiscal Position", RelationModel: pool.AccountFiscalPosition(),
+	h.AccountFiscalPositionTax().DeclareModel()
+	h.AccountFiscalPositionTax().AddFields(map[string]models.FieldDefinition{
+		"Position": models.Many2OneField{String: "Fiscal Position", RelationModel: h.AccountFiscalPosition(),
 			Required: true, OnDelete: models.Cascade},
-		"TaxSrc": models.Many2OneField{String: "Tax on Product", RelationModel: pool.AccountTax(),
+		"TaxSrc": models.Many2OneField{String: "Tax on Product", RelationModel: h.AccountTax(),
 			Required: true},
-		"TaxDest": models.Many2OneField{String: "Tax to Apply", RelationModel: pool.AccountTax()},
+		"TaxDest": models.Many2OneField{String: "Tax to Apply", RelationModel: h.AccountTax()},
 	})
 
-	pool.AccountFiscalPositionTax().AddSQLConstraint("tax_src_dest_uniq",
+	h.AccountFiscalPositionTax().AddSQLConstraint("tax_src_dest_uniq",
 		"unique (position_id, tax_src_id, tax_dest_id)",
 		"A tax fiscal position could be defined only once time on same taxes.")
 
-	pool.AccountFiscalPositionTax().Methods().NameGet().Extend("",
-		func(rs pool.AccountFiscalPositionTaxSet) string {
+	h.AccountFiscalPositionTax().Methods().NameGet().Extend("",
+		func(rs h.AccountFiscalPositionTaxSet) string {
 			return rs.Position().DisplayName()
 		})
 
-	pool.AccountFiscalPositionAccount().DeclareModel()
-	pool.AccountFiscalPositionAccount().AddFields(map[string]models.FieldDefinition{
-		"Position": models.Many2OneField{String: "Fiscal Position", RelationModel: pool.AccountFiscalPosition(),
+	h.AccountFiscalPositionAccount().DeclareModel()
+	h.AccountFiscalPositionAccount().AddFields(map[string]models.FieldDefinition{
+		"Position": models.Many2OneField{String: "Fiscal Position", RelationModel: h.AccountFiscalPosition(),
 			Required: true, OnDelete: models.Cascade},
-		"AccountSrc": models.Many2OneField{String: "Account on Product", RelationModel: pool.AccountAccount(),
-			Filter: pool.AccountAccount().Deprecated().Equals(false), Required: true},
-		"AccountDest": models.Many2OneField{String: "Account to Use Instead", RelationModel: pool.AccountAccount(),
-			Filter: pool.AccountAccount().Deprecated().Equals(false), Required: true},
+		"AccountSrc": models.Many2OneField{String: "Account on Product", RelationModel: h.AccountAccount(),
+			Filter: q.AccountAccount().Deprecated().Equals(false), Required: true},
+		"AccountDest": models.Many2OneField{String: "Account to Use Instead", RelationModel: h.AccountAccount(),
+			Filter: q.AccountAccount().Deprecated().Equals(false), Required: true},
 	})
 
-	pool.AccountFiscalPositionAccount().AddSQLConstraint("account_src_dest_uniq",
+	h.AccountFiscalPositionAccount().AddSQLConstraint("account_src_dest_uniq",
 		"unique (position_id, account_src_id, account_dest_id)",
 		"An account fiscal position could be defined only once time on same accounts.")
 
-	pool.AccountFiscalPositionAccount().Methods().NameGet().Extend("",
-		func(rs pool.AccountFiscalPositionAccountSet) string {
+	h.AccountFiscalPositionAccount().Methods().NameGet().Extend("",
+		func(rs h.AccountFiscalPositionAccountSet) string {
 			return rs.Position().DisplayName()
 		})
 
-	pool.Partner().AddFields(map[string]models.FieldDefinition{
+	h.Partner().AddFields(map[string]models.FieldDefinition{
 		"Credit": models.FloatField{String: "Total Receivable",
-			Compute: pool.Partner().Methods().ComputeCreditDebit(), /*Search: "_credit_search"*/
+			Compute: h.Partner().Methods().ComputeCreditDebit(), /*Search: "_credit_search"*/
 			Help:    "Total amount this customer owes you."},
 		"Debit": models.FloatField{String: "Total Payable",
-			Compute: pool.Partner().Methods().ComputeCreditDebit(), /* Search: "_debit_search"*/
+			Compute: h.Partner().Methods().ComputeCreditDebit(), /* Search: "_debit_search"*/
 			Help:    "Total amount you have to pay to this vendor."},
 		"DebitLimit":    models.FloatField{String: "Payable Limit"},
-		"TotalInvoiced": models.FloatField{Compute: pool.Partner().Methods().ComputeTotalInvoiced()},
-		"Currency": models.Many2OneField{String: "Currency", RelationModel: pool.Currency(),
-			Compute: pool.Partner().Methods().ComputeCurrency(), /* readonly=true */
+		"TotalInvoiced": models.FloatField{Compute: h.Partner().Methods().ComputeTotalInvoiced()},
+		"Currency": models.Many2OneField{String: "Currency", RelationModel: h.Currency(),
+			Compute: h.Partner().Methods().ComputeCurrency(), /* readonly=true */
 			Help:    "Utility field to express amount currency"},
 		"ContractsCount": models.IntegerField{String: "Contracts",
-			Compute: pool.Partner().Methods().ComputeJournalItemCount(), GoType: new(int)},
+			Compute: h.Partner().Methods().ComputeJournalItemCount(), GoType: new(int)},
 		"JournalItemCount": models.IntegerField{String: "Journal Items",
-			Compute: pool.Partner().Methods().ComputeJournalItemCount(), GoType: new(int)},
+			Compute: h.Partner().Methods().ComputeJournalItemCount(), GoType: new(int)},
 		"IssuedTotal": models.FloatField{String: "Journal Items",
-			Compute: pool.Partner().Methods().ComputeIssuedTotal()},
+			Compute: h.Partner().Methods().ComputeIssuedTotal()},
 		"PropertyAccountPayable": models.Many2OneField{String: "Account Payable",
-			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
-			Filter:        pool.AccountAccount().InternalType().Equals("payable").And().Deprecated().Equals(false),
+			RelationModel: h.AccountAccount(), /*, CompanyDependent : true*/
+			Filter:        q.AccountAccount().InternalType().Equals("payable").And().Deprecated().Equals(false),
 			Help:          "This account will be used instead of the default one as the payable account for the current partner",
 			//Required:      true,
 		},
 		"PropertyAccountReceivable": models.Many2OneField{String: "Account Receivable",
-			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
-			Filter:        pool.AccountAccount().InternalType().Equals("receivable").And().Deprecated().Equals(false),
+			RelationModel: h.AccountAccount(), /*, CompanyDependent : true*/
+			Filter:        q.AccountAccount().InternalType().Equals("receivable").And().Deprecated().Equals(false),
 			Help:          "This account will be used instead of the default one as the receivable account for the current partner",
 			//Required:      true,
 		},
 		"PropertyAccountPosition": models.Many2OneField{String: "Fiscal Position",
-			RelationModel: pool.AccountFiscalPosition(), /*, CompanyDependent : true*/
+			RelationModel: h.AccountFiscalPosition(), /*, CompanyDependent : true*/
 			Help:          "The fiscal position will determine taxes and accounts used for the partner."},
 		"PropertyPaymentTerm": models.Many2OneField{String: "Customer Payment Terms",
-			RelationModel: pool.AccountPaymentTerm(), /*, CompanyDependent : true*/
+			RelationModel: h.AccountPaymentTerm(), /*, CompanyDependent : true*/
 			Help:          "This payment term will be used instead of the default one for sale orders and customer invoices"},
 		"PropertySupplierPaymentTerm": models.Many2OneField{String: "Vendor Payment Terms",
-			RelationModel: pool.AccountPaymentTerm(), /*, CompanyDependent : true*/
+			RelationModel: h.AccountPaymentTerm(), /*, CompanyDependent : true*/
 			Help:          "This payment term will be used instead of the default one for purchase orders and vendor bills"},
 		"RefCompanies": models.One2ManyField{String: "Companies that refers to partner",
-			RelationModel: pool.Company(), ReverseFK: "Partner", JSON: "ref_company_ids"},
-		"HasUnreconciledEntries": models.BooleanField{Compute: pool.Partner().Methods().ComputeHasUnreconciledEntries(),
+			RelationModel: h.Company(), ReverseFK: "Partner", JSON: "ref_company_ids"},
+		"HasUnreconciledEntries": models.BooleanField{Compute: h.Partner().Methods().ComputeHasUnreconciledEntries(),
 			Help: `The partner has at least one unreconciled debit and credit
 since last time the invoices & payments matching was performed.`},
 		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date", /*[ readonly True]*/
 			NoCopy: true, Help: `Last time the invoices & payments matching was performed for this partner.
 It is set either if there\'s not at least an unreconciled debit and an unreconciled
 credit or if you click the "Done" button.`},
-		"Invoices": models.One2ManyField{RelationModel: pool.AccountInvoice(), ReverseFK: "Partner",
+		"Invoices": models.One2ManyField{RelationModel: h.AccountInvoice(), ReverseFK: "Partner",
 			JSON: "invoice_ids" /* readonly */, NoCopy: true},
-		"Contracts": models.One2ManyField{RelationModel: pool.AccountAnalyticAccount(), ReverseFK: "Partner",
+		"Contracts": models.One2ManyField{RelationModel: h.AccountAnalyticAccount(), ReverseFK: "Partner",
 			JSON: "contract_ids" /* readonly */},
 		"BankAccountCount": models.IntegerField{String: "Bank",
-			Compute: pool.Partner().Methods().ComputeBankCount()},
+			Compute: h.Partner().Methods().ComputeBankCount()},
 		"Trust": models.SelectionField{String: "Degree of trust you have in this debtor", Selection: types.Selection{
 			"good":   "Good Debtor",
 			"normal": "Normal Debtor",
@@ -341,13 +342,13 @@ credit or if you click the "Done" button.`},
 		"InvoiceWarnMsg": models.TextField{String: "Message for Invoice"},
 	})
 
-	pool.Partner().Fields().TotalInvoiced().
+	h.Partner().Fields().TotalInvoiced().
 		RevokeAccess(security.GroupEveryone, security.All).
 		GrantAccess(GroupAccountInvoice, security.All)
 
-	pool.Partner().Methods().ComputeCreditDebit().DeclareMethod(
+	h.Partner().Methods().ComputeCreditDebit().DeclareMethod(
 		`CreditDebitGet`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.multi
 			/*def _credit_debit_get(self):
 			  tables, where_clause, where_params = self.env['account.move.line']._query_get()
@@ -372,12 +373,12 @@ credit or if you click the "Done" button.`},
 			          partner.debit = -val
 
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().AssetDifferenceSearch().DeclareMethod(
+	h.Partner().Methods().AssetDifferenceSearch().DeclareMethod(
 		`AssetDifferenceSearch`,
-		func(rs pool.PartnerSet, accountType string, op operator.Operator, operand float64) pool.PartnerCondition {
+		func(rs h.PartnerSet, accountType string, op operator.Operator, operand float64) q.PartnerCondition {
 			//@api.multi
 			/*def _asset_difference_search(self, account_type, operator, operand):
 			  if operator not in ('<', '=', '>', '>=', '<='):
@@ -402,24 +403,24 @@ credit or if you click the "Done" button.`},
 			  return [('id', 'in', map(itemgetter(0), res))]
 
 			*/
-			return pool.PartnerCondition{}
+			return q.PartnerCondition{}
 		})
 
-	pool.Partner().Methods().CreditSearch().DeclareMethod(
+	h.Partner().Methods().CreditSearch().DeclareMethod(
 		`CreditSearch returns the condition to search on partners credits.`,
-		func(rs pool.PartnerSet, op operator.Operator, operand interface{}) pool.PartnerCondition {
+		func(rs h.PartnerSet, op operator.Operator, operand interface{}) q.PartnerCondition {
 			return rs.AssetDifferenceSearch("receivable", op, operand.(float64))
 		})
 
-	pool.Partner().Methods().DebitSearch().DeclareMethod(
+	h.Partner().Methods().DebitSearch().DeclareMethod(
 		`DebitSearch returns the condition to search on partners debits.`,
-		func(rs pool.PartnerSet, op operator.Operator, operand interface{}) pool.PartnerCondition {
+		func(rs h.PartnerSet, op operator.Operator, operand interface{}) q.PartnerCondition {
 			return rs.AssetDifferenceSearch("payable", op, operand.(float64))
 		})
 
-	pool.Partner().Methods().ComputeTotalInvoiced().DeclareMethod(
+	h.Partner().Methods().ComputeTotalInvoiced().DeclareMethod(
 		`InvoiceTotal`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.multi
 			/*def _invoice_total(self):
 			  account_invoice_report = self.env['account.invoice.report']
@@ -461,12 +462,12 @@ credit or if you click the "Done" button.`},
 			      partner.total_invoiced = sum(price['total'] for price in price_totals if price['partner_id'] in child_ids)
 
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().ComputeJournalItemCount().DeclareMethod(
+	h.Partner().Methods().ComputeJournalItemCount().DeclareMethod(
 		`ComputeJournalItemCount`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.multi
 			/*def _journal_item_count(self):
 			  for partner in self:
@@ -474,12 +475,12 @@ credit or if you click the "Done" button.`},
 			      partner.contracts_count = self.env['account.analytic.account'].search_count([('partner_id', '=', partner.id)])
 
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().GetFollowupLinesDomain().DeclareMethod(
+	h.Partner().Methods().GetFollowupLinesDomain().DeclareMethod(
 		`GetFollowupLinesDomain`,
-		func(rs pool.PartnerSet, date dates.Date, overdueOnly, onlyUnblocked bool) pool.PartnerCondition {
+		func(rs h.PartnerSet, date dates.Date, overdueOnly, onlyUnblocked bool) q.PartnerCondition {
 			/*def get_followup_lines_domain(self, date, overdue_only=False, only_unblocked=False):
 			  domain = [('reconciled', '=', False), ('account_id.deprecated', '=', False), ('account_id.internal_type', '=', 'receivable'), '|', ('debit', '!=', 0), ('credit', '!=', 0), ('company_id', '=', self.env.user.company_id.id)]
 			  if only_unblocked:
@@ -496,12 +497,12 @@ credit or if you click the "Done" button.`},
 			  return domain
 
 			*/
-			return pool.PartnerCondition{}
+			return q.PartnerCondition{}
 		})
 
-	pool.Partner().Methods().ComputeIssuedTotal().DeclareMethod(
+	h.Partner().Methods().ComputeIssuedTotal().DeclareMethod(
 		`ComputeIssuedTotal`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.multi
 			/*def _compute_issued_total(self):
 						  """ Returns the issued total as will be displayed on partner view """
@@ -510,12 +511,12 @@ credit or if you click the "Done" button.`},
 			       		  for aml in self.env['account.move.line'].search(domain):
 			        		    aml.partner_id.issued_total += aml.amount_residual
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().ComputeHasUnreconciledEntries().DeclareMethod(
+	h.Partner().Methods().ComputeHasUnreconciledEntries().DeclareMethod(
 		`ComputeHasUnreconciledEntries`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.one
 			/*def _compute_has_unreconciled_entries(self):
 			  # Avoid useless work if has_unreconciled_entries is not relevant for this partner
@@ -553,12 +554,12 @@ credit or if you click the "Done" button.`},
 			  self.has_unreconciled_entries = self.env.cr.rowcount == 1
 
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().MarkAsReconciled().DeclareMethod(
+	h.Partner().Methods().MarkAsReconciled().DeclareMethod(
 		`MarkAsReconciled`,
-		func(rs pool.PartnerSet) bool {
+		func(rs h.PartnerSet) bool {
 			//@api.multi
 			/*def mark_as_reconciled(self):
 			  self.env['account.partial.reconcile'].check_access_rights('write')
@@ -568,9 +569,9 @@ credit or if you click the "Done" button.`},
 			return true
 		})
 
-	pool.Partner().Methods().ComputeCurrency().DeclareMethod(
+	h.Partner().Methods().ComputeCurrency().DeclareMethod(
 		`GetCompanyCurrency`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.one
 			/*def _get_company_currency(self):
 			  if self.company_id:
@@ -578,12 +579,12 @@ credit or if you click the "Done" button.`},
 			  else:
 			      self.currency_id = self.env.user.company_id.currency_id
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().ComputeBankCount().DeclareMethod(
+	h.Partner().Methods().ComputeBankCount().DeclareMethod(
 		`ComputeBankCount`,
-		func(rs pool.PartnerSet) (*pool.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
 			//@api.multi
 			/*def _compute_bank_count(self):
 			  bank_data = self.env['res.partner.bank'].read_group([('partner_id', 'in', self.ids)], ['partner_id'], ['partner_id'])
@@ -592,17 +593,17 @@ credit or if you click the "Done" button.`},
 			      partner.bank_account_count = mapped_data.get(partner.id, 0)
 
 			*/
-			return &pool.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}, []models.FieldNamer{}
 		})
 
-	pool.Partner().Methods().FindAccountingPartner().DeclareMethod(
+	h.Partner().Methods().FindAccountingPartner().DeclareMethod(
 		`FindAccountingPartner finds the partner for which the accounting entries will be created`,
-		func(rs pool.PartnerSet, partner pool.PartnerSet) pool.PartnerSet {
+		func(rs h.PartnerSet, partner h.PartnerSet) h.PartnerSet {
 			return rs.CommercialPartner()
 		})
 
-	pool.Partner().Methods().CommercialFields().Extend("",
-		func(rs pool.PartnerSet) []models.FieldNamer {
+	h.Partner().Methods().CommercialFields().Extend("",
+		func(rs h.PartnerSet) []models.FieldNamer {
 			//@api.model
 			/*def _commercial_fields(self):
 			  return super(ResPartner, self)._commercial_fields() + \
@@ -613,9 +614,9 @@ credit or if you click the "Done" button.`},
 			return rs.Super().CommercialFields()
 		})
 
-	pool.Partner().Methods().OpenPartnerHistory().DeclareMethod(
+	h.Partner().Methods().OpenPartnerHistory().DeclareMethod(
 		`OpenPartnerHistory returns an action that display invoices/refunds made for the given partners.`,
-		func(rs pool.PartnerSet) *actions.Action {
+		func(rs h.PartnerSet) *actions.Action {
 			/*def open_partner_history(self):
 			  '''
 			  This function returns an action that display invoices/refunds made for the given partners.

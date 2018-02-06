@@ -5,39 +5,40 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
-	pool.ProductCategory().AddFields(map[string]models.FieldDefinition{
+	h.ProductCategory().AddFields(map[string]models.FieldDefinition{
 		"PropertyAccountIncomeCateg": models.Many2OneField{String: "Income Account",
-			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
-			Filter:        pool.AccountAccount().Deprecated().Equals(false),
+			RelationModel: h.AccountAccount(), /*, CompanyDependent : true*/
+			Filter:        q.AccountAccount().Deprecated().Equals(false),
 			Help:          "This account will be used for invoices to value sales."},
 		"PropertyAccountExpenseCateg": models.Many2OneField{String: "Expense Account",
-			RelationModel: pool.AccountAccount(), /*, CompanyDependent : true*/
-			Filter:        pool.AccountAccount().Deprecated().Equals(false),
+			RelationModel: h.AccountAccount(), /*, CompanyDependent : true*/
+			Filter:        q.AccountAccount().Deprecated().Equals(false),
 			Help:          "This account will be used for invoices to value expenses."},
 	})
 
-	pool.ProductTemplate().AddFields(map[string]models.FieldDefinition{
-		"Taxes": models.Many2ManyField{String: "Customer Taxes", RelationModel: pool.AccountTax(),
-			JSON: "taxes_id", Filter: pool.AccountTax().TypeTaxUse().Equals("sale")},
-		"SupplierTaxes": models.Many2ManyField{String: "Vendor Taxes", RelationModel: pool.AccountTax(),
-			JSON: "supplier_taxes_id", Filter: pool.AccountTax().TypeTaxUse().Equals("purchase")},
-		"PropertyAccountIncome": models.Many2OneField{String: "Income Account", RelationModel: pool.AccountAccount(),
-			/*, CompanyDependent : true*/ Filter: pool.AccountAccount().Deprecated().Equals(false),
+	h.ProductTemplate().AddFields(map[string]models.FieldDefinition{
+		"Taxes": models.Many2ManyField{String: "Customer Taxes", RelationModel: h.AccountTax(),
+			JSON: "taxes_id", Filter: q.AccountTax().TypeTaxUse().Equals("sale")},
+		"SupplierTaxes": models.Many2ManyField{String: "Vendor Taxes", RelationModel: h.AccountTax(),
+			JSON: "supplier_taxes_id", Filter: q.AccountTax().TypeTaxUse().Equals("purchase")},
+		"PropertyAccountIncome": models.Many2OneField{String: "Income Account", RelationModel: h.AccountAccount(),
+			/*, CompanyDependent : true*/ Filter: q.AccountAccount().Deprecated().Equals(false),
 			Help: `This account will be used for invoices instead of the default one
 to value sales for the current product.`},
-		"PropertyAccountExpense": models.Many2OneField{String: "Expense Account", RelationModel: pool.AccountAccount(),
-			/*, CompanyDependent : true*/ Filter: pool.AccountAccount().Deprecated().Equals(false),
+		"PropertyAccountExpense": models.Many2OneField{String: "Expense Account", RelationModel: h.AccountAccount(),
+			/*, CompanyDependent : true*/ Filter: q.AccountAccount().Deprecated().Equals(false),
 			Help: `This account will be used for invoices instead of the default one
 to value expenses for the current product.`},
 	})
 
-	pool.ProductTemplate().Methods().Write().Extend("",
-		func(rs pool.ProductTemplateSet, data *pool.ProductTemplateData, fieldsToReset ...models.FieldNamer) bool {
+	h.ProductTemplate().Methods().Write().Extend("",
+		func(rs h.ProductTemplateSet, data *h.ProductTemplateData, fieldsToReset ...models.FieldNamer) bool {
 			//@api.multi
 			/*def write(self, vals):
 			  #TODO: really? i don't see the reason we'd need that constraint..
@@ -58,9 +59,9 @@ to value expenses for the current product.`},
 			return rs.Super().Write(data, fieldsToReset...)
 		})
 
-	pool.ProductTemplate().Methods().GetProductDirectAccounts().DeclareMethod(
+	h.ProductTemplate().Methods().GetProductDirectAccounts().DeclareMethod(
 		`GetProductDirectAccounts`,
-		func(rs pool.ProductTemplateSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
+		func(rs h.ProductTemplateSet) (h.AccountAccountSet, h.AccountAccountSet) {
 			//@api.multi
 			/*def _get_product_accounts(self):
 			  return {
@@ -69,12 +70,12 @@ to value expenses for the current product.`},
 			  }
 
 			*/
-			return pool.AccountAccount().NewSet(rs.Env()), pool.AccountAccount().NewSet(rs.Env())
+			return h.AccountAccount().NewSet(rs.Env()), h.AccountAccount().NewSet(rs.Env())
 		})
 
-	pool.ProductTemplate().Methods().GetAssetAccounts().DeclareMethod(
+	h.ProductTemplate().Methods().GetAssetAccounts().DeclareMethod(
 		`GetAssetAccounts`,
-		func(rs pool.ProductTemplateSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
+		func(rs h.ProductTemplateSet) (h.AccountAccountSet, h.AccountAccountSet) {
 			//@api.multi
 			/*def _get_asset_accounts(self):
 			  res = {}
@@ -83,12 +84,12 @@ to value expenses for the current product.`},
 			  return res
 
 			*/
-			return pool.AccountAccount().NewSet(rs.Env()), pool.AccountAccount().NewSet(rs.Env())
+			return h.AccountAccount().NewSet(rs.Env()), h.AccountAccount().NewSet(rs.Env())
 		})
 
-	pool.ProductTemplate().Methods().GetProductAccounts().DeclareMethod(
+	h.ProductTemplate().Methods().GetProductAccounts().DeclareMethod(
 		`GetProductAccounts`,
-		func(rs pool.ProductTemplateSet, fiscalPos pool.AccountFiscalPositionSet) (pool.AccountAccountSet, pool.AccountAccountSet) {
+		func(rs h.ProductTemplateSet, fiscalPos h.AccountFiscalPositionSet) (h.AccountAccountSet, h.AccountAccountSet) {
 			//@api.multi
 			/*def get_product_accounts(self, fiscal_pos=None):
 			  accounts = self._get_product_accounts()
@@ -96,7 +97,7 @@ to value expenses for the current product.`},
 			      fiscal_pos = self.env['account.fiscal.position']
 			  return fiscal_pos.map_accounts(accounts)
 			*/
-			return pool.AccountAccount().NewSet(rs.Env()), pool.AccountAccount().NewSet(rs.Env())
+			return h.AccountAccount().NewSet(rs.Env()), h.AccountAccount().NewSet(rs.Env())
 		})
 
 }

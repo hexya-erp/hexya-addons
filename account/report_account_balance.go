@@ -3,16 +3,14 @@
 
 package account
 
-import (
-	"github.com/hexya-erp/hexya/pool"
-)
+import "github.com/hexya-erp/hexya/pool/h"
 
 func init() {
 
-	pool.ReportAccountReportTrialbalance().DeclareTransientModel()
-	pool.ReportAccountReportTrialbalance().Methods().GetAccounts().DeclareMethod(
+	h.ReportAccountReportTrialbalance().DeclareTransientModel()
+	h.ReportAccountReportTrialbalance().Methods().GetAccounts().DeclareMethod(
 		`GetAccounts`,
-		func(rs pool.ReportAccountReportTrialbalanceSet, args struct {
+		func(rs h.ReportAccountReportTrialbalanceSet, args struct {
 			Accounts       interface{}
 			DisplayAccount interface{}
 		}) {
@@ -68,9 +66,9 @@ func init() {
 
 			*/
 		})
-	pool.ReportAccountReportTrialbalance().Methods().RenderHtml().DeclareMethod(
+	h.ReportAccountReportTrialbalance().Methods().RenderHtml().DeclareMethod(
 		`RenderHtml`,
-		func(rs pool.ReportAccountReportTrialbalanceSet, args struct {
+		func(rs h.ReportAccountReportTrialbalanceSet, args struct {
 			Docids interface{}
 			Data   interface{}
 		}) {

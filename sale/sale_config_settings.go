@@ -5,8 +5,8 @@ package sale
 
 func init() {
 
-	//pool.SaleConfigSettings().AddFields(map[string]models.FieldDefinition{
-	//	"CompanyId": models.Many2OneField{String: "Company", RelationModel: pool.Company() /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
+	//h.SaleConfigSettings().AddFields(map[string]models.FieldDefinition{
+	//	"CompanyId": models.Many2OneField{String: "Company", RelationModel: h.Company() /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
 	//		/*lambda self: self.env.user.company_id*/
 	//		return 0
 	//	}},
@@ -31,14 +31,14 @@ func init() {
 	//		"total":    "Show line subtotals with taxes included (B2C)",
 	//	}, /*[]*/ /*["Tax Display"]*/ Default: models.DefaultValue("subtotal"), Required: true},
 	//	"DefaultInvoicePolicy":     models.SelectionField{ /*default_invoice_policy = fields.Selection([ ('order', 'Invoice ordered quantities'), ('delivery', 'Invoice delivered quantities')*/ },
-	//	"DepositProductIdSetting":  models.Many2OneField{String: "Deposit Product", RelationModel: pool.ProductProduct() /*[ 'product.product']*/ /*['Deposit Product']*/ /*, Filter: "[('type'*/ /*[ ' ']*/ /*[ 'service')]"]*/, Help: "Default product used for payment advances"},
+	//	"DepositProductIdSetting":  models.Many2OneField{String: "Deposit Product", RelationModel: h.ProductProduct() /*[ 'product.product']*/ /*['Deposit Product']*/ /*, Filter: "[('type'*/ /*[ ' ']*/ /*[ 'service')]"]*/, Help: "Default product used for payment advances"},
 	//	"AutoDoneSetting":          models.SelectionField{ /*auto_done_setting = fields.Selection([ (0, "Allow to edit sales order from the 'Sales Order' menu (not from the Quotation menu)"), (1, "Never allow to modify a confirmed sales order")*/ },
 	//	"ModuleSaleContract":       models.BooleanField{String: "Manage subscriptions and recurring invoicing" /*["Manage subscriptions and recurring invoicing"]*/},
 	//	"ModuleWebsiteSaleDigital": models.BooleanField{String: "Sell digital products - provide downloadable content on your customer portal" /*["Sell digital products - provide downloadable content on your customer portal"]*/},
 	//})
-	//pool.SaleConfigSettings().Methods().SetSaleDefaults().DeclareMethod(
+	//h.SaleConfigSettings().Methods().SetSaleDefaults().DeclareMethod(
 	//	`SetSaleDefaults`,
-	//	func(rs pool.SaleConfigSettingsSet) {
+	//	func(rs h.SaleConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_sale_defaults(self):
 	//		  return self.env['ir.values'].sudo().set_default(
@@ -46,9 +46,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.SaleConfigSettings().Methods().SetDepositProductIdDefaults().DeclareMethod(
+	//h.SaleConfigSettings().Methods().SetDepositProductIdDefaults().DeclareMethod(
 	//	`SetDepositProductIdDefaults`,
-	//	func(rs pool.SaleConfigSettingsSet) {
+	//	func(rs h.SaleConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_deposit_product_id_defaults(self):
 	//		  return self.env['ir.values'].sudo().set_default(
@@ -56,9 +56,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.SaleConfigSettings().Methods().SetAutoDoneDefaults().DeclareMethod(
+	//h.SaleConfigSettings().Methods().SetAutoDoneDefaults().DeclareMethod(
 	//	`SetAutoDoneDefaults`,
-	//	func(rs pool.SaleConfigSettingsSet) {
+	//	func(rs h.SaleConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_auto_done_defaults(self):
 	//		  return self.env['ir.values'].sudo().set_default(
@@ -66,9 +66,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.SaleConfigSettings().Methods().OnchangeSalePrice().DeclareMethod(
+	//h.SaleConfigSettings().Methods().OnchangeSalePrice().DeclareMethod(
 	//	`OnchangeSalePrice`,
-	//	func(rs pool.SaleConfigSettingsSet) {
+	//	func(rs h.SaleConfigSettingsSet) {
 	//		//@api.onchange('sale_pricelist_setting')
 	//		/*def _onchange_sale_price(self):
 	//		  if self.sale_pricelist_setting == 'percentage':
@@ -92,9 +92,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.SaleConfigSettings().Methods().SetSaleTaxDefaults().DeclareMethod(
+	//h.SaleConfigSettings().Methods().SetSaleTaxDefaults().DeclareMethod(
 	//	`SetSaleTaxDefaults`,
-	//	func(rs pool.SaleConfigSettingsSet) {
+	//	func(rs h.SaleConfigSettingsSet) {
 	//		//@api.multi
 	//		/*def set_sale_tax_defaults(self):
 	//		  return self.env['ir.values'].sudo().set_default(
@@ -102,9 +102,9 @@ func init() {
 	//
 	//		*/
 	//	})
-	//pool.SaleConfigSettings().Methods().OnchangeSaleTax().DeclareMethod(
+	//h.SaleConfigSettings().Methods().OnchangeSaleTax().DeclareMethod(
 	//	`OnchangeSaleTax`,
-	//	func(rs pool.SaleConfigSettingsSet) {
+	//	func(rs h.SaleConfigSettingsSet) {
 	//		//@api.onchange('sale_show_tax')
 	//		/*def _onchange_sale_tax(self):
 	//		  if self.sale_show_tax == "subtotal":

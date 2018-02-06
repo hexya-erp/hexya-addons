@@ -5,12 +5,12 @@ package sale
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
-	"github.com/hexya-erp/hexya/pool"
+	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
-	pool.Company().AddFields(map[string]models.FieldDefinition{
+	h.Company().AddFields(map[string]models.FieldDefinition{
 		"SaleNote": models.TextField{String: "Default Terms and Conditions", Translate: true},
 	})
 
