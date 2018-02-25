@@ -15,12 +15,11 @@ func init() {
 	h.AccountReportGeneralLedger().InheritModel(h.AccountCommonAccountReport())
 
 	h.AccountReportGeneralLedger().AddFields(map[string]models.FieldDefinition{
-		"InitialBalance": models.BooleanField{String: "InitialBalance" /*[string 'Include Initial Balances']*/, Help: `If you selected date, this field allow you to add a row to display the amount of debit/credit/balance that precedes the filter you\'ve set."/*[ this field allow you to add a row to display the amount of debit/credit/balance that precedes the filter you\'ve set.']`},
+		"InitialBalance": models.BooleanField{String: "Include Initial Balances", Help: `If you selected date, this field allow you to add a row to display the amount of debit/credit/balance that precedes the filter you\'ve set."/*[ this field allow you to add a row to display the amount of debit/credit/balance that precedes the filter you\'ve set.']`},
 		"Sortby": models.SelectionField{String: "Sort by", Selection: types.Selection{
 			"sort_date":            "Date",
 			"sort_journal_partner": "Journal & Partner",
-		}, /*[]*/ Required: true, Default: models.DefaultValue("sort_date")},
-		"Journals": models.Many2ManyField{String: "Journals", RelationModel: h.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*['account_report_general_ledger_journal_rel']*/ /*[ 'account_id']*/ /*[ 'journal_id']*/ /*[ required True]*/},
+		}, Required: true, Default: models.DefaultValue("sort_date")},
 	})
 	h.AccountReportGeneralLedger().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
