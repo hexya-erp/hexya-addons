@@ -19,7 +19,6 @@ func init() {
 			"date":      "Date",
 			"move_name": "Journal Entry Number",
 			/*[('date', 'Date'  ('move_name', 'Journal Entry Number' ]*/}, /*[]*/ /*['Entries Sorted by']*/ Required: true, Default: models.DefaultValue("move_name")},
-		"Journals": models.Many2ManyField{String: "Journals", RelationModel: h.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*[ required True]*/ /*[ default lambda self: self.env['account.journal'].search([('type']*/ /*[ 'in']*/ /*[ ['sale']*/ /*[ 'purchase'])]]*/},
 	})
 	h.AccountPrintJournal().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
