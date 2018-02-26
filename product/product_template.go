@@ -4,7 +4,6 @@
 package product
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/hexya-erp/hexya-addons/decimalPrecision"

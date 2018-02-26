@@ -11,7 +11,10 @@ import (
 
 func init() {
 
-	h.ProductProduct().Fields().SalesCount().SetCompute(h.ProductProduct().Methods().ComputeSalesCount())
+	h.ProductProduct().AddFields(map[string]models.FieldDefinition{
+		"SalesCount": models.IntegerField{String: "# Sales", Compute: h.ProductProduct().Methods().ComputeSalesCount(),
+			GoType: new(int)},
+	})
 
 	h.ProductProduct().Methods().ComputeSalesCount().DeclareMethod(
 		`ComputeSalesCount returns the number of sales for this product`,

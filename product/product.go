@@ -119,77 +119,65 @@ func init() {
 	h.ProductProduct().SetDefaultOrder("DefaultCode", "Name", "ID")
 
 	h.ProductProduct().AddFields(map[string]models.FieldDefinition{
+		"Price": models.FloatField{Compute: h.ProductProduct().Methods().ComputeProductPrice(),
+			Digits:  decimalPrecision.GetPrecision("Product Price"),
+			Inverse: h.ProductProduct().Methods().InverseProductPrice()},
 		"PriceExtra": models.FloatField{String: "Variant Price Extra",
 			Compute: h.ProductProduct().Methods().ComputeProductPriceExtra(),
 			Depends: []string{"AttributeValues", "AttributeValues.Prices", "AttributeValues.Prices.PriceExtra", "AttributeValues.Prices.ProductTmpl"},
 			Digits:  decimalPrecision.GetPrecision("Product Price"),
 			Help:    "This is the sum of the extra price of all attributes"},
+		"LstPrice": models.FloatField{String: "Sale Price",
+			Compute: h.ProductProduct().Methods().ComputeProductLstPrice(),
+			Depends: []string{"ListPrice", "PriceExtra"},
+			Digits:  decimalPrecision.GetPrecision("Product Price"),
+			Inverse: h.ProductProduct().Methods().InverseProductLstPrice(),
+			Help:    "The sale price is managed from the product template. Click on the 'Variant Prices' button to set the extra attribute prices."},
+		"DefaultCode": models.CharField{String: "Internal Reference", Index: true},
 		"Code": models.CharField{String: "Internal Reference",
 			Compute: h.ProductProduct().Methods().ComputeProductCode(), Depends: []string{""}},
 		"PartnerRef": models.CharField{String: "Customer Ref",
 			Compute: h.ProductProduct().Methods().ComputePartnerRef(), Depends: []string{""}},
+		"Active": models.BooleanField{String: "Active",
+			Default: models.DefaultValue(true),
+			Help:    "If unchecked, it will allow you to hide the product without removing it."},
 		"ProductTmpl": models.Many2OneField{String: "Product Template", RelationModel: h.ProductTemplate(),
 			Index: true, OnDelete: models.Cascade, Required: true, Embed: true},
+		"Barcode": models.CharField{String: "Barcode", NoCopy: true, /*Unique: true,*/
+			Help: "International Article Number used for product identification."},
 		"AttributeValues": models.Many2ManyField{String: "Attributes", RelationModel: h.ProductAttributeValue(),
 			JSON:       "attribute_value_ids", /*, OnDelete: models.Restrict*/
 			Constraint: h.ProductProduct().Methods().CheckAttributeValueIds()},
 		"ImageVariant": models.BinaryField{String: "Variant Image",
 			Help: "This field holds the image used as image for the product variant, limited to 1024x1024px."},
+		"Image": models.BinaryField{String: "Big-sized image",
+			Compute: h.ProductProduct().Methods().ComputeImages(),
+			Depends: []string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"},
+			Inverse: h.ProductProduct().Methods().InverseImageValue(),
+			Help: `Image of the product variant (Big-sized image of product template if false). It is automatically
+resized as a 1024x1024px image, with aspect ratio preserved.`},
+		"ImageSmall": models.BinaryField{String: "Small-sized image",
+			Compute: h.ProductProduct().Methods().ComputeImages(),
+			Depends: []string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"},
+			Inverse: h.ProductProduct().Methods().InverseImageValue(),
+			Help:    "Image of the product variant (Small-sized image of product template if false)."},
+		"ImageMedium": models.BinaryField{String: "Medium-sized image",
+			Compute: h.ProductProduct().Methods().ComputeImages(),
+			Depends: []string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"},
+			Inverse: h.ProductProduct().Methods().InverseImageValue(),
+			Help:    "Image of the product variant (Medium-sized image of product template if false)."},
+		"StandardPrice": models.FloatField{String: "Cost", /*, CompanyDependent : true*/
+			Digits: decimalPrecision.GetPrecision("Product Price"),
+			Help: `Cost of the product template used for standard stock valuation in accounting and used as a
+base price on purchase orders. Expressed in the default unit of measure of the product.`},
+		"Volume": models.FloatField{Help: "The volume in m3."},
+		"Weight": models.FloatField{Digits: decimalPrecision.GetPrecision("Stock Weight"),
+			Help: "The weight of the contents in Kg, not including any packaging, etc."},
 		"PricelistItems": models.Many2ManyField{RelationModel: h.ProductPricelistItem(),
 			JSON: "pricelist_item_ids", Compute: h.ProductProduct().Methods().GetPricelistItems()},
 	})
 
 	h.ProductProduct().Fields().StandardPrice().RevokeAccess(security.GroupEveryone, security.All).GrantAccess(base.GroupUser, security.All)
-
-	h.ProductProduct().Fields().Price().
-		SetCompute(h.ProductProduct().Methods().ComputeProductPrice()).
-		SetInverse(h.ProductProduct().Methods().InverseProductPrice())
-	h.ProductProduct().Fields().LstPrice().
-		SetString("Sale Price").
-		SetRelated("").
-		SetCompute(h.ProductProduct().Methods().ComputeProductLstPrice()).
-		SetDepends([]string{"ListPrice", "PriceExtra"}).
-		SetInverse(h.ProductProduct().Methods().InverseProductLstPrice()).
-		SetHelp("The sale price is managed from the product template. Click on the 'Variant Prices' button to set the extra attribute prices.")
-	h.ProductProduct().Fields().Image().
-		SetCompute(h.ProductProduct().Methods().ComputeImages()).
-		SetDepends([]string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"}).
-		SetInverse(h.ProductProduct().Methods().InverseImageValue())
-	h.ProductProduct().Fields().ImageSmall().
-		SetCompute(h.ProductProduct().Methods().ComputeImages()).
-		SetDepends([]string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"}).
-		SetInverse(h.ProductProduct().Methods().InverseImageValue())
-	h.ProductProduct().Fields().ImageMedium().
-		SetCompute(h.ProductProduct().Methods().ComputeImages()).
-		SetDepends([]string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"}).
-		SetInverse(h.ProductProduct().Methods().InverseImageValue())
-	h.ProductProduct().Fields().Barcode().
-		SetNoCopy(true).
-		SetHelp("International Article Number used for product identification.")
-	h.ProductProduct().Fields().Uom().
-		SetOnchange(h.ProductProduct().Methods().OnchangeUom())
-	h.ProductProduct().Fields().UomPo().
-		SetOnchange(h.ProductProduct().Methods().OnchangeUom())
-	h.ProductProduct().Fields().DefaultCode().
-		SetCompute(nil).
-		SetInverse(nil).
-		SetIndex(true).
-		SetDepends([]string{})
-	h.ProductProduct().Fields().StandardPrice().
-		SetCompute(nil).
-		SetInverse(nil).
-		SetIndex(true).
-		SetDepends([]string{})
-	h.ProductProduct().Fields().Volume().
-		SetCompute(nil).
-		SetInverse(nil).
-		SetIndex(true).
-		SetDepends([]string{})
-	h.ProductProduct().Fields().Weight().
-		SetCompute(nil).
-		SetInverse(nil).
-		SetIndex(true).
-		SetDepends([]string{})
 
 	h.ProductProduct().Methods().ComputeProductPrice().DeclareMethod(
 		`ComputeProductPrice computes the price of this product based on the given context keys:
