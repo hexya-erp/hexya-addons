@@ -203,7 +203,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 
 	h.AccountInvoice().Methods().ComputeAmount().DeclareMethod(
 		`ComputeAmount`,
-		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) *h.AccountInvoiceData {
 			//@api.depends('invoice_line_ids.price_subtotal','tax_line_ids.amount','currency_id','company_id','date_invoice','type')
 			/*def _compute_amount(self):
 			  self.amount_untaxed = sum(line.price_subtotal for line in self.invoice_line_ids)
@@ -221,7 +221,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  self.amount_untaxed_signed = amount_untaxed_signed * sign
 
 			*/
-			return new(h.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData)
 		})
 
 	h.AccountInvoice().Methods().DefaultJournal().DeclareMethod(
@@ -246,7 +246,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 
 	h.AccountInvoice().Methods().ComputeResidual().DeclareMethod(
 		`ComputeResidual`,
-		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) *h.AccountInvoiceData {
 			/*def _compute_residual(self):
 			  residual = 0.0
 			  residual_company_signed = 0.0
@@ -269,12 +269,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			      self.reconciled = False
 
 			*/
-			return new(h.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData)
 		})
 
 	h.AccountInvoice().Methods().GetOutstandingInfoJSON().DeclareMethod(
 		`GetOutstandingInfoJSON`,
-		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) *h.AccountInvoiceData {
 			//@api.one
 			/*def _get_outstanding_info_JSON(self):
 			  self.outstanding_credits_debits_widget = json.dumps(False)
@@ -311,12 +311,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			          self.has_outstanding = True
 
 			*/
-			return new(h.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData)
 		})
 
 	h.AccountInvoice().Methods().GetPaymentInfoJSON().DeclareMethod(
 		`GetPaymentInfoJSON`,
-		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) *h.AccountInvoiceData {
 			//@api.depends('payment_move_line_ids.amount_residual')
 			/*def _get_payment_info_JSON(self):
 			  self.payments_widget = json.dumps(False)
@@ -360,12 +360,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			      self.payments_widget = json.dumps(info)
 
 			*/
-			return new(h.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData)
 		})
 
 	h.AccountInvoice().Methods().ComputePayments().DeclareMethod(
 		`ComputePayments`,
-		func(rs h.AccountInvoiceSet) (*h.AccountInvoiceData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceSet) *h.AccountInvoiceData {
 			//@api.depends('move_id.line_ids.amount_residual')
 			/*def _compute_payments(self):
 			  payment_lines = []
@@ -375,7 +375,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  self.payment_move_line_ids = self.env['account.move.line'].browse(list(set(payment_lines)))
 
 			*/
-			return new(h.AccountInvoiceData), []models.FieldNamer{}
+			return new(h.AccountInvoiceData)
 		})
 
 	h.AccountInvoice().Methods().Create().Extend("",
@@ -1539,7 +1539,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 
 	h.AccountInvoiceLine().Methods().ComputePrice().DeclareMethod(
 		`ComputePrice`,
-		func(rs h.AccountInvoiceLineSet) (*h.AccountInvoiceLineData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceLineSet) *h.AccountInvoiceLineData {
 			/*def _compute_price(self):
 			  currency = self.invoice_id and self.invoice_id.currency_id or None
 			  price = self.price_unit * (1 - (self.discount or 0.0) / 100.0)
@@ -1553,7 +1553,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			  self.price_subtotal_signed = price_subtotal_signed * sign
 
 			*/
-			return new(h.AccountInvoiceLineData), []models.FieldNamer{}
+			return new(h.AccountInvoiceLineData)
 		})
 
 	h.AccountInvoiceLine().Methods().FieldsViewGet().Extend("",
@@ -1772,7 +1772,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 
 	h.AccountInvoiceTax().Methods().ComputeBaseAmount().DeclareMethod(
 		`ComputeBaseAmount`,
-		func(rs h.AccountInvoiceTaxSet) (*h.AccountInvoiceTaxData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceTaxSet) *h.AccountInvoiceTaxData {
 			/*def _compute_base_amount(self):
 			  tax_grouped = {}
 			  for invoice in self.mapped('invoice_id'):
@@ -1790,7 +1790,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			          else:
 			              _logger.warning('Tax Base Amount not computable probably due to a change in an underlying tax (%s).', tax.tax_id.name)
 			*/
-			return new(h.AccountInvoiceTaxData), []models.FieldNamer{}
+			return new(h.AccountInvoiceTaxData)
 		})
 
 	h.AccountPaymentTerm().DeclareModel()

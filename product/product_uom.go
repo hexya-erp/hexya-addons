@@ -54,14 +54,14 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 
 	h.ProductUom().Methods().ComputeFactorInv().DeclareMethod(
 		`ComputeFactorInv computes the inverse factor`,
-		func(rs h.ProductUomSet) (*h.ProductUomData, []models.FieldNamer) {
+		func(rs h.ProductUomSet) *h.ProductUomData {
 			var factorInv float64
 			if rs.Factor() != 0 {
 				factorInv = 1 / rs.Factor()
 			}
 			return &h.ProductUomData{
 				FactorInv: factorInv,
-			}, []models.FieldNamer{h.ProductUom().FactorInv()}
+			}
 		})
 
 	h.ProductUom().Methods().OnchangeUomType().DeclareMethod(

@@ -43,14 +43,14 @@ Delivered Quantity: Invoiced based on the quantity the vendor delivered (time or
 
 	h.ProductTemplate().Methods().ComputeSalesCount().DeclareMethod(
 		`ComputeSalesCount returns the number of sales for this product template.`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			var count int
 			for _, product := range rs.ProductVariants().Records() {
 				count += product.SalesCount()
 			}
 			return &h.ProductTemplateData{
 				SalesCount: count,
-			}, []models.FieldNamer{h.ProductTemplate().SalesCount()}
+			}
 		})
 
 	h.ProductTemplate().Methods().ActionViewSales().DeclareMethod(

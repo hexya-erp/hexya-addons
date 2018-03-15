@@ -24,11 +24,11 @@ func init() {
 
 	h.Partner().Methods().ComputeSaleOrderCount().DeclareMethod(
 		`ComputeSaleOrderCount`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			count := h.SaleOrder().Search(rs.Env(), q.SaleOrder().Partner().ChildOf(rs)).SearchCount()
 			return &h.PartnerData{
 				SaleOrderCount: count,
-			}, []models.FieldNamer{h.Partner().SaleOrderCount()}
+			}
 		})
 
 }

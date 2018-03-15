@@ -52,20 +52,15 @@ func init() {
 	})
 
 	h.AccountFiscalPosition().Methods().ComputeStatesCount().DeclareMethod(
-		`ComputeStatesCount`,
-		func(rs h.AccountFiscalPositionSet) (*h.AccountFiscalPositionData, []models.FieldNamer) {
-			//@api.one
-			/*def _compute_states_count(self):
-			  self.states_count = len(self.country_id.state_ids)
-
-			*/
+		`ComputeStatesCount returns the number of states of the partner's country'`,
+		func(rs h.AccountFiscalPositionSet) *h.AccountFiscalPositionData {
 			return &h.AccountFiscalPositionData{
 				StatesCount: rs.Country().States().Len(),
-			}, []models.FieldNamer{h.AccountFiscalPosition().StatesCount()}
+			}
 		})
 
 	h.AccountFiscalPosition().Methods().CheckZip().DeclareMethod(
-		`CheckZip`,
+		`CheckZip fails if the zip range is the wrong way round`,
 		func(rs h.AccountFiscalPositionSet) {
 			if rs.ZipFrom() > rs.ZipTo() {
 				log.Panic("Invalid 'Zip Range', please configure it properly.")
@@ -348,7 +343,7 @@ credit or if you click the "Done" button.`},
 
 	h.Partner().Methods().ComputeCreditDebit().DeclareMethod(
 		`CreditDebitGet`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.multi
 			/*def _credit_debit_get(self):
 			  tables, where_clause, where_params = self.env['account.move.line']._query_get()
@@ -373,7 +368,7 @@ credit or if you click the "Done" button.`},
 			          partner.debit = -val
 
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().AssetDifferenceSearch().DeclareMethod(
@@ -420,7 +415,7 @@ credit or if you click the "Done" button.`},
 
 	h.Partner().Methods().ComputeTotalInvoiced().DeclareMethod(
 		`InvoiceTotal`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.multi
 			/*def _invoice_total(self):
 			  account_invoice_report = self.env['account.invoice.report']
@@ -462,12 +457,12 @@ credit or if you click the "Done" button.`},
 			      partner.total_invoiced = sum(price['total'] for price in price_totals if price['partner_id'] in child_ids)
 
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().ComputeJournalItemCount().DeclareMethod(
 		`ComputeJournalItemCount`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.multi
 			/*def _journal_item_count(self):
 			  for partner in self:
@@ -475,7 +470,7 @@ credit or if you click the "Done" button.`},
 			      partner.contracts_count = self.env['account.analytic.account'].search_count([('partner_id', '=', partner.id)])
 
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().GetFollowupLinesDomain().DeclareMethod(
@@ -502,7 +497,7 @@ credit or if you click the "Done" button.`},
 
 	h.Partner().Methods().ComputeIssuedTotal().DeclareMethod(
 		`ComputeIssuedTotal`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.multi
 			/*def _compute_issued_total(self):
 						  """ Returns the issued total as will be displayed on partner view """
@@ -511,12 +506,12 @@ credit or if you click the "Done" button.`},
 			       		  for aml in self.env['account.move.line'].search(domain):
 			        		    aml.partner_id.issued_total += aml.amount_residual
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().ComputeHasUnreconciledEntries().DeclareMethod(
 		`ComputeHasUnreconciledEntries`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.one
 			/*def _compute_has_unreconciled_entries(self):
 			  # Avoid useless work if has_unreconciled_entries is not relevant for this partner
@@ -554,7 +549,7 @@ credit or if you click the "Done" button.`},
 			  self.has_unreconciled_entries = self.env.cr.rowcount == 1
 
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().MarkAsReconciled().DeclareMethod(
@@ -571,7 +566,7 @@ credit or if you click the "Done" button.`},
 
 	h.Partner().Methods().ComputeCurrency().DeclareMethod(
 		`GetCompanyCurrency`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.one
 			/*def _get_company_currency(self):
 			  if self.company_id:
@@ -579,12 +574,12 @@ credit or if you click the "Done" button.`},
 			  else:
 			      self.currency_id = self.env.user.company_id.currency_id
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().ComputeBankCount().DeclareMethod(
 		`ComputeBankCount`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			//@api.multi
 			/*def _compute_bank_count(self):
 			  bank_data = self.env['res.partner.bank'].read_group([('partner_id', 'in', self.ids)], ['partner_id'], ['partner_id'])
@@ -593,7 +588,7 @@ credit or if you click the "Done" button.`},
 			      partner.bank_account_count = mapped_data.get(partner.id, 0)
 
 			*/
-			return &h.PartnerData{}, []models.FieldNamer{}
+			return &h.PartnerData{}
 		})
 
 	h.Partner().Methods().FindAccountingPartner().DeclareMethod(

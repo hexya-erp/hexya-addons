@@ -350,7 +350,7 @@ To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 
 	h.ProductPricelistItem().Methods().GetPricelistItemNamePrice().DeclareMethod(
 		`GetPricelistItemNamePrice computes the name and the price fields of this line`,
-		func(rs h.ProductPricelistItemSet) (*h.ProductPricelistItemData, []models.FieldNamer) {
+		func(rs h.ProductPricelistItemSet) *h.ProductPricelistItemData {
 			var name, price string
 			switch {
 			case !rs.Categ().IsEmpty():
@@ -374,7 +374,7 @@ To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 			return &h.ProductPricelistItemData{
 				Price: price,
 				Name:  name,
-			}, []models.FieldNamer{h.ProductPricelistItem().Name(), h.ProductPricelistItem().Price()}
+			}
 		})
 
 	h.ProductPricelistItem().Methods().OnchangeAppliedOn().DeclareMethod(

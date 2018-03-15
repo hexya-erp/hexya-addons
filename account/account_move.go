@@ -88,7 +88,7 @@ will be created in 'Posted' status.'`},
 
 	h.AccountMove().Methods().AmountCompute().DeclareMethod(
 		`AmountCompute`,
-		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) *h.AccountMoveData {
 			//@api.depends('line_ids.debit','line_ids.credit')
 			/*def _amount_compute(self):
 			  for move in self:
@@ -98,12 +98,12 @@ will be created in 'Posted' status.'`},
 			      move.amount = total
 
 			*/
-			return new(h.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData)
 		})
 
 	h.AccountMove().Methods().ComputeMatchedPercentage().DeclareMethod(
 		`ComputeMatchedPercentage`,
-		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) *h.AccountMoveData {
 			//@api.depends('line_ids.debit','line_ids.credit','line_ids.matched_debit_ids.amount','line_ids.matched_credit_ids.amount','line_ids.account_id.user_type_id.type')
 			/*def _compute_matched_percentage(self):
 			  """Compute the percentage to apply for cash basis method. This value is relevant only for moves that
@@ -124,30 +124,30 @@ will be created in 'Posted' status.'`},
 			          move.matched_percentage = total_reconciled / total_amount
 
 			*/
-			return new(h.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData)
 		})
 
 	h.AccountMove().Methods().ComputeCurrency().DeclareMethod(
 		`ComputeCurrency`,
-		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) *h.AccountMoveData {
 			//@api.depends('company_id')
 			/*def _compute_currency(self):
 			  self.currency_id = self.company_id.currency_id or self.env.user.company_id.currency_id
 
 			*/
-			return new(h.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData)
 		})
 
 	h.AccountMove().Methods().ComputePartner().DeclareMethod(
 		`ComputePartner`,
-		func(rs h.AccountMoveSet) (*h.AccountMoveData, []models.FieldNamer) {
+		func(rs h.AccountMoveSet) *h.AccountMoveData {
 			//@api.depends('line_ids.partner_id')
 			/*def _compute_partner_id(self):
 			  for move in self:
 			      partner = move.line_ids.mapped('partner_id')
 			      move.partner_id = partner.id if len(partner) == 1 else False
 			*/
-			return new(h.AccountMoveData), []models.FieldNamer{}
+			return new(h.AccountMoveData)
 		})
 
 	h.AccountMove().Methods().FieldsViewGet().Extend("",
@@ -509,7 +509,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 
 	h.AccountMoveLine().Methods().ComputeAmountResidual().DeclareMethod(
 		`ComputeAmountResidual`,
-		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) *h.AccountMoveLineData {
 			//@api.depends('debit','credit','amount_currency','currency_id','matched_debit_ids','matched_credit_ids','matched_debit_ids.amount','matched_credit_ids.amount','account_id.currency_id','move_id.state')
 			/*def _amount_residual(self):
 			  """ Computes the residual amount of a move line from a reconciliable account in the company currency and the line's currency.
@@ -566,24 +566,24 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      line.amount_residual_currency = line.currency_id and line.currency_id.round(amount_residual_currency * sign) or 0.0
 
 			*/
-			return new(h.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData)
 		})
 
 	h.AccountMoveLine().Methods().ComputeBalance().DeclareMethod(
 		`ComputeBalance`,
-		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) *h.AccountMoveLineData {
 			//@api.depends('debit','credit')
 			/*def _store_balance(self):
 			  for line in self:
 			      line.balance = line.debit - line.credit
 
 			*/
-			return new(h.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData)
 		})
 
 	h.AccountMoveLine().Methods().ComputeCashBasis().DeclareMethod(
 		`ComputeCashBasis`,
-		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) *h.AccountMoveLineData {
 			//@api.depends('debit','credit','move_id.matched_percentage','move_id.journal_id')
 			/*def _compute_cash_basis(self):
 			  for move_line in self:
@@ -596,12 +596,12 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      move_line.balance_cash_basis = move_line.debit_cash_basis - move_line.credit_cash_basis
 
 			*/
-			return new(h.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData)
 		})
 
 	h.AccountMoveLine().Methods().ComputeCounterpart().DeclareMethod(
 		`ComputeCounterpart`,
-		func(rs h.AccountMoveLineSet) (*h.AccountMoveLineData, []models.FieldNamer) {
+		func(rs h.AccountMoveLineSet) *h.AccountMoveLineData {
 			//@api.depends('move_id.line_ids')
 			/*def _get_counterpart(self):
 			  counterpart = set()
@@ -612,7 +612,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 			      counterpart = list(counterpart)[0:2] + ["..."]
 			  self.counterpart = ",".join(counterpart)
 			*/
-			return new(h.AccountMoveLineData), []models.FieldNamer{}
+			return new(h.AccountMoveLineData)
 		})
 
 	h.AccountMoveLine().Methods().CheckCurrencyAccountAmount().DeclareMethod(

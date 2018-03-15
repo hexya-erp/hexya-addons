@@ -18,10 +18,10 @@ func init() {
 
 	h.ProductProduct().Methods().ComputeSalesCount().DeclareMethod(
 		`ComputeSalesCount returns the number of sales for this product`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			cond := q.SaleReport().State().In([]string{"sale", "done"}).And().Product().In(rs)
 			return &h.ProductProductData{
 				SalesCount: h.SaleReport().NewSet(rs.Env()).Search(cond).SearchCount(),
-			}, []models.FieldNamer{h.ProductProduct().SalesCount()}
+			}
 		})
 }

@@ -72,7 +72,7 @@ has only one available which is 'manual'`},
 
 	h.AccountAbstractPayment().Methods().ComputeHidePaymentMethod().DeclareMethod(
 		`ComputeHidePaymentMethod`,
-		func(rs h.AccountAbstractPaymentSet) (*h.AccountAbstractPaymentData, []models.FieldNamer) {
+		func(rs h.AccountAbstractPaymentSet) *h.AccountAbstractPaymentData {
 			//@api.depends('payment_type','journal_id')
 			/*def _compute_hide_payment_method(self):
 			  if not self.journal_id:
@@ -82,7 +82,7 @@ has only one available which is 'manual'`},
 			  self.hide_payment_method = len(journal_payment_methods) == 1 and journal_payment_methods[0].code == 'manual'
 
 			*/
-			return new(h.AccountAbstractPaymentData), []models.FieldNamer{}
+			return new(h.AccountAbstractPaymentData)
 		})
 
 	h.AccountAbstractPayment().Methods().OnchangeJournal().DeclareMethod(
@@ -290,18 +290,18 @@ set to draft and re-processed again." `},
 
 	h.AccountPayment().Methods().ComputeHasInvoices().DeclareMethod(
 		`ComputeHasInvoices`,
-		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) *h.AccountPaymentData {
 			//@api.depends('invoice_ids')
 			/*def _get_has_invoices(self):
 			  self.has_invoices = bool(self.invoice_ids)
 
 			*/
-			return &h.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}
 		})
 
 	h.AccountPayment().Methods().ComputePaymentDifference().DeclareMethod(
 		`ComputePaymentDifference`,
-		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) *h.AccountPaymentData {
 			//@api.depends('invoice_ids','amount','payment_date','currency_id')
 			/*def _compute_payment_difference(self):
 			  if len(self.invoice_ids) == 0:
@@ -311,13 +311,13 @@ set to draft and re-processed again." `},
 			  else:
 			      self.payment_difference = self._compute_total_invoices_amount() - self.amount
 			*/
-			return &h.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}
 
 		})
 
 	h.AccountPayment().Methods().ComputeDestinationAccount().DeclareMethod(
 		`ComputeDestinationAccountId`,
-		func(rs h.AccountPaymentSet) (*h.AccountPaymentData, []models.FieldNamer) {
+		func(rs h.AccountPaymentSet) *h.AccountPaymentData {
 			//@api.depends('invoice_ids','payment_type','partner_type','partner_id')
 			/*def _compute_destination_account_id(self):
 			  if self.invoice_ids:
@@ -333,7 +333,7 @@ set to draft and re-processed again." `},
 			          self.destination_account_id = self.partner_id.property_account_payable_id.id
 
 			*/
-			return &h.AccountPaymentData{}, []models.FieldNamer{}
+			return &h.AccountPaymentData{}
 		})
 
 	h.AccountPayment().Methods().OnchangePartnerType().DeclareMethod(

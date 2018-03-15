@@ -138,7 +138,7 @@ based on the template if online quotation is installed.`},
 
 	h.SaleOrder().Methods().AmountAll().DeclareMethod(
 		`AmountAll computes all the amounts of this sale order by summing its sale order lines.`,
-		func(rs h.SaleOrderSet) (*h.SaleOrderData, []models.FieldNamer) {
+		func(rs h.SaleOrderSet) *h.SaleOrderData {
 			var amountUntaxed, amountTaxed float64
 			for _, line := range rs.OrderLine().Records() {
 				amountUntaxed += line.PriceSubtotal()
@@ -154,13 +154,10 @@ based on the template if online quotation is installed.`},
 				}
 			}
 			return &h.SaleOrderData{
-					AmountUntaxed: rs.Pricelist().Currency().Round(amountUntaxed),
-					AmountTax:     rs.Pricelist().Currency().Round(amountTaxed),
-					AmountTotal:   amountTaxed + amountUntaxed,
-				}, []models.FieldNamer{
-					h.SaleOrder().AmountUntaxed(),
-					h.SaleOrder().AmountTax(),
-					h.SaleOrder().AmountTotal()}
+				AmountUntaxed: rs.Pricelist().Currency().Round(amountUntaxed),
+				AmountTax:     rs.Pricelist().Currency().Round(amountTaxed),
+				AmountTotal:   amountTaxed + amountUntaxed,
+			}
 		})
 
 	h.SaleOrder().Methods().GetInvoiced().DeclareMethod(
@@ -175,7 +172,7 @@ based on the template if online quotation is installed.`},
 			  The invoice_ids are obtained thanks to the invoice lines of the SO lines, and we also search
 			  for possible refunds created directly from existing invoices. This is necessary since such a
 			  refund is not directly linked to the SO.`,
-		func(rs h.SaleOrderSet) (*h.SaleOrderData, []models.FieldNamer) {
+		func(rs h.SaleOrderSet) *h.SaleOrderData {
 			invoices := h.AccountInvoice().NewSet(rs.Env())
 			for _, line := range rs.OrderLine().Records() {
 				for _, invLine := range line.InvoiceLines().Records() {
@@ -230,7 +227,7 @@ based on the template if online quotation is installed.`},
 				InvoiceCount:  invoices.Union(refunds).Len(),
 				Invoices:      invoices.Union(refunds),
 				InvoiceStatus: invoiceStatus,
-			}, []models.FieldNamer{}
+			}
 		})
 
 	h.SaleOrder().Methods().ComputeTax().DeclareMethod(
@@ -904,7 +901,7 @@ based on the template if online quotation is installed.`},
 			    is removed from the list.
 
 			  - invoiced: the quantity invoiced is larger or equal to the quantity ordered.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			precision := decimalPrecision.GetPrecision("Product Unit of Measure").ToPrecision()
 			invoiceStatus := "no"
 			for _, line := range rs.Records() {
@@ -924,38 +921,37 @@ based on the template if online quotation is installed.`},
 			}
 			return &h.SaleOrderLineData{
 				InvoiceStatus: invoiceStatus,
-			}, []models.FieldNamer{h.SaleOrderLine().InvoiceStatus()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().ComputeAmount().DeclareMethod(
 		`ComputeAmount computes the amounts of the SO line.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			price := rs.PriceUnit() * (1 - rs.Discount()/100)
 			_, totalExcluded, totalIncluded, _ := rs.Tax().ComputeAll(price, rs.Order().Currency(), rs.ProductUomQty(), rs.Product(), rs.Order().PartnerShipping())
 			return &h.SaleOrderLineData{
 				PriceTax:      totalIncluded - totalExcluded,
 				PriceTotal:    totalIncluded,
 				PriceSubtotal: totalExcluded,
-			}, []models.FieldNamer{h.SaleOrderLine().PriceTax(), h.SaleOrderLine().PriceTotal(), h.SaleOrderLine().PriceSubtotal()}
-
+			}
 		})
 
 	h.SaleOrderLine().Methods().ComputeQtyDeliveredUpdateable().DeclareMethod(
 		`ComputeQtyDeliveredUpdateable checks if the delivered quantity can be updated`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			qtyDeliveredUpdateable := rs.Order().State() == "sale" && rs.Product().TrackService() == "manual" && rs.Product().ExpensePolicy() == "no"
 			return &h.SaleOrderLineData{
 				QtyDeliveredUpdateable: qtyDeliveredUpdateable,
-			}, []models.FieldNamer{h.SaleOrderLine().QtyDeliveredUpdateable()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().GetToInvoiceQty().DeclareMethod(
 		`GetToInvoiceQty compute the quantity to invoice. If the invoice policy is order,
 		the quantity to invoice is calculated from the ordered quantity. Otherwise, the quantity
 		delivered is used.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			if rs.Order().State() != "sale" && rs.Order().State() != "done" {
-				return &h.SaleOrderLineData{}, []models.FieldNamer{h.SaleOrderLine().QtyToInvoice()}
+				return &h.SaleOrderLineData{}
 			}
 			qtyToInvoice := rs.QtyDelivered() - rs.QtyInvoiced()
 			if rs.Product().InvoicePolicy() == "order" {
@@ -963,7 +959,7 @@ based on the template if online quotation is installed.`},
 			}
 			return &h.SaleOrderLineData{
 				QtyToInvoice: qtyToInvoice,
-			}, []models.FieldNamer{h.SaleOrderLine().QtyToInvoice()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().GetInvoiceQty().DeclareMethod(
@@ -971,7 +967,7 @@ based on the template if online quotation is installed.`},
 		Note that this is the case only if the refund is generated from the SO and that is intentional: if
         a refund made would automatically decrease the invoiced quantity, then there is a risk of reinvoicing
         it automatically, which may not be wanted at all. That's why the refund has to be created from the SO`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			var qtyInvoiced float64
 			for _, invoiceLine := range rs.InvoiceLines().Records() {
 				if invoiceLine.Invoice().State() == "cancel" {
@@ -986,45 +982,45 @@ based on the template if online quotation is installed.`},
 			}
 			return &h.SaleOrderLineData{
 				QtyInvoiced: qtyInvoiced,
-			}, []models.FieldNamer{h.SaleOrderLine().QtyInvoiced()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().GetPriceReduce().DeclareMethod(
 		`GetPriceReduce computes the unit price with discount.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			return &h.SaleOrderLineData{
 				PriceReduce: rs.PriceUnit() * (1 - rs.Discount()/100),
-			}, []models.FieldNamer{h.SaleOrderLine().PriceReduce()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().GetPriceReduceTax().DeclareMethod(
 		`GetPriceReduceTax computes the total price with tax and discount.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			var price float64
 			if rs.ProductUomQty() != 0 {
 				price = rs.PriceTotal() / rs.ProductUomQty()
 			}
 			return &h.SaleOrderLineData{
 				PriceReduceTaxInc: price,
-			}, []models.FieldNamer{h.SaleOrderLine().PriceReduceTaxInc()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().GetPriceReduceNotax().DeclareMethod(
 		`GetPriceReduceNotax  computes the total price with discount but without taxes.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			var price float64
 			if rs.ProductUomQty() != 0 {
 				price = rs.PriceSubtotal() / rs.ProductUomQty()
 			}
 			return &h.SaleOrderLineData{
 				PriceReduceTaxExcl: price,
-			}, []models.FieldNamer{h.SaleOrderLine().PriceReduceTaxExcl()}
+			}
 
 		})
 
 	h.SaleOrderLine().Methods().ComputeTax().DeclareMethod(
 		`ComputeTax computes the taxes applicable for this sale order line.`,
-		func(rs h.SaleOrderLineSet) (*h.SaleOrderLineData, []models.FieldNamer) {
+		func(rs h.SaleOrderLineSet) *h.SaleOrderLineData {
 			rs.EnsureOne()
 			fPos := rs.Order().Partner().PropertyAccountPosition()
 			if !rs.Order().FiscalPosition().IsEmpty() {
@@ -1039,7 +1035,7 @@ based on the template if online quotation is installed.`},
 			}
 			return &h.SaleOrderLineData{
 				Tax: taxes,
-			}, []models.FieldNamer{h.SaleOrderLine().Tax()}
+			}
 		})
 
 	h.SaleOrderLine().Methods().PrepareOrderLineProcurement().DeclareMethod(
@@ -1229,7 +1225,8 @@ based on the template if online quotation is installed.`},
 				return &h.SaleOrderLineData{}, []models.FieldNamer{}
 			}
 			qty := rs.ProductUomQty()
-			data, fields := rs.ComputeTax()
+			data := rs.ComputeTax()
+			fields := []models.FieldNamer{h.SaleOrderLine().Tax()}
 			if rs.ProductUom().IsEmpty() || rs.Product().Uom() != rs.ProductUom() {
 				data.ProductUom = rs.Product().Uom()
 				data.ProductUomQty = 1

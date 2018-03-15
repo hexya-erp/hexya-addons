@@ -26,13 +26,13 @@ func init() {
 
 	h.AccountCashboxLine().Methods().SubTotal().DeclareMethod(
 		`SubTotal`,
-		func(rs h.AccountCashboxLineSet) (*h.AccountCashboxLineData, []models.FieldNamer) {
+		func(rs h.AccountCashboxLineSet) *h.AccountCashboxLineData {
 			//@api.depends('coin_value','number')
 			/*def _sub_total(self):
 			  """ Calculates Sub total"""
 			  self.subtotal = self.coin_value * self.number
 			*/
-			return new(h.AccountCashboxLineData), []models.FieldNamer{}
+			return new(h.AccountCashboxLineData)
 		})
 
 	h.AccountBankStatementCashbox().DeclareModel()
@@ -183,48 +183,48 @@ func init() {
 
 	h.AccountBankStatement().Methods().EndBalance().DeclareMethod(
 		`EndBalance`,
-		func(rs h.AccountBankStatementSet) (*h.AccountBankStatementData, []models.FieldNamer) {
+		func(rs h.AccountBankStatementSet) *h.AccountBankStatementData {
 			//@api.depends('line_ids','balance_start','line_ids.amount','balance_end_real')
 			/*def _end_balance(self):
 			  self.total_entry_encoding = sum([line.amount for line in self.line_ids])
 			  self.balance_end = self.balance_start + self.total_entry_encoding
 			  self.difference = self.balance_end_real - self.balance_end
 			*/
-			return new(h.AccountBankStatementData), []models.FieldNamer{}
+			return new(h.AccountBankStatementData)
 		})
 
 	h.AccountBankStatement().Methods().ComputeIsDifferenceZero().DeclareMethod(
 		`ComputeIsDifferenceZero`,
-		func(rs h.AccountBankStatementSet) (*h.AccountBankStatementData, []models.FieldNamer) {
+		func(rs h.AccountBankStatementSet) *h.AccountBankStatementData {
 			//@api.multi
 			/*def _is_difference_zero(self):
 			  for bank_stmt in self:
 			      bank_stmt.is_difference_zero = float_is_zero(bank_stmt.difference, precision_digits=bank_stmt.currency_id.decimal_places)
 
 			*/
-			return new(h.AccountBankStatementData), []models.FieldNamer{}
+			return new(h.AccountBankStatementData)
 		})
 
 	h.AccountBankStatement().Methods().ComputeCurrency().DeclareMethod(
 		`ComputeCurrency`,
-		func(rs h.AccountBankStatementSet) (*h.AccountBankStatementData, []models.FieldNamer) {
+		func(rs h.AccountBankStatementSet) *h.AccountBankStatementData {
 			//@api.depends('journal_id')
 			/*def _compute_currency(self):
 			  self.currency_id = self.journal_id.currency_id or self.company_id.currency_id
 
 			*/
-			return new(h.AccountBankStatementData), []models.FieldNamer{}
+			return new(h.AccountBankStatementData)
 		})
 
 	h.AccountBankStatement().Methods().CheckLinesReconciled().DeclareMethod(
 		`CheckLinesReconciled`,
-		func(rs h.AccountBankStatementSet) (*h.AccountBankStatementData, []models.FieldNamer) {
+		func(rs h.AccountBankStatementSet) *h.AccountBankStatementData {
 			//@api.depends('line_ids.journal_entry_ids')
 			/*def _check_lines_reconciled(self):
 			  self.all_lines_reconciled = all([line.journal_entry_ids.ids or line.account_id.id for line in self.line_ids])
 
 			*/
-			return new(h.AccountBankStatementData), []models.FieldNamer{}
+			return new(h.AccountBankStatementData)
 		})
 
 	h.AccountBankStatement().Methods().DefaultJournal().DeclareMethod(
