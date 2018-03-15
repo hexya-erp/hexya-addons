@@ -146,8 +146,8 @@ func init() {
 			}
 			orderLineVals := rs.GetSaleOrderLineVals(order, price)
 			NewSOLine := h.SaleOrderLine().Create(rs.Env(), orderLineVals)
-			data, ftr := NewSOLine.ComputeTax()
-			NewSOLine.Write(data, ftr...)
+
+			NewSOLine.Write(NewSOLine.ComputeTax(), h.SaleOrderLine().Tax())
 			result.SoLine = NewSOLine
 
 			return &result

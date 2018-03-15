@@ -15,7 +15,7 @@ func init() {
 	h.AccountInvoiceReport().DeclareModel()
 	h.AccountInvoiceReport().Methods().ComputeAmountsInUserCurrency().DeclareMethod(
 		`ComputeAmountsInUserCurrency`,
-		func(rs h.AccountInvoiceReportSet) (*h.AccountInvoiceReportData, []models.FieldNamer) {
+		func(rs h.AccountInvoiceReportSet) *h.AccountInvoiceReportData {
 			//@api.depends('currency_id','date','price_total','price_average','residual')
 			/*def _compute_amounts_in_user_currency(self):
 			  """Compute the amounts in the currency of the user
@@ -33,7 +33,7 @@ func init() {
 			      record.user_currency_price_average = base_currency_id.with_context(ctx).compute(record.price_average, user_currency_id)
 			      record.user_currency_residual = base_currency_id.with_context(ctx).compute(record.residual, user_currency_id)
 			*/
-			return &h.AccountInvoiceReportData{}, []models.FieldNamer{}
+			return &h.AccountInvoiceReportData{}
 		})
 	h.AccountInvoiceReport().AddFields(map[string]models.FieldDefinition{
 		"Date":                     models.DateField{String: "Date" /*[readonly True]*/},

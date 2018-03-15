@@ -47,7 +47,7 @@ func init() {
 
 	h.AccountAnalyticAccount().Methods().ComputeDebitCreditBalance().DeclareMethod(
 		`ComputeDebitCreditBalance`,
-		func(rs h.AccountAnalyticAccountSet) (*h.AccountAnalyticAccountData, []models.FieldNamer) {
+		func(rs h.AccountAnalyticAccountSet) *h.AccountAnalyticAccountData {
 			cond := q.AccountAnalyticLine().Account().Equals(rs)
 			if rs.Env().Context().HasKey("from_date") {
 				cond = cond.And().Date().GreaterOrEqual(rs.Env().Context().GetDate("from_date"))
@@ -64,14 +64,10 @@ func init() {
 			creditVal, _ := accountCredit[0].Values.Get("Amount", h.AccountAnalyticLine().Underlying())
 			credit := creditVal.(float64)
 			return &h.AccountAnalyticAccountData{
-					Debit:   debit,
-					Credit:  credit,
-					Balance: credit - debit,
-				}, []models.FieldNamer{
-					h.AccountAnalyticAccount().Debit(),
-					h.AccountAnalyticAccount().Credit(),
-					h.AccountAnalyticAccount().Balance(),
-				}
+				Debit:   debit,
+				Credit:  credit,
+				Balance: credit - debit,
+			}
 		})
 
 	h.AccountAnalyticAccount().Methods().NameGet().Extend("",

@@ -22,15 +22,15 @@ func init() {
 
 	h.Partner().Methods().ComputeProductPricelist().DeclareMethod(
 		`ComputeProductPricelist returns the price list applicable for this partner`,
-		func(rs h.PartnerSet) (*h.PartnerData, []models.FieldNamer) {
+		func(rs h.PartnerSet) *h.PartnerData {
 			if rs.ID() == 0 {
 				// We are processing an Onchange
-				return new(h.PartnerData), []models.FieldNamer{}
+				return new(h.PartnerData)
 			}
 			company := h.User().NewSet(rs.Env()).CurrentUser().Company()
 			return &h.PartnerData{
 				PropertyProductPricelist: h.ProductPricelist().NewSet(rs.Env()).GetPartnerPricelist(rs, company),
-			}, []models.FieldNamer{h.Partner().PropertyProductPricelist()}
+			}
 		})
 
 	h.Partner().Methods().InverseProductPricelist().DeclareMethod(

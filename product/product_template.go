@@ -150,15 +150,15 @@ Use this field anywhere a small image is required.`},
 
 	h.ProductTemplate().Methods().ComputeProductVariant().DeclareMethod(
 		`ComputeProductVariant returns the first variant of this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			return &h.ProductTemplateData{
 				ProductVariant: rs.ProductVariants().Records()[0],
-			}, []models.FieldNamer{h.ProductTemplate().ProductVariant()}
+			}
 		})
 
 	h.ProductTemplate().Methods().ComputeCurrency().DeclareMethod(
 		`ComputeCurrency computes the currency of this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			mainCompany := h.Company().NewSet(rs.Env()).Sudo().Search(
 				q.Company().HexyaExternalID().Equals("base_main_company"))
 			if mainCompany.IsEmpty() {
@@ -170,7 +170,7 @@ Use this field anywhere a small image is required.`},
 			}
 			return &h.ProductTemplateData{
 				Currency: currency,
-			}, []models.FieldNamer{h.ProductTemplate().Currency()}
+			}
 		})
 
 	h.ProductTemplate().Methods().ComputeTemplatePrice().DeclareMethod(
@@ -179,14 +179,14 @@ Use this field anywhere a small image is required.`},
 		- 'partner' => int64 (id of the partner)
 		- 'pricelist' => int64 (id of the price list)
 		- 'quantity' => float64`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			if !rs.Env().Context().HasKey("pricelist") {
-				return new(h.ProductTemplateData), []models.FieldNamer{h.ProductProduct().Price()}
+				return new(h.ProductTemplateData)
 			}
 			priceListID := rs.Env().Context().GetInteger("pricelist")
 			priceList := h.ProductPricelist().Browse(rs.Env(), []int64{priceListID})
 			if priceList.IsEmpty() {
-				return new(h.ProductTemplateData), []models.FieldNamer{h.ProductProduct().Price()}
+				return new(h.ProductTemplateData)
 			}
 			partnerID := rs.Env().Context().GetInteger("partner")
 			partner := h.Partner().Browse(rs.Env(), []int64{partnerID})
@@ -196,7 +196,7 @@ Use this field anywhere a small image is required.`},
 			}
 			return &h.ProductTemplateData{
 				Price: priceList.GetProductPrice(rs.ProductVariant(), quantity, partner, dates.Today(), h.ProductUom().NewSet(rs.Env())),
-			}, []models.FieldNamer{h.ProductProduct().Price()}
+			}
 		})
 
 	h.ProductTemplate().Methods().InverseTemplatePrice().DeclareMethod(
@@ -213,13 +213,13 @@ Use this field anywhere a small image is required.`},
 
 	h.ProductTemplate().Methods().ComputeStandardPrice().DeclareMethod(
 		`ComputeStandardPrice returns the standard price for this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			if rs.ProductVariants().Len() == 1 {
 				return &h.ProductTemplateData{
 					StandardPrice: rs.ProductVariant().StandardPrice(),
-				}, []models.FieldNamer{h.ProductTemplate().StandardPrice()}
+				}
 			}
-			return new(h.ProductTemplateData), []models.FieldNamer{h.ProductTemplate().StandardPrice()}
+			return new(h.ProductTemplateData)
 		})
 
 	h.ProductTemplate().Methods().InverseStandardPrice().DeclareMethod(
@@ -232,13 +232,13 @@ Use this field anywhere a small image is required.`},
 
 	h.ProductTemplate().Methods().ComputeVolume().DeclareMethod(
 		`ComputeVolume compute the volume of this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			if rs.ProductVariants().Len() == 1 {
 				return &h.ProductTemplateData{
 					Volume: rs.ProductVariant().Volume(),
-				}, []models.FieldNamer{h.ProductTemplate().Volume()}
+				}
 			}
-			return new(h.ProductTemplateData), []models.FieldNamer{h.ProductTemplate().Volume()}
+			return new(h.ProductTemplateData)
 		})
 
 	h.ProductTemplate().Methods().InverseVolume().DeclareMethod(
@@ -251,13 +251,13 @@ Use this field anywhere a small image is required.`},
 
 	h.ProductTemplate().Methods().ComputeWeight().DeclareMethod(
 		`ComputeWeight compute the weight of this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			if rs.ProductVariants().Len() == 1 {
 				return &h.ProductTemplateData{
 					Weight: rs.ProductVariant().Weight(),
-				}, []models.FieldNamer{h.ProductTemplate().Weight()}
+				}
 			}
-			return new(h.ProductTemplateData), []models.FieldNamer{h.ProductTemplate().Weight()}
+			return new(h.ProductTemplateData)
 		})
 
 	h.ProductTemplate().Methods().InverseWeight().DeclareMethod(
@@ -270,21 +270,21 @@ Use this field anywhere a small image is required.`},
 
 	h.ProductTemplate().Methods().ComputeProductVariantCount().DeclareMethod(
 		`ComputeProductVariantCount returns the number of variants for this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			return &h.ProductTemplateData{
 				ProductVariantCount: rs.ProductVariants().Len(),
-			}, []models.FieldNamer{h.ProductTemplate().ProductVariantCount()}
+			}
 		})
 
 	h.ProductTemplate().Methods().ComputeDefaultCode().DeclareMethod(
 		`ComputeDefaultCode returns the default code for this template`,
-		func(rs h.ProductTemplateSet) (*h.ProductTemplateData, []models.FieldNamer) {
+		func(rs h.ProductTemplateSet) *h.ProductTemplateData {
 			if rs.ProductVariants().Len() == 1 {
 				return &h.ProductTemplateData{
 					DefaultCode: rs.ProductVariant().DefaultCode(),
-				}, []models.FieldNamer{h.ProductTemplate().DefaultCode()}
+				}
 			}
-			return new(h.ProductTemplateData), []models.FieldNamer{h.ProductTemplate().DefaultCode()}
+			return new(h.ProductTemplateData)
 		})
 
 	h.ProductTemplate().Methods().InverseDefaultCode().DeclareMethod(

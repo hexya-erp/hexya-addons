@@ -57,7 +57,7 @@ func init() {
 	h.ProductAttributeValue().Methods().ComputePriceExtra().DeclareMethod(
 		`ComputePriceExtra returns the price extra for this attribute for the product
 		template passed as 'active_id' in the context. Returns 0 if there is not 'active_id'.`,
-		func(rs h.ProductAttributeValueSet) (*h.ProductAttributeValueData, []models.FieldNamer) {
+		func(rs h.ProductAttributeValueSet) *h.ProductAttributeValueData {
 			var priceExtra float64
 			if rs.Env().Context().HasKey("active_id") {
 				productTmpl := h.ProductTemplate().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("active_id")})
@@ -66,7 +66,7 @@ func init() {
 			}
 			return &h.ProductAttributeValueData{
 				PriceExtra: priceExtra,
-			}, []models.FieldNamer{h.ProductAttributeValue().PriceExtra()}
+			}
 		})
 
 	h.ProductAttributeValue().Methods().InversePriceExtra().DeclareMethod(

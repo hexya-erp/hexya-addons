@@ -675,14 +675,14 @@ to manage payments outside of the software.`},
 
 	h.AccountJournal().Methods().BelongToCompany().DeclareMethod(
 		`BelongToCompany`,
-		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) *h.AccountJournalData {
 			//@api.depends('company_id')
 			/*def _belong_to_company(self):
 			  for journal in self:
 			      journal.belong_to_company = (journal.company_id.id == self.env.user.company_id.id)
 
 			*/
-			return new(h.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData)
 		})
 
 	/*
@@ -708,7 +708,7 @@ to manage payments outside of the software.`},
 
 	h.AccountJournal().Methods().MethodsCompute().DeclareMethod(
 		`MethodsCompute`,
-		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) *h.AccountJournalData {
 			//@api.depends('inbound_payment_method_ids','outbound_payment_method_ids')
 			/*def _methods_compute(self):
 			  for journal in self:
@@ -717,7 +717,7 @@ to manage payments outside of the software.`},
 
 
 			*/
-			return new(h.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData)
 		})
 
 	h.BankAccount().AddFields(map[string]models.FieldDefinition{

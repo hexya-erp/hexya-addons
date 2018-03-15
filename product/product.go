@@ -42,10 +42,10 @@ func init() {
 
 	h.ProductCategory().Methods().ComputeProductCount().DeclareMethod(
 		`ComputeProductCount returns the number of products within this category (not considering children categories)`,
-		func(rs h.ProductCategorySet) (*h.ProductCategoryData, []models.FieldNamer) {
+		func(rs h.ProductCategorySet) *h.ProductCategoryData {
 			return &h.ProductCategoryData{
 				ProductCount: h.ProductTemplate().Search(rs.Env(), q.ProductTemplate().Categ().Equals(rs)).SearchCount(),
-			}, []models.FieldNamer{h.ProductCategory().ProductCount()}
+			}
 		})
 
 	h.ProductCategory().Methods().CheckCategoryRecursion().DeclareMethod(
@@ -185,14 +185,14 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		- 'partner' => int64 (id of the partner)
 		- 'pricelist' => int64 (id of the price list)
 		- 'quantity' => float64`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			if !rs.Env().Context().HasKey("pricelist") {
-				return new(h.ProductProductData), []models.FieldNamer{h.ProductProduct().Price()}
+				return new(h.ProductProductData)
 			}
 			priceListID := rs.Env().Context().GetInteger("pricelist")
 			priceList := h.ProductPricelist().Browse(rs.Env(), []int64{priceListID})
 			if priceList.IsEmpty() {
-				return new(h.ProductProductData), []models.FieldNamer{h.ProductProduct().Price()}
+				return new(h.ProductProductData)
 			}
 			quantity := rs.Env().Context().GetFloat("quantity")
 			if quantity == 0 {
@@ -202,7 +202,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			partner := h.Partner().Browse(rs.Env(), []int64{partnerID})
 			return &h.ProductProductData{
 				Price: priceList.GetProductPrice(rs, quantity, partner, dates.Today(), h.ProductUom().NewSet(rs.Env())),
-			}, []models.FieldNamer{h.ProductProduct().Price()}
+			}
 		})
 
 	h.ProductProduct().Methods().InverseProductPrice().DeclareMethod(
@@ -227,7 +227,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 
 	h.ProductProduct().Methods().ComputeProductPriceExtra().DeclareMethod(
 		`ComputeProductPriceExtra computes the price extra of this product by suming the extras of each attribute`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			var priceExtra float64
 			for _, attributeValue := range rs.AttributeValues().Records() {
 				for _, attributePrice := range attributeValue.Prices().Records() {
@@ -238,12 +238,12 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			}
 			return &h.ProductProductData{
 				PriceExtra: priceExtra,
-			}, []models.FieldNamer{h.ProductProduct().PriceExtra()}
+			}
 		})
 
 	h.ProductProduct().Methods().ComputeProductLstPrice().DeclareMethod(
 		`ComputeProductLstPrice computes the LstPrice from the ListPrice and the extras`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			listPrice := rs.ListPrice()
 			if rs.Env().Context().HasKey("uom") {
 				toUoM := h.ProductUom().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("uom")})
@@ -251,13 +251,13 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			}
 			return &h.ProductProductData{
 				LstPrice: listPrice + rs.PriceExtra(),
-			}, []models.FieldNamer{h.ProductProduct().LstPrice()}
+			}
 		})
 
 	h.ProductProduct().Methods().ComputeProductCode().DeclareMethod(
 		`ComputeProductCode computes the product code based on the context:
 - 'partner_id' => int64 (id of the considered partner)`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			var code string
 			for _, supplierInfo := range rs.Sellers().Records() {
 				if supplierInfo.Name().ID() == rs.Env().Context().GetInteger("partner_id") {
@@ -272,13 +272,13 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			}
 			return &h.ProductProductData{
 				Code: code,
-			}, []models.FieldNamer{h.ProductProduct().Code()}
+			}
 		})
 
 	h.ProductProduct().Methods().ComputePartnerRef().DeclareMethod(
 		`ComputePartnerRef computes the product's reference (i.e. "[code] description") based on the context:
 - 'partner_id' => int64 (id of the considered partner)`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			var code, productName string
 			for _, supplierInfo := range rs.Sellers().Records() {
 				if supplierInfo.Name().ID() == rs.Env().Context().GetInteger("partner_id") {
@@ -300,12 +300,12 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			}
 			return &h.ProductProductData{
 				PartnerRef: rs.NameFormat(productName, code),
-			}, []models.FieldNamer{h.ProductProduct().PartnerRef()}
+			}
 		})
 
 	h.ProductProduct().Methods().ComputeImages().DeclareMethod(
 		`ComputeImages computes the images in different sizes.`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			// TODO implement image resizing
 			//@api.depends('image_variant','product_tmpl_id.image')
 			/*def _compute_images(self):
@@ -326,7 +326,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			      self.image = self.product_tmpl_id.image
 
 			*/
-			return &h.ProductProductData{}, []models.FieldNamer{}
+			return &h.ProductProductData{}
 		})
 
 	h.ProductProduct().Methods().InverseImageValue().DeclareMethod(
@@ -343,13 +343,13 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 
 	h.ProductProduct().Methods().GetPricelistItems().DeclareMethod(
 		`GetPricelistItems returns all price list items for this product`,
-		func(rs h.ProductProductSet) (*h.ProductProductData, []models.FieldNamer) {
+		func(rs h.ProductProductSet) *h.ProductProductData {
 			rs.EnsureOne()
 			priceListItems := h.ProductPricelistItem().Search(rs.Env(),
 				q.ProductPricelistItem().Product().Equals(rs).Or().ProductTmpl().Equals(rs.ProductTmpl()))
 			return &h.ProductProductData{
 				PricelistItems: priceListItems,
-			}, []models.FieldNamer{h.ProductProduct().PricelistItems()}
+			}
 		})
 
 	h.ProductProduct().Methods().CheckAttributeValueIds().DeclareMethod(

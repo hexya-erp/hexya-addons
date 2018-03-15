@@ -23,18 +23,18 @@ func init() {
 
 	h.AccountJournal().Methods().ComputeKanbanDashboard().DeclareMethod(
 		`ComputeKanbanDashboard`,
-		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) *h.AccountJournalData {
 			//@api.one
 			/*def _kanban_dashboard(self):
 			  self.kanban_dashboard = json.dumps(self.get_journal_dashboard_datas())
 
 			*/
-			return new(h.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData)
 		})
 
 	h.AccountJournal().Methods().ComputeKanbanDashboardGraph().DeclareMethod(
 		`ComputeKanbanDashboardGraph`,
-		func(rs h.AccountJournalSet) (*h.AccountJournalData, []models.FieldNamer) {
+		func(rs h.AccountJournalSet) *h.AccountJournalData {
 			//@api.one
 			/*def _kanban_dashboard_graph(self):
 			  if (self.type in ['sale', 'purchase']):
@@ -42,7 +42,7 @@ func init() {
 			  elif (self.type in ['cash', 'bank']):
 			      self.kanban_dashboard_graph = json.dumps(self.get_line_graph_datas())
 			*/
-			return new(h.AccountJournalData), []models.FieldNamer{}
+			return new(h.AccountJournalData)
 		})
 
 	h.AccountJournal().Methods().ToggleFavorite().DeclareMethod(

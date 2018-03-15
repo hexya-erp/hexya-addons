@@ -44,13 +44,13 @@ func init() {
 
 	h.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency().DeclareMethod(
 		`GetAnalyticAmountCurrency`,
-		func(rs h.AccountAnalyticLineSet) (*h.AccountAnalyticAccountData, []models.FieldNamer) {
+		func(rs h.AccountAnalyticLineSet) *h.AccountAnalyticAccountData {
 			/*def _get_analytic_amount_currency(self):
 			  for line in self:
 			      line.analytic_amount_currency = abs(line.amount_currency) * copysign(1, line.amount)
 
 			*/
-			return new(h.AccountAnalyticAccountData), []models.FieldNamer{}
+			return new(h.AccountAnalyticAccountData)
 		})
 
 	h.AccountAnalyticLine().Methods().OnChangeUnitAmount().DeclareMethod(

@@ -37,24 +37,24 @@ team estimates to be able to invoice this month.`},
 
 	h.CRMTeam().Methods().ComputeSalesToInvoiceAmount().DeclareMethod(
 		`ComputeSalesToInvoiceAmount computes the total amount of sale orders that have not yet been invoiced`,
-		func(rs h.CRMTeamSet) (*h.CRMTeamData, []models.FieldNamer) {
+		func(rs h.CRMTeamSet) *h.CRMTeamData {
 			amounts := h.SaleOrder().Search(rs.Env(),
 				q.SaleOrder().Team().Equals(rs).
 					And().InvoiceStatus().Equals("to invoice")).
 				GroupBy(h.SaleOrder().Team()).
 				Aggregates(h.SaleOrder().Team(), h.SaleOrder().AmountTotal())
 			if len(amounts) == 0 {
-				return &h.CRMTeamData{}, []models.FieldNamer{h.CRMTeam().SalesToInvoiceAmount()}
+				return &h.CRMTeamData{}
 			}
 			amount, _ := amounts[0].Values.Get("AmountTotal", h.SaleOrder().Underlying())
 			return &h.CRMTeamData{
 				SalesToInvoiceAmount: amount.(float64),
-			}, []models.FieldNamer{h.CRMTeam().SalesToInvoiceAmount()}
+			}
 		})
 
 	h.CRMTeam().Methods().ComputeInvoiced().DeclareMethod(
 		`ComputeInvoiced returns the total amount invoiced by this sale team this month.`,
-		func(rs h.CRMTeamSet) (*h.CRMTeamData, []models.FieldNamer) {
+		func(rs h.CRMTeamSet) *h.CRMTeamData {
 			firstDayOfMonth := dates.Date{Time: time.Date(dates.Today().Year(), dates.Today().Month(), 1,
 				0, 0, 0, 0, time.UTC)}
 			invoices := h.AccountInvoice().Search(rs.Env(),
@@ -66,12 +66,12 @@ team estimates to be able to invoice this month.`},
 				GroupBy(h.AccountInvoice().Team()).
 				Aggregates(h.AccountInvoice().Team(), h.AccountInvoice().AmountUntaxedSigned())
 			if len(invoices) == 0 {
-				return &h.CRMTeamData{}, []models.FieldNamer{h.CRMTeam().Invoiced()}
+				return &h.CRMTeamData{}
 			}
 			amount, _ := invoices[0].Values.Get("AmountUntaxedSigned", h.AccountInvoice().Underlying())
 			return &h.CRMTeamData{
 				Invoiced: amount.(float64),
-			}, []models.FieldNamer{h.CRMTeam().Invoiced()}
+			}
 		})
 
 	h.CRMTeam().Methods().UpdateInvoicedTarget().DeclareMethod(
