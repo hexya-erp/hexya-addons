@@ -282,7 +282,7 @@ func init() {
 		"DebitLimit":    models.FloatField{String: "Payable Limit"},
 		"TotalInvoiced": models.FloatField{Compute: h.Partner().Methods().ComputeTotalInvoiced()},
 		"Currency": models.Many2OneField{String: "Currency", RelationModel: h.Currency(),
-			Compute: h.Partner().Methods().ComputeCurrency(), /* readonly=true */
+			Compute: h.Partner().Methods().ComputeCurrency(),
 			Help:    "Utility field to express amount currency"},
 		"ContractsCount": models.IntegerField{String: "Contracts",
 			Compute: h.Partner().Methods().ComputeJournalItemCount(), GoType: new(int)},
@@ -316,14 +316,15 @@ func init() {
 		"HasUnreconciledEntries": models.BooleanField{Compute: h.Partner().Methods().ComputeHasUnreconciledEntries(),
 			Help: `The partner has at least one unreconciled debit and credit
 since last time the invoices & payments matching was performed.`},
-		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date", /*[ readonly True]*/
-			NoCopy: true, Help: `Last time the invoices & payments matching was performed for this partner.
+		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date",
+			ReadOnly: true, NoCopy: true,
+			Help: `Last time the invoices & payments matching was performed for this partner.
 It is set either if there\'s not at least an unreconciled debit and an unreconciled
 credit or if you click the "Done" button.`},
 		"Invoices": models.One2ManyField{RelationModel: h.AccountInvoice(), ReverseFK: "Partner",
-			JSON: "invoice_ids" /* readonly */, NoCopy: true},
+			JSON: "invoice_ids", ReadOnly: true, NoCopy: true},
 		"Contracts": models.One2ManyField{RelationModel: h.AccountAnalyticAccount(), ReverseFK: "Partner",
-			JSON: "contract_ids" /* readonly */},
+			JSON: "contract_ids", ReadOnly: true},
 		"BankAccountCount": models.IntegerField{String: "Bank",
 			Compute: h.Partner().Methods().ComputeBankCount()},
 		"Trust": models.SelectionField{String: "Degree of trust you have in this debtor", Selection: types.Selection{

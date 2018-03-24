@@ -32,7 +32,7 @@ The conversion will be made based on the ratios.`},
 			Help: `How much bigger or smaller this unit is compared to the reference Unit of Measure for this category:
 1 * (reference unit) = ratio * (this unit)`},
 		"FactorInv": models.FloatField{String: "Bigger Ratio", Compute: h.ProductUom().Methods().ComputeFactorInv(),
-			/* readonly True]*/ Required: true,
+			Required: true,
 			Help: `How many times this Unit of Measure is bigger than the reference Unit of Measure in this category:
 1 * (this unit) = ratio * (reference unit)`,
 			Depends: []string{"Factor"}},

@@ -20,7 +20,7 @@ func init() {
 	h.AccountCashboxLine().AddFields(map[string]models.FieldDefinition{
 		"CoinValue": models.FloatField{String: "Coin/Bill Value", Required: true},
 		"Number":    models.IntegerField{String: "Number of Coins/Bills", Help: "Opening Unit Numbers"},
-		"Subtotal":  models.FloatField{Compute: h.AccountCashboxLine().Methods().SubTotal() /*[ readonly True]*/},
+		"Subtotal":  models.FloatField{Compute: h.AccountCashboxLine().Methods().SubTotal(), ReadOnly: true},
 		"Cashbox":   models.Many2OneField{String: "Cashbox", RelationModel: h.AccountBankStatementCashbox()},
 	})
 
@@ -126,7 +126,7 @@ func init() {
 			Selection: types.Selection{
 				"open":    "New",
 				"confirm": "Validated",
-			}, Required: true /*[ readonly True]*/, NoCopy: true, Default: models.DefaultValue("open")},
+			}, Required: true, ReadOnly: true, NoCopy: true, Default: models.DefaultValue("open")},
 		"Currency": models.Many2OneField{RelationModel: h.Currency(),
 			Compute: h.AccountBankStatement().Methods().ComputeCurrency(),
 			Depends: []string{"Journal"}},
@@ -143,7 +143,7 @@ func init() {
 				return h.AccountJournal().NewSet(env)
 			}},
 		"JournalType": models.SelectionField{Related: "Journal.Type", Help: "Technical field used for usability purposes"},
-		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company", /* readonly=true */
+		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company", ReadOnly: true,
 			Default: func(env models.Environment) interface{} {
 				return h.Company().NewSet(env).CompanyDefaultGet()
 			}},
@@ -549,7 +549,7 @@ func init() {
 		"Amount": models.FloatField{Constraint: h.AccountBankStatementLine().Methods().CheckAmount()},
 		"JournalCurrency": models.Many2OneField{RelationModel: h.Currency(),
 			Related: "Statement.Currency",
-			Help:    "Utility field to express amount currency', readonly=True" /* readonly=true */},
+			Help:    "Utility field to express amount currency", ReadOnly: true},
 		"Partner":     models.Many2OneField{RelationModel: h.Partner()},
 		"BankAccount": models.Many2OneField{RelationModel: h.BankAccount()},
 		"Account": models.Many2OneField{String: "Counterpart Account", RelationModel: h.AccountAccount(),
@@ -560,7 +560,7 @@ create a counterpart on this account`},
 		"Statement": models.Many2OneField{RelationModel: h.AccountBankStatement(), Index: true, Required: true,
 			OnDelete: models.Cascade},
 		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(),
-			Related: "Statement.Journal" /* readonly=true */},
+			Related: "Statement.Journal", ReadOnly: true},
 		"PartnerName": models.CharField{
 			Help: `This field is used to record the third party name when importing bank statement in electronic format,
 when the partner doesn't exist yet in the database (or cannot be found).`},
@@ -569,15 +569,15 @@ when the partner doesn't exist yet in the database (or cannot be found).`},
 		"Sequence": models.IntegerField{Index: true,
 			Help:    "Gives the sequence order when displaying a list of bank statement lines.",
 			Default: models.DefaultValue(1)},
-		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Statement.Company" /* readonly=true */},
+		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Statement.Company", ReadOnly: true},
 		"JournalEntries": models.One2ManyField{RelationModel: h.AccountMove(), ReverseFK: "StatementLine",
-			JSON: "journal_entry_ids", NoCopy: true /* readonly True */},
+			JSON: "journal_entry_ids", NoCopy: true, ReadOnly: true},
 		"AmountCurrency": models.FloatField{Constraint: h.AccountBankStatementLine().Methods().CheckAmount(),
 			Help: "The amount expressed in an optional other currency if it is a multi-currency entry."},
 		"Currency": models.Many2OneField{RelationModel: h.Currency(),
 			Help: "The optional other currency if it is a multi-currency entry."},
-		"State": models.SelectionField{Related: "Statement.State", String: "Status" /* readonly=True */},
-		"MoveName": models.CharField{String: "Journal Entry Name", /*[ readonly True]*/
+		"State": models.SelectionField{Related: "Statement.State", String: "Status", ReadOnly: true},
+		"MoveName": models.CharField{String: "Journal Entry Name", ReadOnly: true,
 			Default: models.DefaultValue(false), NoCopy: true,
 			Help: `Technical field holding the number given to the journal entry, automatically set when the statement line
 is reconciled then stored to set the same number again if the line is cancelled,

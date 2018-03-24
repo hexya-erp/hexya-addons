@@ -17,19 +17,20 @@ func init() {
 		"Product": models.Many2OneField{RelationModel: h.ProductProduct(),
 			OnChange: h.AccountAnalyticLine().Methods().OnChangeUnitAmount()},
 		"GeneralAccount": models.Many2OneField{String: "Financial Account", RelationModel: h.AccountAccount(),
-			OnDelete: models.Restrict /* readonly=true */, Related: "Move.Account",
+			OnDelete: models.Restrict, ReadOnly: true, Related: "Move.Account",
 			Filter: q.AccountAccount().Deprecated().Equals(false)},
 		"Move": models.Many2OneField{String: "Move Line", RelationModel: h.AccountMoveLine(),
 			JSON: "move_id", OnDelete: models.Cascade, Index: true},
 		"Code": models.CharField{String: "Code", Size: 8},
 		"Ref":  models.CharField{},
 		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(),
-			Related: "Company.Currency" /* readonly=true */, Help: "Utility field to express amount currency"},
+			Related: "Company.Currency", ReadOnly: true, Help: "Utility field to express amount currency"},
 		"AmountCurrency": models.FloatField{Related: "Move.AmountCurrency",
-			Help: "The amount expressed in the related account currency if not equal to the company one." /* readonly=True */},
+			Help:     "The amount expressed in the related account currency if not equal to the company one.",
+			ReadOnly: true},
 		"AnalyticAmountCurrency": models.FloatField{String: "Amount Currency",
-			Compute: h.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency(), /*[ readonly True]*/
-			Help:    "The amount expressed in the related account currency if not equal to the company one."},
+			Compute: h.AccountAnalyticLine().Methods().GetAnalyticAmountCurrency(), ReadOnly: true,
+			Help: "The amount expressed in the related account currency if not equal to the company one."},
 	})
 
 	h.AccountAnalyticLine().Fields().Currency().

@@ -5,40 +5,38 @@ package account
 
 import (
 	"github.com/hexya-erp/hexya/hexya/models"
+	"github.com/hexya-erp/hexya/hexya/models/types/dates"
 	"github.com/hexya-erp/hexya/pool/h"
+	"github.com/hexya-erp/hexya/pool/q"
 )
 
 func init() {
 
 	h.TaxAdjustmentsWizard().DeclareTransientModel()
-	h.TaxAdjustmentsWizard().Methods().GetDefaultJournal().DeclareMethod(
-		`GetDefaultJournal`,
-		func(rs h.TaxAdjustmentsWizardSet) {
-			//@api.multi
-			/*def _get_default_journal(self):
-			    return self.env['account.journal'].search([('type', '=', 'general')], limit=1).id
 
-			reason = */
-		})
 	h.TaxAdjustmentsWizard().AddFields(map[string]models.FieldDefinition{
-		"Reason": models.CharField{String: "Reason" /*[string 'Justification']*/, Required: true},
-		"Journal": models.Many2OneField{String: "Journal", RelationModel: h.AccountJournal(), JSON: "journal_id" /*['account.journal']*/, Required: true, Default: func(env models.Environment) interface{} {
-			/*_get_default_journal(self):
-			    return self.env['account.journal'].search([('type', '=', 'general')], limit=1).id
-
-			reason = */
-			return 0
-		} /*, Filter: [('type'*/ /*[ ' ']*/ /*[ 'general')]]*/},
-		"Date":          models.DateField{String: "Date" /*[required True]*/ /*[ default fields.Date.context_today]*/},
-		"DebitAccount":  models.Many2OneField{String: "Debit account", RelationModel: h.AccountAccount(), JSON: "debit_account_id" /*['account.account']*/, Required: true /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
-		"CreditAccount": models.Many2OneField{String: "Credit account", RelationModel: h.AccountAccount(), JSON: "credit_account_id" /*['account.account']*/, Required: true /*, Filter: [('deprecated'*/ /*[ ' ']*/ /*[ False)]]*/},
-		"Amount":        models.FloatField{String: "Amount" /*[currency_field 'company_currency_id']*/, Required: true},
-		"CompanyCurrency": models.Many2OneField{String: "CompanyCurrencyId", RelationModel: h.Currency(), JSON: "company_currency_id" /*['res.currency']*/ /* readonly=true */, Default: func(env models.Environment) interface{} {
-			/*lambda self: self.env.user.company_id.currency_id*/
-			return 0
+		"Reason": models.CharField{String: "Justification", Required: true},
+		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(), Required: true,
+			Default: func(env models.Environment) interface{} {
+				return h.AccountJournal().Search(env, q.AccountJournal().Type().Equals("general")).Limit(1)
+			}, Filter: q.AccountJournal().Type().Equals("general")},
+		"Date": models.DateField{Required: true, Default: func(env models.Environment) interface{} {
+			return dates.Today()
 		}},
-		"Tax": models.Many2OneField{String: "Adjustment Tax", RelationModel: h.AccountTax(), JSON: "tax_id" /*['account.tax']*/, OnDelete: models.Restrict /*, Filter: [('type_tax_use'*/ /*[ ' ']*/ /*[ 'none']*/ /*[ ('tax_adjustment']*/ /*[ ' ']*/ /*[ True)]]*/, Required: true},
+		"DebitAccount": models.Many2OneField{RelationModel: h.AccountAccount(), Required: true,
+			Filter: q.AccountAccount().Deprecated().Equals(false)},
+		"CreditAccount": models.Many2OneField{RelationModel: h.AccountAccount(), Required: true,
+			Filter: q.AccountAccount().Deprecated().Equals(false)},
+		"Amount": models.FloatField{ /*[currency_field 'company_currency_id']*/ Required: true},
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), ReadOnly: true,
+			Default: func(env models.Environment) interface{} {
+				return h.User().NewSet(env).CurrentUser().Company()
+			}},
+		"Tax": models.Many2OneField{String: "Adjustment Tax", RelationModel: h.AccountTax(),
+			OnDelete: models.Restrict, Required: true,
+			Filter: q.AccountTax().TypeTaxUse().Equals("none").And().TaxAdjustment().Equals(true)},
 	})
+
 	h.TaxAdjustmentsWizard().Methods().CreateMovePrivate().DeclareMethod(
 		`CreateMovePrivate`,
 		func(rs h.TaxAdjustmentsWizardSet) {
@@ -70,6 +68,7 @@ func init() {
 
 			*/
 		})
+
 	h.TaxAdjustmentsWizard().Methods().CreateMove().DeclareMethod(
 		`CreateMove`,
 		func(rs h.TaxAdjustmentsWizardSet) {

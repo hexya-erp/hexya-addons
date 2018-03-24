@@ -42,7 +42,7 @@ func init() {
 			"in_invoice":  "Vendor Bill",
 			"out_refund":  "Customer Refund",
 			"in_refund":   "Vendor Refund",
-		}, /*[readonly True]*/ Index: true,
+		}, ReadOnly: true, Index: true,
 			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("type") {
 					return env.Context().GetString("type")
@@ -51,8 +51,8 @@ func init() {
 			} /*[ track_visibility 'always']*/},
 		"RefundInvoice": models.Many2OneField{String: "Invoice for which this invoice is the refund",
 			RelationModel: h.AccountInvoice()},
-		"Number": models.CharField{Related: "Move.Name" /*[ readonly True]*/, NoCopy: true},
-		"MoveName": models.CharField{String: "Journal Entry Name" /*[ readonly False]*/, NoCopy: true,
+		"Number": models.CharField{Related: "Move.Name", ReadOnly: true, NoCopy: true},
+		"MoveName": models.CharField{String: "Journal Entry Name", NoCopy: true,
 			Default: models.DefaultValue(false),
 			Help: `Technical field holding the number given to the invoice, automatically set when the invoice is
 validated then stored to set the same number again if the invoice is cancelled,
@@ -70,7 +70,7 @@ set to draft and re-validated.`},
 			"open":      "Open",
 			"paid":      "Paid",
 			"cancel":    "Cancelled",
-		}, Index: true /*[ readonly True]*/, Default: models.DefaultValue("draft"), /*[ track_visibility 'onchange']*/
+		}, Index: true, ReadOnly: true, Default: models.DefaultValue("draft"), /*[ track_visibility 'onchange']*/
 			NoCopy: true,
 			Help: ` * The 'Draft' status is used when a user is encoding a new and unconfirmed Invoice.
  * The 'Pro-forma' status is used when the invoice does not have an invoice number.
@@ -79,7 +79,7 @@ set to draft and re-validated.`},
  * The 'Paid' status is set automatically when the invoice is paid. Its related journal
    entries may or may not be reconciled.
  * The 'Cancelled' status is used when user cancel invoice.`},
-		"Sent": models.BooleanField{ /*[readonly True]*/ Default: models.DefaultValue(false),
+		"Sent": models.BooleanField{ReadOnly: true, Default: models.DefaultValue(false),
 			NoCopy: true, Help: "It indicates that the invoice has been sent."},
 		"DateInvoice": models.DateField{String: "Invoice Date", /*[ readonly True]*/ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			Index: true, Help: "Keep empty to use the current date", NoCopy: true,
@@ -111,7 +111,7 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 			NoCopy:   false},
 		"TaxLines": models.One2ManyField{RelationModel: h.AccountInvoiceTax(), ReverseFK: "Invoice",
 			JSON: "tax_line_ids" /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/, NoCopy: false},
-		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: h.AccountMove(), /* readonly=true */
+		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: h.AccountMove(), ReadOnly: true,
 			Index: true, OnDelete: models.Restrict, NoCopy: true,
 			Help: "Link to the automatically generated Journal Items."},
 		"AmountUntaxed": models.FloatField{String: "Untaxed Amount", Stored: true,
@@ -147,7 +147,7 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 				return h.User().NewSet(env).CurrentUser().Company().Currency()
 			} /*[ track_visibility 'always']*/},
 		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(),
-			Related: "Company.Currency" /* readonly=true */},
+			Related: "Company.Currency", ReadOnly: true},
 		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(), Required: true, /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			OnChange: h.AccountInvoice().Methods().OnchangeJournal(),
 			Default: func(env models.Environment) interface{} {
@@ -157,7 +157,7 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 			Default: func(env models.Environment) interface{} {
 				return h.Company().NewSet(env).CompanyDefaultGet()
 			}, OnChange: h.AccountInvoice().Methods().OnchangePartner()},
-		"Reconciled": models.BooleanField{String: "Paid/Reconciled", Stored: true, /*[ readonly True]*/
+		"Reconciled": models.BooleanField{String: "Paid/Reconciled", Stored: true,
 			Compute: h.AccountInvoice().Methods().ComputeResidual(),
 			Depends: []string{"State", "Currency", "InvoiceLines.PriceSubtotal", "Move.Lines.AmountResidual", "Move.Lines.Currency"},
 			Help: `It indicates that the invoice has been paid and the journal entry of the invoice
@@ -178,7 +178,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			Depends: []string{"State", "Currency", "InvoiceLines.PriceSubtotal", "Move.Lines.AmountResidual", "Move.Lines.Currency"},
 			Help:    "Remaining amount due in the currency of the company."},
 		"Payments": models.Many2ManyField{RelationModel: h.AccountPayment(), JSON: "payment_ids",
-			NoCopy: true /*[ readonly True]*/},
+			NoCopy: true, ReadOnly: true},
 		"PaymentMoveLines": models.Many2ManyField{String: "Payment Move Lines", RelationModel: h.AccountMoveLine(),
 			JSON: "payment_move_line_ids", Compute: h.AccountInvoice().Methods().ComputePayments(), Stored: true,
 			Depends: []string{"Move.Lines.AmountResidual"}},
@@ -189,7 +189,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 			}},
 		"FiscalPosition": models.Many2OneField{RelationModel: h.AccountFiscalPosition() /* readonly=true */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/},
 		"CommercialPartner": models.Many2OneField{String: "Commercial Entity",
-			RelationModel: h.Partner(), Related: "Partner.CommercialPartner", /* readonly=true */
+			RelationModel: h.Partner(), Related: "Partner.CommercialPartner", ReadOnly: true,
 			Help: "The commercial entity that will be used on Journal Entries for this invoice"},
 		"OutstandingCreditsDebitsWidget": models.TextField{Compute: h.AccountInvoice().Methods().GetOutstandingInfoJSON()},
 		"PaymentsWidget": models.TextField{Compute: h.AccountInvoice().Methods().GetPaymentInfoJSON(),
@@ -1508,11 +1508,12 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 				q.AccountTax().Active().Equals(true).Or().Active().Equals(false))},
 		"AccountAnalytic": models.Many2OneField{String: "Analytic Account", RelationModel: h.AccountAnalyticAccount()},
 		"AnalyticTags":    models.Many2ManyField{RelationModel: h.AccountAnalyticTag(), JSON: "analytic_tag_ids"},
-		"Company":         models.Many2OneField{RelationModel: h.Company(), Related: "Invoice.Company" /* readonly=true */},
+		"Company":         models.Many2OneField{RelationModel: h.Company(), Related: "Invoice.Company", ReadOnly: true},
 		"Partner": models.Many2OneField{String: "Partner", RelationModel: h.Partner(),
-			Related: "Invoice.Partner" /* readonly=true */},
-		"Currency":        models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.Currency"},
-		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.CompanyCurrency" /* readonly=true */},
+			Related: "Invoice.Partner", ReadOnly: true},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.Currency"},
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.CompanyCurrency",
+			ReadOnly: true},
 	})
 
 	h.AccountInvoiceLine().Methods().GetAnalyticLine().DeclareMethod(
@@ -1765,9 +1766,10 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		"Amount":          models.FloatField{},
 		"Manual":          models.BooleanField{Default: models.DefaultValue(true)},
 		"Sequence":        models.IntegerField{Help: "Gives the sequence order when displaying a list of invoice tax."},
-		"Company":         models.Many2OneField{RelationModel: h.Company(), Related: "Account.Company" /* readonly=true */},
-		"Currency":        models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.Currency" /* readonly=true */},
-		"Base":            models.FloatField{Compute: h.AccountInvoiceTax().Methods().ComputeBaseAmount()},
+		"Company":         models.Many2OneField{RelationModel: h.Company(), Related: "Account.Company", ReadOnly: true},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Invoice.Currency",
+			ReadOnly: true},
+		"Base": models.FloatField{Compute: h.AccountInvoiceTax().Methods().ComputeBaseAmount()},
 	})
 
 	h.AccountInvoiceTax().Methods().ComputeBaseAmount().DeclareMethod(

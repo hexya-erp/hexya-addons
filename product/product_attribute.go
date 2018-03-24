@@ -49,7 +49,7 @@ func init() {
 			Default: models.DefaultValue(0), Digits: decimalPrecision.GetPrecision("Product Price"),
 			Help: "Price Extra: Extra price for the variant with this attribute value on sale price. eg. 200 price extra, 1000 + 200 = 1200."},
 		"Prices": models.One2ManyField{String: "Attribute Prices", RelationModel: h.ProductAttributePrice(),
-			ReverseFK: "Value", JSON: "price_ids" /* readonly */},
+			ReverseFK: "Value", JSON: "price_ids", ReadOnly: true},
 	})
 
 	h.ProductAttributeValue().AddSQLConstraint("ValueCompanyUniq", "unique (name,attribute_id)", "This attribute value already exists !")
