@@ -1,6 +1,6 @@
 <hexya>
     <data>
-        <view id="sale_teams_view_sale_config_settings" model="SaleConfigSettings">
+       <!-- <view id="sale_teams_view_sale_config_settings" model="SaleConfigSettings">
             <form string="Configure Sales" class="oe_form_configuration" name="sale_config_form">
                 <header>
                     <button string="Apply" type="object" name="execute" class="oe_highlight"/>
@@ -10,5 +10,5 @@
             </form>
         </view>
         <action id="sale_teams_action_sale_config" type="ir.actions.act_window" name="Configure Sales" model="SaleConfigSettings" view_id="sale_teams_view_sale_config_settings" view_mode="form"/>
-    </data>
+-->    </data>
 </hexya>

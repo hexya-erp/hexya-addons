@@ -4,6 +4,7 @@
 package account
 
 import (
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/pool/h"
@@ -48,13 +49,8 @@ func init() {
 
 	h.AccountCommonReport().Methods().PrintReport().DeclareMethod(
 		`PrintReport`,
-		func(rs h.AccountCommonReportSet, args struct {
-			Data interface{}
-		}) {
-			/*def _print_report(self, data):
-			  raise (_('Error!'), _('Not implemented.'))
-
-			*/
+		func(rs h.AccountCommonReportSet, data interface{}) *actions.Action {
+			panic(rs.T("Not implemented"))
 		})
 
 	h.AccountCommonReport().Methods().CheckReport().DeclareMethod(

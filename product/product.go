@@ -708,7 +708,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	h.ProductSupplierinfo().SetDefaultOrder("Sequence", "MinQty DESC", "Price")
 
 	h.ProductSupplierinfo().AddFields(map[string]models.FieldDefinition{
-		"Name": models.Many2OneField{String: "Vendor", RelationModel: h.Partner(),
+		"Name": models.Many2OneField{String: "Vendor", RelationModel: h.Partner(), JSON: "name",
 			Filter: q.Partner().Supplier().Equals(true), OnDelete: models.Cascade, Required: true,
 			Help: "Vendor of this product"},
 		"ProductName": models.CharField{String: "Vendor Product Name",

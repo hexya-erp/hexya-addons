@@ -435,7 +435,7 @@
                         <label for="min_qty"/>
                         <div>
                             <field name="min_qty" class="oe_inline"/>
-                            <field name="product_uom" class="oe_inline" groups="product.group_uom"/>
+                            <field name="product_uom_id" class="oe_inline" groups="product.group_uom"/>
                         </div>
                         <label for="price"/>
                         <div>

@@ -133,9 +133,9 @@
                   action="base_action_partner_form"/>
         <menuitem id="sale_teams_menu_sale_config" name="Configuration" sequence="100"
                   parent="sale_teams_menu_base_partner" groups="group_sale_manager"/>
-        <menuitem id="sale_teams_menu_sale_general_settings" name="Settings" sequence="0"
-                  parent="sale_teams_menu_sale_config" action="sale_teams_action_sale_config"
-                  groups="base.group_system"/>
+        <!--<menuitem id="sale_teams_menu_sale_general_settings" name="Settings" sequence="0"-->
+                  <!--parent="sale_teams_menu_sale_config" action="sale_teams_action_sale_config"-->
+                  <!--groups="base.group_system"/>-->
         <menuitem id="sale_teams_menu_config_address_book" name="Contacts" sequence="4"
                   parent="sale_teams_menu_sale_config" groups="base.group_system"/>
         <menuitem id="sale_teams_menu_partner_category_form" name="Contact Tags" sequence="1"

@@ -4,23 +4,28 @@
 package account
 
 import (
+	"github.com/hexya-erp/hexya/hexya/actions"
 	"github.com/hexya-erp/hexya/hexya/models"
+	"github.com/hexya-erp/hexya/hexya/models/types/dates"
 	"github.com/hexya-erp/hexya/pool/h"
 )
 
 func init() {
 
 	h.AccountAgedTrialBalance().DeclareTransientModel()
+	h.AccountAgedTrialBalance().InheritModel(h.AccountCommonPartnerReport())
+
 	h.AccountAgedTrialBalance().AddFields(map[string]models.FieldDefinition{
-		"PeriodLength": models.IntegerField{String: "PeriodLength" /*[string 'Period Length (days)']*/, Required: true, Default: models.DefaultValue(30)},
-		"Journals":     models.Many2ManyField{String: "Journals", RelationModel: h.AccountJournal(), JSON: "journal_ids" /*['account.journal']*/ /*[ required True]*/},
-		"DateFrom":     models.DateField{String: "DateFrom" /*[default lambda *a: time.strftime('%Y-%m-%d']*/},
+		"PeriodLength": models.IntegerField{String: "Period Length (days)", Required: true,
+			Default: models.DefaultValue(30)},
 	})
-	h.AccountAgedTrialBalance().Methods().PrintReport().DeclareMethod(
-		`PrintReport`,
-		func(rs h.AccountAgedTrialBalanceSet, args struct {
-			Data interface{}
-		}) {
+	h.AccountAgedTrialBalance().Fields().Journals().SetRequired(true)
+	h.AccountAgedTrialBalance().Fields().DateFrom().SetDefault(func(env models.Environment) interface{} {
+		return dates.Today()
+	})
+
+	h.AccountAgedTrialBalance().Methods().PrintReport().Extend("",
+		func(rs h.AccountAgedTrialBalanceSet, data interface{}) *actions.Action {
 			/*def _print_report(self, data):
 			  res = {}
 			  data = self.pre_print_report(data)
@@ -44,6 +49,9 @@ func init() {
 			  data['form'].update(res)
 			  return self.env['report'].with_context(landscape=True).get_action(self, 'account.report_agedpartnerbalance', data=data)
 			*/
+			return &actions.Action{
+				Type: actions.ActionActWindow,
+			}
 		})
 
 }

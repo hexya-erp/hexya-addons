@@ -6,7 +6,19 @@ package sale
 import (
 	"github.com/hexya-erp/hexya-addons/account"
 	"github.com/hexya-erp/hexya-addons/saleTeams"
+	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/pool/h"
+)
+
+var (
+	// GroupSaleLayout enables layouts in sale reports
+	GroupSaleLayout *security.Group
+	// GroupDeliveryInvoiceAddress enables different delivery and invoice addresses
+	GroupDeliveryInvoiceAddress *security.Group
+	// GroupShowPriceSubtotal shows line subtotals without taxes (B2B)
+	GroupShowPriceSubtotal *security.Group
+	// GroupShowPriceTotal shows line subtotals with taxes (B2C)
+	GroupShowPriceTotal *security.Group
 )
 
 func init() {

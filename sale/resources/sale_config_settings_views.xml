@@ -1,6 +1,6 @@
 <hexya>
     <data>
-        <view id="sale_view_sales_config" model="SaleConfigSettings">
+ <!--       <view id="sale_view_sales_config" model="SaleConfigSettings">
             <div id="main" position="inside">
                 <group string="Products">
                     <field name="group_product_variant" widget="radio"/>
@@ -54,5 +54,5 @@
                 </div>
             </form>
         </view>
-    </data>
+-->    </data>
 </hexya>
