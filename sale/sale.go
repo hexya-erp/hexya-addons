@@ -472,7 +472,7 @@ based on the template if online quotation is installed.`},
 			case invoices.Len() == 1:
 				action.Views = []views.ViewTuple{{
 					ID:   "account_invoice_form",
-					Type: views.VIEW_TYPE_FORM,
+					Type: views.ViewTypeForm,
 				}}
 				action.ResID = invoices.ID()
 			default:
