@@ -64,13 +64,14 @@ from the fiscal year only. Account types that should be reset to zero at each ne
 		"UserType": models.Many2OneField{String: "Type", RelationModel: h.AccountAccountType(),
 			Required: true, Help: `Account Type is used for information purpose, to generate country-specific
 legal reports, and set the rules to close a fiscal year and generate opening entries.`},
-		"InternalType": models.SelectionField{Related: "UserType.Type", /*readonly=True)*/
+		"InternalType": models.SelectionField{Related: "UserType.Type", ReadOnly: true,
 			Constraint: h.AccountAccount().Methods().CheckReconcile(),
 			OnChange:   h.AccountAccount().Methods().OnchangeInternalType()},
-		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date", /*[ readonly True]*/
+		"LastTimeEntriesChecked": models.DateTimeField{String: "Latest Invoices & Payments Matching Date",
+			ReadOnly: true, NoCopy: true,
 			Help: `Last time the invoices & payments matching was performed on this account.
 It is set either if there's not at least an unreconciled debit and an unreconciled credit
-or if you click the "Done" button.`, NoCopy: true},
+or if you click the "Done" button.`},
 		"Reconcile": models.BooleanField{String: "Allow Reconciliation", Default: models.DefaultValue(false),
 			Constraint: h.AccountAccount().Methods().CheckReconcile(),
 			Help:       "Check this box if this account allows invoices & payments matching of journal items."},
@@ -722,7 +723,7 @@ to manage payments outside of the software.`},
 
 	h.BankAccount().AddFields(map[string]models.FieldDefinition{
 		"Journal": models.One2ManyField{RelationModel: h.AccountJournal(), ReverseFK: "BankAccount",
-			JSON: "journal_id", Filter: q.AccountJournal().Type().Equals("bank"), /* readonly=True */
+			JSON: "journal_id", Filter: q.AccountJournal().Type().Equals("bank"), ReadOnly: true,
 			Help:       "The accounting journal corresponding to this bank account.",
 			Constraint: h.BankAccount().Methods().CheckJournal()},
 	})

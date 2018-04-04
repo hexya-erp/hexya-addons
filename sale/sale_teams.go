@@ -22,7 +22,7 @@ func init() {
 		"UseInvoices": models.BooleanField{String: "Invoices",
 			Help: "Check this box to manage invoices in this sales team."},
 		"Invoiced": models.FloatField{String: "Invoiced This Month",
-			Compute: h.CRMTeam().Methods().ComputeInvoiced(), /*[ readonly True]*/
+			Compute: h.CRMTeam().Methods().ComputeInvoiced(),
 			Help: `Invoice revenue for the current month. This is the amount the sales
 team has invoiced this month. It is used to compute the progression ratio
 of the current and target revenue on the kanban view.`},
@@ -30,8 +30,8 @@ of the current and target revenue on the kanban view.`},
 			Help: `Target of invoice revenue for the current month. This is the amount the sales
 team estimates to be able to invoice this month.`},
 		"SalesToInvoiceAmount": models.FloatField{String: "Amount of sales to invoice",
-			Compute: h.CRMTeam().Methods().ComputeSalesToInvoiceAmount() /*[ readonly True]*/},
-		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency", /* readonly=true */
+			Compute: h.CRMTeam().Methods().ComputeSalesToInvoiceAmount()},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency", ReadOnly: true,
 			Required: true},
 	})
 

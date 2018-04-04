@@ -708,7 +708,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	h.ProductSupplierinfo().SetDefaultOrder("Sequence", "MinQty DESC", "Price")
 
 	h.ProductSupplierinfo().AddFields(map[string]models.FieldDefinition{
-		"Name": models.Many2OneField{String: "Vendor", RelationModel: h.Partner(),
+		"Name": models.Many2OneField{String: "Vendor", RelationModel: h.Partner(), JSON: "name",
 			Filter: q.Partner().Supplier().Equals(true), OnDelete: models.Cascade, Required: true,
 			Help: "Vendor of this product"},
 		"ProductName": models.CharField{String: "Vendor Product Name",
@@ -719,8 +719,8 @@ Keep empty to use the internal one.`},
 Keep empty to use the internal one.`},
 		"Sequence": models.IntegerField{Default: models.DefaultValue(1),
 			Help: "Assigns the priority to the list of product vendor."},
-		"ProductUom": models.Many2OneField{String: "Vendor Unit of Measure", RelationModel: h.ProductUom(), /* readonly=true */
-			Related: "ProductTmpl.UomPo", Help: "This comes from the product form."},
+		"ProductUom": models.Many2OneField{String: "Vendor Unit of Measure", RelationModel: h.ProductUom(),
+			ReadOnly: true, Related: "ProductTmpl.UomPo", Help: "This comes from the product form."},
 		"MinQty": models.FloatField{String: "Minimal Quantity", Default: models.DefaultValue(0), Required: true,
 			Help: `The minimal quantity to purchase from this vendor, expressed in the vendor Product Unit of Measure if any,
 or in the default unit of measure of the product otherwise.`},

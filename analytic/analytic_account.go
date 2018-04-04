@@ -42,7 +42,7 @@ func init() {
 		"Debit":   models.FloatField{Compute: h.AccountAnalyticAccount().Methods().ComputeDebitCreditBalance()},
 		"Credit":  models.FloatField{Compute: h.AccountAnalyticAccount().Methods().ComputeDebitCreditBalance()},
 		"Currency": models.Many2OneField{String: "Currency", RelationModel: h.Currency(),
-			Related: "Company.Currency" /* readonly=true */},
+			Related: "Company.Currency", ReadOnly: true},
 	})
 
 	h.AccountAnalyticAccount().Methods().ComputeDebitCreditBalance().DeclareMethod(
@@ -118,8 +118,8 @@ func init() {
 				return user
 			}},
 		"Tags":     models.Many2ManyField{RelationModel: h.AccountAnalyticTag(), JSON: "tag_ids"},
-		"Company":  models.Many2OneField{RelationModel: h.Company(), Related: "Account.Company" /* readonly=true */},
-		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency" /* readonly=true */},
+		"Company":  models.Many2OneField{RelationModel: h.Company(), Related: "Account.Company", ReadOnly: true},
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency", ReadOnly: true},
 	})
 
 }

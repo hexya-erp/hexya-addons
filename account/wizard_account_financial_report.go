@@ -12,6 +12,7 @@ import (
 func init() {
 
 	h.AccountingReport().DeclareTransientModel()
+	h.AccountingReport().InheritModel(h.AccountCommonReport())
 	h.AccountingReport().Methods().GetAccountReport().DeclareMethod(
 		`GetAccountReport`,
 		func(rs h.AccountingReportSet) {

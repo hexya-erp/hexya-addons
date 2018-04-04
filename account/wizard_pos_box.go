@@ -69,6 +69,7 @@ func init() {
 	h.CashBoxIn().AddFields(map[string]models.FieldDefinition{
 		"Ref": models.CharField{String: "Reference')" /*['Reference']*/},
 	})
+	h.CashBoxIn().InheritModel(h.CashBox())
 	h.CashBoxIn().Methods().CalculateValuesForStatementLine().DeclareMethod(
 		`CalculateValuesForStatementLine`,
 		func(rs h.CashBoxInSet, args struct {
@@ -93,6 +94,7 @@ func init() {
 		})
 
 	h.CashBoxOut().DeclareTransientModel()
+	h.CashBoxOut().InheritModel(h.CashBox())
 	h.CashBoxOut().Methods().CalculateValuesForStatementLine().DeclareMethod(
 		`CalculateValuesForStatementLine`,
 		func(rs h.CashBoxOutSet, args struct {

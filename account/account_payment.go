@@ -33,7 +33,7 @@ func init() {
 		"PaymentMethod": models.Many2OneField{String: "Payment Method Type",
 			RelationModel: h.AccountPaymentMethod(), Required: true},
 		"PaymentMethodCode": models.CharField{
-			Help: "Technical field used to adapt the interface to the payment type selected." /*[ readonly True]*/},
+			Help: "Technical field used to adapt the interface to the payment type selected.", ReadOnly: true},
 		"PartnerType": models.SelectionField{Selection: types.Selection{
 			"customer": "Customer",
 			"supplier": "Vendor",
@@ -52,7 +52,7 @@ func init() {
 		"Journal": models.Many2OneField{String: "Payment Journal", RelationModel: h.AccountJournal(),
 			Required: true, Filter: q.AccountJournal().Type().In([]string{"bank", "cash"}),
 			OnChange: h.AccountAbstractPayment().Methods().OnchangeJournal()},
-		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company" /* readonly=true */},
+		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company", ReadOnly: true},
 		"HidePaymentMethod": models.BooleanField{
 			Compute: h.AccountAbstractPayment().Methods().ComputeHidePaymentMethod(),
 			Help: `Technical field used to hide the payment method if the selected journal
@@ -248,27 +248,27 @@ has only one available which is 'manual'`},
 	h.AccountPayment().SetDefaultOrder("PaymentDate DESC", "Name DESC")
 
 	h.AccountPayment().AddFields(map[string]models.FieldDefinition{
-		"Name": models.CharField{String: "Name" /*[readonly True]*/, NoCopy: true,
-			Default: models.DefaultValue("Draft Payment") /* The name is attributed upon post(]*/},
+		"Name": models.CharField{String: "Name", ReadOnly: true, NoCopy: true,
+			Default: models.DefaultValue("Draft Payment")},
 		"State": models.SelectionField{String: "Status", Selection: types.Selection{
 			"draft":      "Draft",
 			"posted":     "Posted",
 			"sent":       "Sent",
 			"reconciled": "Reconciled",
-		}, /*[readonly True]*/ Default: models.DefaultValue("draft"), NoCopy: true},
-		"PaymentReference": models.CharField{String: "PaymentReference", NoCopy: true, /*[ readonly True]*/
+		}, ReadOnly: true, Default: models.DefaultValue("draft"), NoCopy: true},
+		"PaymentReference": models.CharField{String: "PaymentReference", NoCopy: true, ReadOnly: true,
 			Help: "Reference of the document used to issue this payment. Eg. check number, file name, etc."},
-		"MoveName": models.CharField{String: "Journal Entry Name", /*[ readonly True]*/
+		"MoveName": models.CharField{String: "Journal Entry Name", ReadOnly: true,
 			Default: models.DefaultValue(false), NoCopy: true,
 			Help: `Technical field holding the number given to the journal entry, automatically set when the statement
 line is reconciled then stored to set the same number again if the line is cancelled,
 set to draft and re-processed again." `},
 		"DestinationAccount": models.Many2OneField{RelationModel: h.AccountAccount(),
-			Compute: h.AccountPayment().Methods().ComputeDestinationAccount() /* readonly=true */},
+			Compute: h.AccountPayment().Methods().ComputeDestinationAccount()},
 		"DestinationJournal": models.Many2OneField{String: "Transfer To", RelationModel: h.AccountJournal(),
 			Filter: q.AccountJournal().Type().In([]string{"bank", "cash"})},
 		"Invoices": models.Many2ManyField{RelationModel: h.AccountInvoice(), JSON: "invoice_ids",
-			NoCopy: true /*[ readonly True]*/},
+			NoCopy: true, ReadOnly: true},
 		"HasInvoices": models.BooleanField{Compute: h.AccountPayment().Methods().ComputeHasInvoices(),
 			Help: "Technical field used for usability purposes"},
 		"PaymentDifference": models.FloatField{Compute: h.AccountPayment().Methods().ComputePaymentDifference()},
@@ -279,7 +279,7 @@ set to draft and re-processed again." `},
 		"WriteoffAccount": models.Many2OneField{String: "Difference Account", RelationModel: h.AccountAccount(),
 			Filter: q.AccountAccount().Deprecated().Equals(false)},
 		"MoveLines": models.One2ManyField{RelationModel: h.AccountMoveLine(), ReverseFK: "Payment",
-			JSON: "move_line_ids" /* readonly */, NoCopy: true},
+			JSON: "move_line_ids", ReadOnly: true, NoCopy: true},
 	})
 
 	//h.AccountPayment().Fields().PaymentType().

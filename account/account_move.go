@@ -40,7 +40,7 @@ func init() {
 		"State": models.SelectionField{String: "Status", Selection: types.Selection{
 			"draft":  "Unposted",
 			"posted": "Posted",
-		}, Required: true /*[ readonly True]*/, NoCopy: true, Default: models.DefaultValue("draft"),
+		}, Required: true, ReadOnly: true, NoCopy: true, Default: models.DefaultValue("draft"),
 			Help: `All manually created new journal entries are usually in the status 'Unposted' but you can set the option
 to skip that status on the related journal. In that case they will behave as journal entries
 automatically created by the system on document validation (invoices, bank statements...) and
@@ -49,11 +49,11 @@ will be created in 'Posted' status.'`},
 			ReverseFK: "Move", JSON: "line_ids" /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, NoCopy: false},
 		"Partner": models.Many2OneField{RelationModel: h.Partner(),
 			Compute: h.AccountMove().Methods().ComputePartner(),
-			Depends: []string{"Lines", "Lines.Partner"}, Stored: true /* readonly=true */},
+			Depends: []string{"Lines", "Lines.Partner"}, Stored: true},
 		"Amount": models.FloatField{Compute: h.AccountMove().Methods().AmountCompute(),
 			Depends: []string{"Lines", "Lines.Debit", "Lines.Credit"}, Stored: true},
 		"Narration": models.TextField{String: "Internal Note"},
-		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company", /* readonly=true */
+		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Journal.Company", ReadOnly: true,
 			Default: func(env models.Environment) interface{} {
 				return h.User().NewSet(env).CurrentUser().Company()
 			}},
@@ -64,7 +64,7 @@ will be created in 'Posted' status.'`},
 				"Lines.Account", "Lines.Account.UserType", "Lines.Account.UserType.Type"}, Stored: true,
 			Help: "Technical field used in cash basis method"},
 		"StatementLine": models.Many2OneField{String: "Bank statement line reconciled with this entry",
-			RelationModel: h.AccountBankStatementLine(), Index: true, NoCopy: true /* readonly=true */},
+			RelationModel: h.AccountBankStatementLine(), Index: true, NoCopy: true, ReadOnly: true},
 		"DummyAccount": models.Many2OneField{String: "Account", RelationModel: h.AccountAccount(),
 			Related: "Lines.Account"},
 	})
@@ -407,7 +407,7 @@ views from reports`},
 			Constraint: h.AccountMoveLine().Methods().CheckCurrencyAccountAmount(),
 			Help:       "The amount expressed in an optional other currency if it is a multi-currency entry."},
 		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency",
-			/* readonly=true */ Help: "Utility field to express amount currency', store=True"},
+			ReadOnly: true, Help: "Utility field to express amount currency"},
 		"Currency": models.Many2OneField{RelationModel: h.Currency(),
 			Default: func(env models.Environment) interface{} {
 				if env.Context().HasKey("default_journal_id") {
@@ -462,7 +462,7 @@ You can put the limit date for the payment of this line.`},
 		"Date": models.DateField{Related: "Move.Date", Index: true, NoCopy: true},
 		"AnalyticLines": models.One2ManyField{RelationModel: h.AccountAnalyticLine(), ReverseFK: "Move",
 			JSON: "analytic_line_ids"},
-		"Taxes": models.Many2ManyField{RelationModel: h.AccountTax()},
+		"Taxes": models.Many2ManyField{RelationModel: h.AccountTax(), JSON: "tax_ids"},
 		"TaxLine": models.Many2OneField{String: "Originator tax", RelationModel: h.AccountTax(),
 			OnDelete: models.Restrict},
 		"AnalyticAccount": models.Many2OneField{String: "Analytic Account",
@@ -1696,8 +1696,8 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 		"Amount":         models.FloatField{Help: "Amount concerned by this matching. Assumed to be always positive"},
 		"AmountCurrency": models.FloatField{String: "Amount in Currency"},
 		"Currency":       models.Many2OneField{RelationModel: h.Currency()},
-		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency", /* readonly=true */
-			Help: "Utility field to express amount currency"},
+		"CompanyCurrency": models.Many2OneField{RelationModel: h.Currency(), Related: "Company.Currency",
+			ReadOnly: true, Help: "Utility field to express amount currency"},
 		"Company":       models.Many2OneField{RelationModel: h.Company(), Related: "DebitMove.Company"},
 		"FullReconcile": models.Many2OneField{RelationModel: h.AccountFullReconcile(), NoCopy: true},
 	})

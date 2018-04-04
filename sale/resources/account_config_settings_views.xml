@@ -1,6 +1,6 @@
 <hexya>
     <data>
-        <view id="sale_view_account_config" model="AccountConfigSettings">
+      <!--  <view id="sale_view_account_config" model="AccountConfigSettings">
             <separator name="analytic_account" position="attributes">
                 <attribute name="invisible">0</attribute>
             </separator>
@@ -13,6 +13,6 @@
                     <label for="group_analytic_account_for_sales"/>
                 </div>
             </xpath>
-        </view>
+        </view>-->
     </data>
 </hexya>

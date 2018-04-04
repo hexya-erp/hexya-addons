@@ -295,14 +295,18 @@
             <form string="Bank Account">
                 <sheet>
                     <field name="type" invisible="1"/>
-                    <div class="oe_title">
-                        <label for="bank_acc_number" required="1" class="oe_edit_only"/>
-                        <h1>
-                            <field name="bank_acc_number" required="1"/>
-                        </h1>
-                    </div>
+                    <!-- FIXME -->
+                    <group>
+                        <field name="BankAccount"/>
+                    </group>
+                    <!--<div class="oe_title">-->
+                        <!--<label for="bank_acc_number" required="1" class="oe_edit_only"/>-->
+                        <!--<h1>-->
+                            <!--<field name="bank_acc_number" required="1"/>-->
+                        <!--</h1>-->
+                    <!--</div>-->
                     <group col="4">
-                        <field name="bank_id"/>
+                        <!--<field name="bank_id"/>-->
                         <field name="display_on_footer"/>
                         <field name="company_id" options="{&apos;no_create&apos;: True}"
                                groups="base.group_multi_company"/>

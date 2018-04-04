@@ -42,7 +42,7 @@ func init() {
 			"sale":   "Sales Order",
 			"done":   "Locked",
 			"cancel": "Cancelled",
-		}, /*[ readonly True]*/ NoCopy: true, Index: true, /*[ track_visibility 'onchange']*/
+		}, ReadOnly: true, NoCopy: true, Index: true, /*[ track_visibility 'onchange']*/
 			Default: models.DefaultValue("draft")},
 		"DateOrder": models.DateTimeField{String: "Order Date", Required: true, Index: true, /*[ readonly True]*/
 			/*[ states {'draft': [('readonly']*/ /*[ False)]]*/
@@ -55,7 +55,7 @@ func init() {
 			/*[ 'sent': [('readonly'] [ False)]}]*/
 			Help: `Manually set the expiration date of your quotation (offer), or it will set the date automatically
 based on the template if online quotation is installed.`},
-		"ConfirmationDate": models.DateTimeField{ /*[ readonly True]*/ Index: true,
+		"ConfirmationDate": models.DateTimeField{Index: true, ReadOnly: true,
 			Help: "Date on which the sale order is confirmed."},
 		"User": models.Many2OneField{String: "Salesperson", RelationModel: h.User(), Index: true, /*[ track_visibility 'onchange']*/
 			Default: func(env models.Environment) interface{} {
@@ -82,7 +82,7 @@ based on the template if online quotation is installed.`},
 			/*[ 'sent': [('readonly'] [ False)]}]*/
 			Help: "Pricelist for current sales order."},
 		"Currency": models.Many2OneField{RelationModel: h.Currency(),
-			Related: "Pricelist.Currency" /* readonly=true */, Required: true},
+			Related: "Pricelist.Currency", ReadOnly: true, Required: true},
 		"Project": models.Many2OneField{String: "Analytic Account", RelationModel: h.AccountAnalyticAccount(),
 			/* readonly=true */
 			/*[ states {'draft': [('readonly'] [ False)]]*/
@@ -97,28 +97,28 @@ based on the template if online quotation is installed.`},
 			NoCopy: false},
 		"InvoiceCount": models.IntegerField{String: "# of Invoices",
 			Compute: h.SaleOrder().Methods().GetInvoiced(),
-			Depends: []string{"state", "OrderLine.InvoiceStatus"}, GoType: new(int) /*[ readonly True]*/},
+			Depends: []string{"state", "OrderLine.InvoiceStatus"}, GoType: new(int)},
 		"Invoices": models.Many2ManyField{String: "Invoices", RelationModel: h.AccountInvoice(),
 			JSON: "invoice_ids", Compute: h.SaleOrder().Methods().GetInvoiced(),
-			Depends: []string{"state", "OrderLine.InvoiceStatus"} /*[ readonly True]*/, NoCopy: true},
+			Depends: []string{"state", "OrderLine.InvoiceStatus"}, NoCopy: true},
 		"InvoiceStatus": models.SelectionField{Selection: types.Selection{
 			"upselling":  "Upselling Opportunity",
 			"invoiced":   "Fully Invoiced",
 			"to invoice": "To Invoice",
 			"no":         "Nothing to Invoice",
 		}, Compute: h.SaleOrder().Methods().GetInvoiced(),
-			Depends: []string{"state", "OrderLine.InvoiceStatus"}, Stored: true /*readonly=true*/},
+			Depends: []string{"state", "OrderLine.InvoiceStatus"}, Stored: true},
 		"Note": models.TextField{String: "Terms and conditions",
 			Default: func(env models.Environment) interface{} {
 				return h.User().NewSet(env).CurrentUser().Company().SaleNote()
 			}},
-		"AmountUntaxed": models.FloatField{String: "Untaxed Amount", Stored: true, /*[ readonly True]*/
+		"AmountUntaxed": models.FloatField{String: "Untaxed Amount", Stored: true,
 			Compute: h.SaleOrder().Methods().AmountAll(), /*[ track_visibility 'always']*/
 			Depends: []string{"OrderLine.PriceTotal"}},
-		"AmountTax": models.FloatField{String: "Taxes", Stored: true, /*[ readonly True]*/
+		"AmountTax": models.FloatField{String: "Taxes", Stored: true,
 			Compute: h.SaleOrder().Methods().AmountAll(), /*[ track_visibility 'always']*/
 			Depends: []string{"OrderLine.PriceTotal"}},
-		"AmountTotal": models.FloatField{String: "Total", Stored: true, /*[ readonly True]*/
+		"AmountTotal": models.FloatField{String: "Total", Stored: true,
 			Compute: h.SaleOrder().Methods().AmountAll(), /*[ track_visibility 'always']*/
 			Depends: []string{"OrderLine.PriceTotal"}},
 		"PaymentTerm": models.Many2OneField{String: "Payment Terms", RelationModel: h.AccountPaymentTerm()},
@@ -472,7 +472,7 @@ based on the template if online quotation is installed.`},
 			case invoices.Len() == 1:
 				action.Views = []views.ViewTuple{{
 					ID:   "account_invoice_form",
-					Type: views.VIEW_TYPE_FORM,
+					Type: views.ViewTypeForm,
 				}}
 				action.ResID = invoices.ID()
 			default:
@@ -809,7 +809,7 @@ based on the template if online quotation is installed.`},
 			"to invoice": "To Invoice",
 			"no":         "Nothing to Invoice",
 		},
-			Compute: h.SaleOrderLine().Methods().ComputeInvoiceStatus(), Stored: true, /* readonly=true */
+			Compute: h.SaleOrderLine().Methods().ComputeInvoiceStatus(), Stored: true,
 			Depends: []string{"State", "ProductUom", "QtyDelivered", "QtyToInvoice", "QtyInvoiced"},
 			Default: models.DefaultValue("no"),
 		},
@@ -817,24 +817,24 @@ based on the template if online quotation is installed.`},
 			Digits:   decimalPrecision.GetPrecision("Product Price"),
 			OnChange: h.SaleOrderLine().Methods().OnchangeDiscount()},
 		"PriceSubtotal": models.FloatField{String: "Subtotal",
-			Compute: h.SaleOrderLine().Methods().ComputeAmount() /*[ readonly True]*/, Stored: true,
+			Compute: h.SaleOrderLine().Methods().ComputeAmount(), Stored: true,
 			Depends: []string{"ProductUomQty", "Discount", "PriceUnit", "Tax"}},
 		"PriceTax": models.FloatField{String: "Taxes",
-			Compute: h.SaleOrderLine().Methods().ComputeAmount() /*[ readonly True]*/, Stored: true,
+			Compute: h.SaleOrderLine().Methods().ComputeAmount(), Stored: true,
 			Depends: []string{"ProductUomQty", "Discount", "PriceUnit", "Tax"}},
 		"PriceTotal": models.FloatField{String: "Total",
-			Compute: h.SaleOrderLine().Methods().ComputeAmount() /*[ readonly True]*/, Stored: true,
+			Compute: h.SaleOrderLine().Methods().ComputeAmount(), Stored: true,
 			Depends: []string{"ProductUomQty", "Discount", "PriceUnit", "Tax"}},
 		"PriceReduce": models.FloatField{String: "Price Reduce",
-			Compute: h.SaleOrderLine().Methods().GetPriceReduce() /*[ readonly True]*/, Stored: true,
+			Compute: h.SaleOrderLine().Methods().GetPriceReduce(), Stored: true,
 			Depends: []string{"PriceUnit", "Discount"}},
 		"Tax": models.Many2ManyField{String: "Taxes",
 			RelationModel: h.AccountTax(), JSON: "tax_id",
 			OnChange: h.SaleOrderLine().Methods().OnchangeDiscount(),
 			Filter:   q.AccountTax().Active().Equals(true).Or().Active().Equals(false)},
-		"PriceReduceTaxInc": models.FloatField{Compute: h.SaleOrderLine().Methods().GetPriceReduceTax(), /*[ readonly True]*/
+		"PriceReduceTaxInc": models.FloatField{Compute: h.SaleOrderLine().Methods().GetPriceReduceTax(),
 			Stored: true, Depends: []string{"PriceTotal", "ProductUomQty"}},
-		"PriceReduceTaxExcl": models.FloatField{Compute: h.SaleOrderLine().Methods().GetPriceReduceNotax(), /*[ readonly True]*/
+		"PriceReduceTaxExcl": models.FloatField{Compute: h.SaleOrderLine().Methods().GetPriceReduceNotax(),
 			Stored: true, Depends: []string{"PriceSubtotal", "ProductUomQty"}},
 		"Discount": models.FloatField{String: "Discount (%)",
 			Digits: decimalPrecision.GetPrecision("Discount")},
@@ -849,22 +849,24 @@ based on the template if online quotation is installed.`},
 			OnChange: h.SaleOrderLine().Methods().ProductUomChange(),
 			Required: true},
 		"QtyDeliveredUpdateable": models.BooleanField{String: "Can Edit Delivered",
-			Compute: h.SaleOrderLine().Methods().ComputeQtyDeliveredUpdateable(), /*[ readonly True]*/
+			Compute: h.SaleOrderLine().Methods().ComputeQtyDeliveredUpdateable(),
 			Depends: []string{"Product.InvoicePolicy", "Order.State"},
 			Default: models.DefaultValue(true)},
 		"QtyDelivered": models.FloatField{String: "Delivered", NoCopy: true,
 			Digits: decimalPrecision.GetPrecision("Product Unit of Measure")},
 		"QtyToInvoice": models.FloatField{String: "To Invoice",
-			Compute: h.SaleOrderLine().Methods().GetToInvoiceQty(), Stored: true, /*[ readonly True]*/
+			Compute: h.SaleOrderLine().Methods().GetToInvoiceQty(), Stored: true,
 			Depends: []string{"QtyInvoiced", "QtyDelivered", "ProductUomQty", "Order.State"},
 			Digits:  decimalPrecision.GetPrecision("Product Unit of Measure")},
 		"QtyInvoiced": models.FloatField{String: "Invoiced", Compute: h.SaleOrderLine().Methods().GetInvoiceQty(),
 			Depends: []string{"InvoiceLines.Invoice.State", "InvoiceLines.Quantity"},
-			Stored:  true /*[ readonly True]*/, Digits: decimalPrecision.GetPrecision("Product Unit of Measure")},
-		"Salesman": models.Many2OneField{String: "Salesperson", RelationModel: h.User(), Related: "Order.User" /* readonly=true */},
+			Stored:  true, Digits: decimalPrecision.GetPrecision("Product Unit of Measure")},
+		"Salesman": models.Many2OneField{String: "Salesperson", RelationModel: h.User(), Related: "Order.User",
+			ReadOnly: true},
 		"Currency": models.Many2OneField{String: "Currency", RelationModel: h.Currency(),
-			Related: "Order.Currency" /* readonly=true */},
-		"Company": models.Many2OneField{String: "Company", RelationModel: h.Company(), Related: "Order.Company" /* readonly=true */},
+			Related: "Order.Currency", ReadOnly: true},
+		"Company": models.Many2OneField{String: "Company", RelationModel: h.Company(), Related: "Order.Company",
+			ReadOnly: true},
 		"OrderPartner": models.Many2OneField{String: "Customer", RelationModel: h.Partner(),
 			Related: "Order.Partner"},
 		"AnalyticTags": models.Many2ManyField{String: "Analytic Tags", RelationModel: h.AccountAnalyticTag(),
@@ -876,7 +878,7 @@ based on the template if online quotation is installed.`},
 			"done":   "Done",
 			"cancel": "Cancelled",
 		},
-			Related: "Order.State" /*[ readonly True]*/, NoCopy: true, Default: models.DefaultValue("draft")},
+			Related: "Order.State", ReadOnly: true, NoCopy: true, Default: models.DefaultValue("draft")},
 		"CustomerLead": models.IntegerField{String: "Delivery Lead Time", Required: true, GoType: new(int),
 			Help: "Number of days between the order confirmation and the shipping of the products to the customer"},
 		"Procurements": models.One2ManyField{String: "ProcurementIds", RelationModel: h.ProcurementOrder(),

@@ -13,14 +13,17 @@ func init() {
 
 	h.AccountMoveLineReconcile().DeclareTransientModel()
 	h.AccountMoveLineReconcile().AddFields(map[string]models.FieldDefinition{
-		"TransNbr": models.IntegerField{String: "TransNbr" /*[string '# of Transaction']*/ /*[ readonly True]*/},
-		"Credit":   models.FloatField{String: "Credit" /*[string 'Credit amount']*/ /*[ readonly True]*/, Digits: nbutils.Digits{0, 0}},
-		"Debit":    models.FloatField{String: "Debit" /*[string 'Debit amount']*/ /*[ readonly True]*/, Digits: nbutils.Digits{0, 0}},
-		"Writeoff": models.FloatField{String: "Writeoff" /*[string 'Write-Off amount']*/ /*[ readonly True]*/, Digits: nbutils.Digits{0, 0}},
-		"Company": models.Many2OneField{String: "Company", RelationModel: h.Company(), JSON: "company_id" /*['res.company']*/, Required: true, Default: func(env models.Environment) interface{} {
-			/*lambda self: self.env.user.company_id*/
-			return 0
-		}},
+		"TransNbr": models.IntegerField{String: "# of Transaction", ReadOnly: true},
+		"Credit": models.FloatField{String: "Credit amount", ReadOnly: true,
+			Digits: nbutils.Digits{0, 0}},
+		"Debit": models.FloatField{String: "Debit amount", ReadOnly: true,
+			Digits: nbutils.Digits{0, 0}},
+		"Writeoff": models.FloatField{String: "Write-off amount", ReadOnly: true,
+			Digits: nbutils.Digits{0, 0}},
+		"Company": models.Many2OneField{String: "Company", RelationModel: h.Company(),
+			Required: true, Default: func(env models.Environment) interface{} {
+				return h.User().NewSet(env).CurrentUser().Company()
+			}},
 	})
 	h.AccountMoveLineReconcile().Methods().DefaultGet().DeclareMethod(
 		`DefaultGet`,

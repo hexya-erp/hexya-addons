@@ -367,10 +367,8 @@ Use this field anywhere a small image is required.`},
 			if name == "" {
 				return rs.Super().SearchByName(name, op, additionalCond, limit)
 			}
-			for _, term := range additionalCond.Fields() {
-				if h.ProductTemplate().JSONizeFieldName(term) == "id" {
-					return rs.Super().SearchByName(name, op, additionalCond, limit)
-				}
+			if additionalCond.HasField(h.ProductTemplate().Fields().ID()) {
+				return rs.Super().SearchByName(name, op, additionalCond, limit)
 			}
 
 			templates := h.ProductTemplate().NewSet(rs.Env())

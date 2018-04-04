@@ -307,9 +307,9 @@ To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 			Digits:     decimalPrecision.GetPrecision("Product Price"),
 			Help:       "Specify the maximum amount of margin over the base price.",
 			Constraint: h.ProductPricelistItem().Methods().CheckMargin()},
-		"Company": models.Many2OneField{RelationModel: h.Company(), /* readonly=true */
+		"Company": models.Many2OneField{RelationModel: h.Company(), ReadOnly: true,
 			Related: "Pricelist.Company"},
-		"Currency": models.Many2OneField{RelationModel: h.Currency(), /* readonly=true */
+		"Currency": models.Many2OneField{RelationModel: h.Currency(), ReadOnly: true,
 			Related: "Pricelist.Currency"},
 		"DateStart": models.DateField{String: "Start Date", Help: "Starting date for the pricelist item validation"},
 		"DateEnd":   models.DateField{String: "End Date", Help: "Ending valid for the pricelist item validation"},

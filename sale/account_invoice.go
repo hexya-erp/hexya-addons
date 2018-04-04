@@ -118,7 +118,7 @@ func init() {
 
 	h.AccountInvoiceLine().AddFields(map[string]models.FieldDefinition{
 		"SaleLines": models.Many2ManyField{String: "Sale Order Lines", RelationModel: h.SaleOrderLine(),
-			JSON: "sale_line_ids", NoCopy: true /*[ readonly True]*/},
+			JSON: "sale_line_ids", NoCopy: true, ReadOnly: true},
 		"LayoutCategory":         models.Many2OneField{String: "Section", RelationModel: h.SaleLayoutCategory()},
 		"LayoutCategorySequence": models.IntegerField{String: "Layout Sequence"},
 	})
