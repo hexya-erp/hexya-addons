@@ -52,7 +52,8 @@ func init() {
 			ReverseFK: "Value", JSON: "price_ids", ReadOnly: true},
 	})
 
-	h.ProductAttributeValue().AddSQLConstraint("ValueCompanyUniq", "unique (name,attribute_id)", "This attribute value already exists !")
+	// TODO Convert to constrains method
+	//h.ProductAttributeValue().AddSQLConstraint("ValueCompanyUniq", "unique (name,attribute_id)", "This attribute value already exists !")
 
 	h.ProductAttributeValue().Methods().ComputePriceExtra().DeclareMethod(
 		`ComputePriceExtra returns the price extra for this attribute for the product

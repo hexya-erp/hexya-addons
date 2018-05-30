@@ -1,3 +1,3 @@
-"ID","Name","Parent"
-"product_product_category_all","All",""
-"product_product_category_1","Saleable","product_product_category_all"
+"ID","Name","Parent","Type"
+"product_product_category_all","All","","normal"
+"product_product_category_1","Saleable","product_product_category_all","normal"

@@ -809,8 +809,9 @@ to the same analytic account as the invoice line (if any)`},
 			}, Required: true},
 	})
 
-	h.AccountTax().AddSQLConstraint("name_company_uniq", "unique(name, company_id, type_tax_use)",
-		"Tax names must be unique !")
+	// TODO Convert to constrains method
+	//h.AccountTax().AddSQLConstraint("name_company_uniq", "unique(name, company_id, type_tax_use)",
+	//	"Tax names must be unique !")
 
 	h.AccountTax().Methods().Unlink().Extend("",
 		func(rs h.AccountTaxSet) int64 {
