@@ -801,7 +801,7 @@ based on the template if online quotation is installed.`},
 			Required: true, OnDelete: models.Cascade, Index: true, NoCopy: true},
 		"Name":     models.TextField{String: "Description", Required: true},
 		"Sequence": models.IntegerField{String: "Sequence", Default: models.DefaultValue(10)},
-		"InvoiceLines": models.Many2ManyField{String: "Invoice Lines",
+		"InvoiceLines": models.Many2ManyField{String: "Invoice Lines", JSON: "invoice_lines",
 			RelationModel: h.AccountInvoiceLine(), NoCopy: true},
 		"InvoiceStatus": models.SelectionField{Selection: types.Selection{
 			"upselling":  "Upselling Opportunity",
