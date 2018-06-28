@@ -57,12 +57,10 @@ func init() {
 			}
 			accountDebit := h.AccountAnalyticLine().Search(rs.Env(), cond.And().Amount().Lower(0)).
 				GroupBy(h.AccountAnalyticLine().Account()).Aggregates(h.AccountAnalyticLine().Amount())
-			debitVal, _ := accountDebit[0].Values.Get("Amount", h.AccountAnalyticLine().Underlying())
-			debit := debitVal.(float64)
+			debit := accountDebit[0].Values.Amount
 			accountCredit := h.AccountAnalyticLine().Search(rs.Env(), cond.And().Amount().GreaterOrEqual(0)).
 				GroupBy(h.AccountAnalyticLine().Account()).Aggregates(h.AccountAnalyticLine().Amount())
-			creditVal, _ := accountCredit[0].Values.Get("Amount", h.AccountAnalyticLine().Underlying())
-			credit := creditVal.(float64)
+			credit := accountCredit[0].Values.Amount
 			return &h.AccountAnalyticAccountData{
 				Debit:   debit,
 				Credit:  credit,
