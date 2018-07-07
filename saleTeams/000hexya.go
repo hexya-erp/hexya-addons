@@ -4,9 +4,9 @@
 package saleTeams
 
 import (
-	_ "github.com/hexya-erp/hexya-addons/webKanban"
 	"github.com/hexya-erp/hexya-base/base"
 	"github.com/hexya-erp/hexya-base/web/controllers"
+	_ "github.com/hexya-erp/hexya-base/webKanban"
 
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/server"
