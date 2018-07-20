@@ -1149,13 +1149,13 @@ based on the template if online quotation is installed.`},
 		`PrepareInvoiceLine prepares the data to create the new invoice line for a sales order line.`,
 		func(rs h.SaleOrderLineSet, qty float64) *h.AccountInvoiceLineData {
 			rs.EnsureOne()
-			account := rs.Product().Categ().PropertyAccountIncomeCateg()
+			account := rs.Product().Category().PropertyAccountIncomeCateg()
 			if !rs.Product().PropertyAccountIncome().IsEmpty() {
 				account = rs.Product().PropertyAccountIncome()
 			}
 			if account.IsEmpty() {
 				panic(rs.T("Please define income account for this product: '%s' (id:%d) - or for its category: '%s'.",
-					rs.Product().Name(), rs.Product().ID(), rs.Product().Categ().Name()))
+					rs.Product().Name(), rs.Product().ID(), rs.Product().Category().Name()))
 			}
 			fPos := rs.Order().Partner().PropertyAccountPosition()
 			if !rs.Order().FiscalPosition().IsEmpty() {

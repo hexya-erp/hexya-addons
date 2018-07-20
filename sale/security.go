@@ -49,7 +49,7 @@ func init() {
 	h.ProductUom().Methods().Load().AllowGroup(saleTeams.GroupSaleSalesman)
 	h.ProductPricelist().Methods().Load().AllowGroup(saleTeams.GroupSaleSalesman)
 	h.AccountAccount().Methods().Load().AllowGroup(saleTeams.GroupSaleSalesman)
-	h.ProductUomCateg().Methods().AllowAllToGroup(saleTeams.GroupSaleManager)
+	h.ProductUomCategory().Methods().AllowAllToGroup(saleTeams.GroupSaleManager)
 	h.ProductUom().Methods().AllowAllToGroup(saleTeams.GroupSaleManager)
 	h.ProductCategory().Methods().AllowAllToGroup(saleTeams.GroupSaleManager)
 	h.ProductSupplierinfo().Methods().Load().AllowGroup(saleTeams.GroupSaleSalesman)

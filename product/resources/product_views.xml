@@ -39,7 +39,7 @@
                             <group>
                                 <group name="group_general">
                                     <field name="type"/>
-                                    <field name="categ_id" string="Internal Category"/>
+                                    <field name="category_id" string="Internal Category"/>
                                 </group>
                                 <group name="group_standard_price">
                                     <field name="list_price" widget="monetary"
@@ -101,7 +101,7 @@
             <search string="Product">
                 <field name="name" string="Product"
                        filter_domain="[&apos;|&apos;,&apos;|&apos;,(&apos;default_code&apos;,&apos;ilike&apos;,self),(&apos;name&apos;,&apos;ilike&apos;,self),(&apos;barcode&apos;,&apos;ilike&apos;,self)]"/>
-                <field name="categ_id" filter_domain="[(&apos;categ_id&apos;, &apos;child_of&apos;, self)]"/>
+                <field name="category_id" filter_domain="[(&apos;categ_id&apos;, &apos;child_of&apos;, self)]"/>
                 <separator/>
                 <filter string="Services" name="services"
                         domain="[(&apos;type&apos;,&apos;=&apos;,&apos;service&apos;)]"/>

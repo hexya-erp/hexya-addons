@@ -76,8 +76,8 @@
                                 </kanban>
                             </field>
                         </page>
-                        <page string="More Info" name="more_info" groups="base.group_no_one">
-                            <group string="Company" groups="base.group_multi_company">
+                        <page string="More Info" name="more_info" groups="base_group_no_one">
+                            <group string="Company" groups="base_group_multi_company">
                                 <field name="company_id" options="{&apos;no_create&apos;: True}"/>
                             </group>
                         </page>
@@ -135,32 +135,32 @@
                   parent="sale_teams_menu_base_partner" groups="group_sale_manager"/>
         <!--<menuitem id="sale_teams_menu_sale_general_settings" name="Settings" sequence="0"-->
                   <!--parent="sale_teams_menu_sale_config" action="sale_teams_action_sale_config"-->
-                  <!--groups="base.group_system"/>-->
+                  <!--groups="base_group_system"/>-->
         <menuitem id="sale_teams_menu_config_address_book" name="Contacts" sequence="4"
-                  parent="sale_teams_menu_sale_config" groups="base.group_system"/>
+                  parent="sale_teams_menu_sale_config" groups="base_group_system"/>
         <menuitem id="sale_teams_menu_partner_category_form" name="Contact Tags" sequence="1"
                   parent="sale_teams_menu_config_address_book" action="base_action_partner_category_form"
-                  groups="base.group_no_one"/>
+                  groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_partner_title_contact" name="Contact Titles" sequence="3"
                   parent="sale_teams_menu_config_address_book" action="base_action_partner_title_contact"
-                  groups="base.group_no_one"/>
+                  groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_localisation" name="Localization" sequence="5"
-                  parent="sale_teams_menu_config_address_book" groups="base.group_no_one"/>
+                  parent="sale_teams_menu_config_address_book" groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_country_partner" sequence="1" parent="sale_teams_menu_localisation"
-                  action="base_action_country" groups="base.group_no_one"/>
+                  action="base_action_country" groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_country_group" name="Country Group" sequence="3"
-                  parent="sale_teams_menu_localisation" action="base_action_country_group" groups="base.group_no_one"/>
+                  parent="sale_teams_menu_localisation" action="base_action_country_group" groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_country_state_partner" sequence="2" parent="sale_teams_menu_localisation"
-                  action="base_action_country_state" groups="base.group_no_one"/>
+                  action="base_action_country_state" groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_action_currency_form" sequence="3" parent="sale_teams_menu_localisation"
-                  action="base_action_currency_form" groups="base.group_multi_currency"/>
+                  action="base_action_currency_form" groups="base_group_multi_currency"/>
         <menuitem id="sale_teams_menu_config_bank_accounts" name="Bank Accounts" sequence="6"
-                  parent="sale_teams_menu_config_address_book" groups="base.group_no_one"/>
+                  parent="sale_teams_menu_config_address_book" groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_action_res_bank_form" sequence="1" parent="sale_teams_menu_config_bank_accounts"
-                  action="base_action_res_bank_form" groups="base.group_no_one"/>
+                  action="base_action_res_bank_form" groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_action_res_partner_bank_form" sequence="2"
                   parent="sale_teams_menu_config_bank_accounts" action="base_action_res_partner_bank_account_form"
-                  groups="base.group_no_one"/>
+                  groups="base_group_no_one"/>
         <menuitem id="sale_teams_menu_sale_teams_act" name="Dashboard" sequence="1"
                   parent="sale_teams_menu_base_partner" action="sale_teams_crm_team_salesteams_act"/>
         <menuitem id="sale_teams_menu_sale_report" name="Reports" sequence="99" parent="sale_teams_menu_base_partner"

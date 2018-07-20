@@ -46,13 +46,13 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 	the e-commerce such as e-books, music, pictures,...
 	The "Digital Product" module has to be installed.`},
 		"Rental": models.BooleanField{String: "Can be Rent"},
-		"Categ": models.Many2OneField{String: "Internal Category", RelationModel: h.ProductCategory(),
+		"Category": models.Many2OneField{String: "Internal Category", RelationModel: h.ProductCategory(),
 			Default: func(env models.Environment) interface{} {
-				if env.Context().HasKey("categ_id") {
-					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("categ_id")})
+				if env.Context().HasKey("category_id") {
+					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("category_id")})
 				}
-				if env.Context().HasKey("default_categ_id") {
-					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("default_categ_id")})
+				if env.Context().HasKey("default_category_id") {
+					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("default_category_id")})
 				}
 				category := h.ProductCategory().Search(env, q.ProductCategory().HexyaExternalID().Equals("product_product_category_all"))
 				if category.Type() != "normal" {
@@ -112,7 +112,7 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 the picking order and is mainly used if you use the EDI module.`},
 		"Sellers": models.One2ManyField{String: "Vendors", RelationModel: h.ProductSupplierinfo(),
 			ReverseFK: "ProductTmpl", JSON: "seller_ids"},
-		"Active": models.BooleanField{Default: models.DefaultValue(true),
+		"Active": models.BooleanField{Default: models.DefaultValue(true), Required: true,
 			Help: "If unchecked, it will allow you to hide the product without removing it."},
 		"Color": models.IntegerField{String: "Color Index"},
 		"AttributeLines": models.One2ManyField{String: "Product Attributes",
@@ -329,7 +329,12 @@ Use this field anywhere a small image is required.`},
 				Volume:        data.Volume,
 				Weight:        data.Weight,
 			}
-			template.Write(relatedVals)
+			template.Write(relatedVals,
+				h.ProductTemplate().Barcode(),
+				h.ProductTemplate().DefaultCode(),
+				h.ProductTemplate().StandardPrice(),
+				h.ProductTemplate().Volume(),
+				h.ProductTemplate().Weight())
 			return template
 		})
 

@@ -8,7 +8,7 @@
                 <field name="name"/>
                 <field name="list_price"/>
                 <field name="standard_price"/>
-                <field name="categ_id"/>
+                <field name="category_id"/>
                 <field name="type"/>
                 <field name="uom_id" options="{&apos;no_open&apos;: True, &apos;no_create&apos;: True}"
                        groups="product.group_uom"/>

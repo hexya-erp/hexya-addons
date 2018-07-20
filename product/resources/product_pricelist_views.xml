@@ -7,7 +7,7 @@
                 <field colspan="4" name="name"/>
                 <field name="product_id" groups="product.group_product_variant"/>
                 <field name="product_tmpl_id"/>
-                <field name="categ_id"/>
+                <field name="category_id"/>
                 <field name="min_quantity"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
@@ -22,7 +22,7 @@
                 <group>
                     <group>
                         <field name="applied_on" widget="radio"/>
-                        <field name="categ_id"
+                        <field name="category_id"
                                attrs="{&apos;invisible&apos;:[(&apos;applied_on&apos;, &apos;!=&apos;, &apos;2_product_category&apos;)], &apos;required&apos;:[(&apos;applied_on&apos;, &apos;=&apos;, &apos;2_product_category&apos;)]}"/>
                         <field name="product_tmpl_id"
                                attrs="{&apos;invisible&apos;:[(&apos;applied_on&apos;, &apos;!=&apos;, &apos;1_product&apos;)],&apos;required&apos;:[(&apos;applied_on&apos;, &apos;=&apos;, &apos;1_product&apos;)]}"

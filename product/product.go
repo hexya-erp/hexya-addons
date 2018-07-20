@@ -34,7 +34,7 @@ func init() {
 			ReverseFK: "Parent", JSON: "child_id"},
 		"Type": models.SelectionField{String: "Category Type", Selection: types.Selection{"view": "View", "normal": "Normal"},
 			Default: models.DefaultValue("normal"), Help: "A category of the view type is a virtual category that can be used as the parent of another category to create a hierarchical structure."},
-		"Products": models.One2ManyField{RelationModel: h.ProductTemplate(), ReverseFK: "Categ"},
+		"Products": models.One2ManyField{RelationModel: h.ProductTemplate(), ReverseFK: "Category"},
 		"ProductCount": models.IntegerField{String: "# Products", Compute: h.ProductCategory().Methods().ComputeProductCount(),
 			Help:    "The number of products under this category (Does not consider the children categories)",
 			Depends: []string{"Products"}, GoType: new(int)},
@@ -44,7 +44,7 @@ func init() {
 		`ComputeProductCount returns the number of products within this category (not considering children categories)`,
 		func(rs h.ProductCategorySet) *h.ProductCategoryData {
 			return &h.ProductCategoryData{
-				ProductCount: h.ProductTemplate().Search(rs.Env(), q.ProductTemplate().Categ().Equals(rs)).SearchCount(),
+				ProductCount: h.ProductTemplate().Search(rs.Env(), q.ProductTemplate().Category().Equals(rs)).SearchCount(),
 			}
 		})
 
@@ -431,9 +431,9 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	h.ProductProduct().Methods().Search().Extend("",
 		func(rs h.ProductProductSet, cond q.ProductProductCondition) h.ProductProductSet {
 			// FIXME: strange...
-			if categID := rs.Env().Context().GetInteger("search_default_categ_id"); categID != 0 {
+			if categID := rs.Env().Context().GetInteger("search_default_category_id"); categID != 0 {
 				categ := h.ProductCategory().Browse(rs.Env(), []int64{categID})
-				cond = cond.AndCond(q.ProductProduct().Categ().ChildOf(categ))
+				cond = cond.AndCond(q.ProductProduct().Category().ChildOf(categ))
 			}
 			return rs.Super().Search(cond)
 		})

@@ -14,9 +14,9 @@ import (
 
 func init() {
 
-	h.ProductUomCateg().DeclareModel()
+	h.ProductUomCategory().DeclareModel()
 
-	h.ProductUomCateg().AddFields(map[string]models.FieldDefinition{
+	h.ProductUomCategory().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Name", Required: true, Translate: true},
 	})
 
@@ -25,7 +25,7 @@ func init() {
 
 	h.ProductUom().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Unit of Measure", Required: true, Translate: true},
-		"Category": models.Many2OneField{RelationModel: h.ProductUomCateg(), Required: true, OnDelete: models.Cascade,
+		"Category": models.Many2OneField{RelationModel: h.ProductUomCategory(), Required: true, OnDelete: models.Cascade,
 			Help: `Conversion between Units of Measure can only occur if they belong to the same category.
 The conversion will be made based on the ratios.`},
 		"Factor": models.FloatField{String: "Ratio", Default: models.DefaultValue(1.0), Required: true,

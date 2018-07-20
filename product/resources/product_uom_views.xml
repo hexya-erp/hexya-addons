@@ -52,7 +52,7 @@
             </help>
         </action>
 
-        <view id="product_product_uom_categ_form_view" model="ProductUomCateg">
+        <view id="product_product_uom_categ_form_view" model="ProductUomCategory">
             <form string="Units of Measure categories">
                 <group>
                     <field name="name"/>
@@ -61,7 +61,7 @@
         </view>
 
         <action id="product_product_uom_categ_form_action" type="ir.actions.act_window"
-                name="Unit of Measure Categories" model="ProductUomCateg" view_mode="tree,form">
+                name="Unit of Measure Categories" model="ProductUomCategory" view_mode="tree,form">
             <help>
                 <p class="oe_view_nocontent_create">
                     Click to add a new unit of measure category.

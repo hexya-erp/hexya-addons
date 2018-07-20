@@ -45,7 +45,7 @@ func init() {
 			ReadOnly: true},
 		"FiscalPosition": models.Many2OneField{RelationModel: h.AccountFiscalPosition(), ReadOnly: true},
 		"Currency":       models.Many2OneField{RelationModel: h.Currency(), ReadOnly: true},
-		"Categ": models.Many2OneField{String: "Product Category", RelationModel: h.ProductCategory(),
+		"Category": models.Many2OneField{String: "Product Category", RelationModel: h.ProductCategory(),
 			ReadOnly: true},
 		"Journal": models.Many2OneField{RelationModel: h.AccountJournal(), ReadOnly: true},
 		"Partner": models.Many2OneField{RelationModel: h.Partner(), ReadOnly: true},
