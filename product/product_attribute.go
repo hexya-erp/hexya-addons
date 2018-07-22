@@ -121,7 +121,10 @@ You are trying to delete an attribute value with a reference on a product varian
 		attributes values of the given variable attributes'`,
 		func(rs h.ProductAttributeValueSet, variableAttribute h.ProductAttributeSet) string {
 			var names []string
-			for _, attrValue := range h.ProductAttributeValue().NewSet(rs.Env()).Browse(rs.Ids()).OrderBy("Attribute.Name").Records() {
+			rSet := rs.Sorted(func(rs1, rs2 h.ProductAttributeValueSet) bool {
+				return rs1.Attribute().Name() < rs2.Attribute().Name()
+			})
+			for _, attrValue := range rSet.Records() {
 				if attrValue.Attribute().Intersect(variableAttribute).IsEmpty() {
 					continue
 				}
