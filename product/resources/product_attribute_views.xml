@@ -16,7 +16,7 @@
             <tree string="Variant Values" editable="top">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="create_variant" groups="base.group_no_one"/>
+                <field name="create_variant" groups="base_group_no_one"/>
             </tree>
         </view>
 
@@ -38,7 +38,7 @@
                             <field name="name"/>
                         </form>
                     </field>
-                    <field name="create_variant" groups="base.group_no_one"/>
+                    <field name="create_variant" groups="base_group_no_one"/>
                 </group>
             </form>
         </view>

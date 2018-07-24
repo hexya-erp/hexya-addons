@@ -6,7 +6,7 @@
                 <header>
                     <button string="Variant Prices" type="action" name="product_product_attribute_value_action"
                             attrs="{&apos;invisible&apos;: [(&apos;product_variant_count&apos;, &apos;&lt;=&apos;, 1)]}"
-                            groups="product.group_product_variant"/>
+                            groups="product_group_product_variant"/>
                 </header>
                 <sheet>
                     <field name="product_variant_count" invisible="1"/>
@@ -23,7 +23,7 @@
                         <h1>
                             <field name="name" placeholder="Product Name"/>
                         </h1>
-                        <div name="options" groups="base.group_user">
+                        <div name="options" groups="base_group_user">
                             <div>
                                 <field name="sale_ok"/>
                                 <label for="sale_ok"/>
@@ -44,17 +44,17 @@
                                 <group name="group_standard_price">
                                     <field name="list_price" widget="monetary"
                                            options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"/>
-                                    <label for="standard_price" groups="base.group_user"/>
-                                    <div name="standard_price_uom" groups="base.group_user">
+                                    <label for="standard_price" groups="base_group_user"/>
+                                    <div name="standard_price_uom" groups="base_group_user">
                                         <field name="standard_price" widget="monetary"
                                                options="{&apos;currency_field&apos;: &apos;currency_id&apos;}"
                                                class="oe_inline"/>
                                     </div>
-                                    <field name="company_id" groups="base.group_multi_company"
+                                    <field name="company_id" groups="base_group_multi_company"
                                            options="{&apos;no_create&apos;: True}"/>
-                                    <field name="uom_id" groups="product.group_uom"
+                                    <field name="uom_id" groups="product_group_uom"
                                            options="{&apos;no_create&apos;: True}"/>
-                                    <field name="uom_po_id" groups="product.group_uom"
+                                    <field name="uom_po_id" groups="product_group_uom"
                                            options="{&apos;no_create&apos;: True}"/>
                                     <field name="currency_id" invisible="1"/>
                                 </group>
@@ -62,7 +62,7 @@
                         </page>
                         <page string="Sales" attrs="{&apos;invisible&apos;:[(&apos;sale_ok&apos;,&apos;=&apos;,False)]}"
                               name="sales">
-                            <div name="pricelist_item" groups="product.group_product_pricelist">
+                            <div name="pricelist_item" groups="product_group_product_pricelist">
                                 <separator string="Pricing"/>
                                 <field name="item_ids" nolabel="1"
                                        context="{&apos;default_base&apos;:&apos;list_price&apos;, &apos;default_applied_on&apos; :&apos;1_product&apos;}">
@@ -114,9 +114,9 @@
                         domain="[(&apos;purchase_ok&apos;, &apos;=&apos;, 1)]"/>
                 <separator/>
                 <filter string="Archived" name="inactive" domain="[(&apos;active&apos;,&apos;=&apos;,False)]"/>
-                <field string="Attributes" name="attribute_line_ids" groups="product.group_product_variant"/>
+                <field string="Attributes" name="attribute_line_ids" groups="product_group_product_variant"/>
                 <field name="pricelist_id" widget="selection" context="{&apos;pricelist&apos;: self}" filter_domain="[]"
-                       groups="product.group_sale_pricelist"/>
+                       groups="product_group_sale_pricelist"/>
                 <!-- Keep widget=selection on this field to pass numeric `self` value, which is not the case for regular m2o widgets! -->
             </search>
         </view>
@@ -133,7 +133,7 @@
         <view id="product_product_search_form_view" inherit_id="product_product_template_search_view"
               model="ProductProduct">
             <field name="attribute_line_ids" position="replace">
-                <field name="attribute_value_ids" groups="product.group_product_variant"/>
+                <field name="attribute_value_ids" groups="product_group_product_variant"/>
                 <field name="product_tmpl_id" string="Product Template"/>
             </field>
         </view>
@@ -239,11 +239,11 @@
             <tree string="Product Variants">
                 <field name="default_code"/>
                 <field name="name"/>
-                <field name="attribute_value_ids" widget="many2many_tags" groups="product.group_product_variant"/>
+                <field name="attribute_value_ids" widget="many2many_tags" groups="product_group_product_variant"/>
                 <field name="lst_price"/>
                 <field name="price" invisible="not context.get(&apos;pricelist&apos;,False)"/>
                 <field name="uom_id" options="{&apos;no_open&apos;: True, &apos;no_create&apos;: True}"
-                       groups="product.group_uom"/>
+                       groups="product_group_uom"/>
                 <field name="barcode"/>
                 <field name="product_tmpl_id" invisible="1"/>
                 <field name="active" invisible="1"/>
@@ -287,7 +287,7 @@
                 </field>
             </field>
             <xpath expr="//div[@class=&apos;oe_title&apos;]" position="inside">
-                <field name="attribute_value_ids" widget="many2many_tags" groups="product.group_product_variant"/>
+                <field name="attribute_value_ids" widget="many2many_tags" groups="product_group_product_variant"/>
             </xpath>
         </view>
 
@@ -299,7 +299,7 @@
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
                             <div class="o_kanban_tags_section">
-                                <field name="attribute_value_ids" groups="product.group_product_variant"/>
+                                <field name="attribute_value_ids" groups="product_group_product_variant"/>
                             </div>
                             <div class="o_kanban_image">
                                 <img t-att-src="kanban_image(&apos;product.product&apos;, &apos;image_small&apos;, record.id.value)"/>
@@ -435,12 +435,12 @@
                         <label for="min_qty"/>
                         <div>
                             <field name="min_qty" class="oe_inline"/>
-                            <field name="product_uom_id" class="oe_inline" groups="product.group_uom"/>
+                            <field name="product_uom_id" class="oe_inline" groups="product_group_uom"/>
                         </div>
                         <label for="price"/>
                         <div>
                             <field name="price" class="oe_inline"/>
-                            <field name="currency_id" class="oe_inline" groups="base.group_multi_currency"/>
+                            <field name="currency_id" class="oe_inline" groups="base_group_multi_currency"/>
                         </div>
                         <label for="date_start" string="Validity"/>
                         <div>
@@ -449,7 +449,7 @@
                             <field name="date_end" class="oe_inline"/>
                         </div>
                     </group>
-                    <group string="Other Information" groups="base.group_multi_company">
+                    <group string="Other Information" groups="base_group_multi_company">
                         <field name="company_id" options="{&apos;no_create&apos;: True}"/>
                     </group>
                 </group>

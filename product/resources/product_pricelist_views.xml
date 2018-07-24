@@ -5,7 +5,7 @@
             <tree string="Pricelist Items">
                 <field name="sequence" widget="handle"/>
                 <field colspan="4" name="name"/>
-                <field name="product_id" groups="product.group_product_variant"/>
+                <field name="product_id" groups="product_group_product_variant"/>
                 <field name="product_tmpl_id"/>
                 <field name="category_id"/>
                 <field name="min_quantity"/>
@@ -54,7 +54,7 @@
                         </div>
                     </group>
                 </group>
-                <div class="oe_grey" groups="product.group_uom">
+                <div class="oe_grey" groups="product_group_uom">
                     <p>The computed price is expressed in the default Unit of Measure of the product.</p>
                 </div>
                 <group col="6"
@@ -91,7 +91,7 @@
         <view id="product_product_pricelist_view_search" model="ProductPricelist">
             <search string="Products Price Search">
                 <field name="name" string="Products Price"/>
-                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="currency_id" groups="base_group_multi_currency"/>
                 <filter string="Archived" name="inactive" domain="[(&apos;active&apos;,&apos;=&apos;,False)]"/>
             </search>
         </view>
@@ -100,7 +100,7 @@
             <tree string="Products Price List">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
-                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="currency_id" groups="base_group_multi_currency"/>
             </tree>
         </view>
 
@@ -119,12 +119,12 @@
                         </h1>
                     </div>
                     <group>
-                        <field name="currency_id" groups="base.group_multi_currency"/>
-                        <field name="company_id" groups="base.group_multi_company"
+                        <field name="currency_id" groups="base_group_multi_currency"/>
+                        <field name="company_id" groups="base_group_multi_company"
                                options="{&apos;no_create&apos;: True}"/>
                         <field name="country_group_ids"/>
                     </group>
-                    <div groups="product.group_pricelist_item">
+                    <div groups="product_group_pricelist_item">
                         <separator string="Pricelist Items"/>
                         <field name="item_ids" nolabel="1" context="{&apos;default_base&apos;:&apos;list_price&apos;}">
                             <tree string="Pricelist Items">
