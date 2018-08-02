@@ -46,7 +46,7 @@ to skip that status on the related journal. In that case they will behave as jou
 automatically created by the system on document validation (invoices, bank statements...) and
 will be created in 'Posted' status.'`},
 		"Lines": models.One2ManyField{String: "Journal Items", RelationModel: h.AccountMoveLine(),
-			ReverseFK: "Move", JSON: "line_ids" /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, NoCopy: false},
+			ReverseFK: "Move", JSON: "line_ids" /*[ states {'posted': [('readonly']*/ /*[ True)]}]*/, Copy: true},
 		"Partner": models.Many2OneField{RelationModel: h.Partner(),
 			Compute: h.AccountMove().Methods().ComputePartner(),
 			Depends: []string{"Lines", "Lines.Partner"}, Stored: true},

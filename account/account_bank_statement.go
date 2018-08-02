@@ -161,7 +161,7 @@ func init() {
 			Help:    "Difference between the computed ending balance and the specified ending balance."},
 		"Lines": models.One2ManyField{String: "Statement Line",
 			RelationModel: h.AccountBankStatementLine(), ReverseFK: "Statement", JSON: "line_ids",
-			/*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/ NoCopy: false},
+			/*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/ Copy: true},
 		"MoveLines": models.One2ManyField{String: "Entry Lines", RelationModel: h.AccountMoveLine(),
 			ReverseFK: "Statement", JSON: "move_line_ids" /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/},
 		"AllLinesReconciled": models.BooleanField{

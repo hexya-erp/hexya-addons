@@ -29,7 +29,7 @@ func init() {
 		"Active": models.BooleanField{Default: models.DefaultValue(true), Required: true,
 			Help: "If unchecked, it will allow you to hide the pricelist without removing it."},
 		"Items": models.One2ManyField{String: "Pricelist Items", RelationModel: h.ProductPricelistItem(),
-			ReverseFK: "Pricelist", JSON: "item_ids", NoCopy: false,
+			ReverseFK: "Pricelist", JSON: "item_ids", Copy: true,
 			Default: func(env models.Environment) interface{} {
 				listItems := h.ProductPricelistItem().NewSet(env)
 				values, _ := listItems.DataStruct(listItems.DefaultGet())

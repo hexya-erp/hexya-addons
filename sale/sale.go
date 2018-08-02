@@ -94,7 +94,7 @@ based on the template if online quotation is installed.`},
 			ReverseFK: "Order",
 			/*[ states {'cancel': [('readonly'] [ True)]]*/
 			/*[ 'done': [('readonly'] [ True)]}]*/
-			NoCopy: false},
+			Copy: true},
 		"InvoiceCount": models.IntegerField{String: "# of Invoices",
 			Compute: h.SaleOrder().Methods().GetInvoiced(),
 			Depends: []string{"state", "OrderLine.InvoiceStatus"}, GoType: new(int)},

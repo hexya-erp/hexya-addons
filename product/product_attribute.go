@@ -25,7 +25,7 @@ func init() {
 	h.ProductAttribute().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{Required: true, Translate: true},
 		"Values": models.One2ManyField{RelationModel: h.ProductAttributeValue(), ReverseFK: "Attribute",
-			JSON: "value_ids", NoCopy: false},
+			JSON: "value_ids", Copy: true},
 		"Sequence": models.IntegerField{Help: "Determine the display order"},
 		"AttributeLines": models.One2ManyField{String: "Lines", RelationModel: h.ProductAttributeLine(),
 			ReverseFK: "Attribute", JSON: "attribute_line_ids"},
