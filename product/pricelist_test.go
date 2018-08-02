@@ -9,6 +9,7 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/models/types"
+	"github.com/hexya-erp/hexya/hexya/models/types/dates"
 	"github.com/hexya-erp/hexya/pool/h"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -82,6 +83,42 @@ func TestPriceList(t *testing.T) {
 				dataCardUnit := pltd.dataCard.WithNewContext(unitContext)
 				dataCardDozen := pltd.dataCard.WithNewContext(dozenContext)
 				So(dataCardUnit.Price()*12, ShouldAlmostEqual, dataCardDozen.Price(), .000000001)
+			})
+			Convey("Pricelist Unit of Measure", func() {
+				pltd := getTestPriceListData(env)
+				tonnePrice := float64(100)
+				pltd.uomTon.SetRounding(0.001)
+				spam := pltd.usbAdapter.Copy(&h.ProductProductData{
+					Name:      "1 tonne of spam",
+					Uom:       pltd.uomTon,
+					UomPo:     pltd.uomTon,
+					ListPrice: tonnePrice,
+					Type:      "consu",
+				})
+
+				h.ProductPricelistItem().Create(env, &h.ProductPricelistItemData{
+					Pricelist:      pltd.publicPriceList,
+					Sequence:       10,
+					AppliedOn:      "0_product_variant",
+					ComputePrice:   "formula",
+					Base:           "ListPrice",
+					MinQuantity:    3,
+					PriceSurcharge: -10,
+					Product:        spam,
+				})
+
+				testUnitPrice := func(qty float64, uom h.ProductUomSet, expectedUnitPrice float64) {
+					sp := spam.WithNewContext(types.NewContext().WithKey("uom", uom.ID()))
+					unitPrice := pltd.publicPriceList.WithNewContext(types.NewContext().WithKey("uom", uom.ID())).
+						GetProductPrice(sp, qty, h.Partner().NewSet(env), dates.Date{}, h.ProductUom().NewSet(env))
+					So(unitPrice, ShouldAlmostEqual, expectedUnitPrice, 0.000000001)
+				}
+
+				testUnitPrice(2, pltd.uomKgm, tonnePrice/1000)
+				testUnitPrice(2000, pltd.uomKgm, tonnePrice/1000)
+				testUnitPrice(3500, pltd.uomKgm, (tonnePrice-10)/1000)
+				testUnitPrice(2, pltd.uomTon, tonnePrice)
+				testUnitPrice(3, pltd.uomTon, tonnePrice-10)
 			})
 		}), ShouldBeNil)
 	})
