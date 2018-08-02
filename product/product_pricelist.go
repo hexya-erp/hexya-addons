@@ -26,7 +26,7 @@ func init() {
 
 	h.ProductPricelist().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Pricelist Name", Required: true, Translate: true},
-		"Active": models.BooleanField{Default: models.DefaultValue(true),
+		"Active": models.BooleanField{Default: models.DefaultValue(true), Required: true,
 			Help: "If unchecked, it will allow you to hide the pricelist without removing it."},
 		"Items": models.One2ManyField{String: "Pricelist Items", RelationModel: h.ProductPricelistItem(),
 			ReverseFK: "Pricelist", JSON: "item_ids", NoCopy: false,
@@ -107,18 +107,18 @@ func init() {
 			// Final unit price is computed according to `qty` in the `qty_uom_id` UoM.
 			// An intermediary unit price may be computed according to a different UoM, in
 			// which case the price_uom_id contains that UoM.
-			// The final price will be converted to match `qty_uom_id`.
+			// The final price will be converted to match `qtyUom`.
 			qtyUom := product.Uom()
 			if rs.Env().Context().HasKey("uom") {
 				qtyUom = h.ProductUom().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("uom")})
 			}
-			priceUom := product.Uom()
 			qtyInProductUom := quantity
 			if !qtyUom.Equals(product.Uom()) {
 				if qtyUom.Category().Equals(product.Uom().Category()) {
 					qtyInProductUom = qtyUom.ComputeQuantity(quantity, product.Uom(), true)
 				}
 			}
+			priceUom := qtyUom
 			price = product.PriceCompute(h.ProductProduct().ListPrice(),
 				h.ProductUom().NewSet(rs.Env()), h.Currency().NewSet(rs.Env()), h.Company().NewSet(rs.Env()))
 
@@ -149,7 +149,7 @@ func init() {
 					price = rule.BasePricelist().Currency().Compute(priceTmp, rs.Currency(), false)
 				} else {
 					// if base option is public price take sale price else cost price of product
-					// price_compute returns the price in the context UoM, i.e. qty_uom_id
+					// price_compute returns the price in the context UoM, i.e. QtyUom
 					price = product.PriceCompute(models.FieldName(rule.Base()), h.ProductUom().NewSet(rs.Env()),
 						h.Currency().NewSet(rs.Env()), h.Company().NewSet(rs.Env()))
 				}
@@ -281,7 +281,7 @@ to lowest sequence and stops as soon as a matching item is found.`},
 			"ListPrice":     "Public Price",
 			"StandardPrice": "Cost",
 			"pricelist":     "Other Pricelist",
-		}, Default: models.DefaultValue("list_price"), Required: true,
+		}, Default: models.DefaultValue("ListPrice"), Required: true,
 			Help: `Base price for computation.
 - Public Price: The base price will be the Sale/public Price.
 - Cost Price : The base price will be the cost price.

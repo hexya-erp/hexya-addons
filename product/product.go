@@ -52,7 +52,7 @@ func init() {
 		`CheckCategoryRecursion panics if there is a recursion in the category tree.`,
 		func(rs h.ProductCategorySet) {
 			if !rs.CheckRecursion() {
-				log.Panic(rs.T("Error ! You cannot create recursive categories."))
+				panic(rs.T("Error ! You cannot create recursive categories."))
 			}
 		})
 
@@ -624,6 +624,15 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		for the given company.`,
 		func(rs h.ProductProductSet, priceType models.FieldNamer, uom h.ProductUomSet, currency h.CurrencySet, company h.CompanySet) float64 {
 			rs.EnsureOne()
+			// FIXME: delegate to template or not ? fields are reencoded here ...
+			// compatibility about context keys used a bit everywhere in the code
+			if uom.IsEmpty() && rs.Env().Context().HasKey("uom") {
+				uom = h.ProductUom().NewSet(rs.Env()).Browse([]int64{rs.Env().Context().GetInteger("uom")})
+			}
+			if currency.IsEmpty() && rs.Env().Context().HasKey("currency") {
+				currency = h.Currency().NewSet(rs.Env()).Browse([]int64{rs.Env().Context().GetInteger("currency")})
+			}
+
 			product := rs
 			if priceType == h.ProductProduct().StandardPrice() {
 				// StandardPrice field can only be seen by users in base.group_user
