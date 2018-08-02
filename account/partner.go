@@ -322,7 +322,7 @@ since last time the invoices & payments matching was performed.`},
 It is set either if there\'s not at least an unreconciled debit and an unreconciled
 credit or if you click the "Done" button.`},
 		"Invoices": models.One2ManyField{RelationModel: h.AccountInvoice(), ReverseFK: "Partner",
-			JSON: "invoice_ids", ReadOnly: true, NoCopy: true},
+			JSON: "invoice_ids", ReadOnly: true},
 		"Contracts": models.One2ManyField{RelationModel: h.AccountAnalyticAccount(), ReverseFK: "Partner",
 			JSON: "contract_ids", ReadOnly: true},
 		"BankAccountCount": models.IntegerField{String: "Bank",

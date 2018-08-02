@@ -108,7 +108,7 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 		"InvoiceLines": models.One2ManyField{String: "Invoice Lines", RelationModel: h.AccountInvoiceLine(),
 			ReverseFK: "Invoice", JSON: "invoice_line_ids", /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			OnChange: h.AccountInvoice().Methods().OnchangeInvoiceLines(),
-			NoCopy:   false},
+			Copy:     true},
 		"TaxLines": models.One2ManyField{RelationModel: h.AccountInvoiceTax(), ReverseFK: "Invoice",
 			JSON: "tax_line_ids" /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/, Copy: true},
 		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: h.AccountMove(), ReadOnly: true,
