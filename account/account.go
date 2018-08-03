@@ -537,7 +537,7 @@ to manage payments outside of the software.`},
 			)
 			for num := 1; num < 100; num++ {
 				newCode = strings.Replace(
-					fmt.Sprintf("%-[1]*[2]d%d", codeDigits-1, accountCodePrefix, num), " ", "0", -1)
+					fmt.Sprintf("%-[1]*[2]s%d", codeDigits-1, accountCodePrefix, num), " ", "0", -1)
 				rec := h.AccountAccount().Search(rs.Env(),
 					q.AccountAccount().Code().Equals(newCode).And().Company().Equals(company)).Limit(1)
 				if rec.IsEmpty() {

@@ -201,7 +201,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			partnerID := rs.Env().Context().GetInteger("partner")
 			partner := h.Partner().Browse(rs.Env(), []int64{partnerID})
 			return &h.ProductProductData{
-				Price: priceList.GetProductPrice(rs, quantity, partner, dates.Today(), h.ProductUom().NewSet(rs.Env())),
+				Price: priceList.GetProductPrice(rs, quantity, partner, dates.Date{}, h.ProductUom().NewSet(rs.Env())),
 			}
 		})
 

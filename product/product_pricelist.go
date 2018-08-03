@@ -92,7 +92,7 @@ func init() {
 			prodCond := q.ProductPricelistItem().Product().IsNull().Or().Product().Equals(product)
 			categCond := q.ProductPricelistItem().Category().IsNull().Or().Category().In(categs)
 			dateStartCond := q.ProductPricelistItem().DateStart().IsNull().Or().DateStart().LowerOrEqual(date)
-			dateEndCond := q.ProductPricelistItem().DateEnd().IsNull().Or().DateEnd().LowerOrEqual(date)
+			dateEndCond := q.ProductPricelistItem().DateEnd().IsNull().Or().DateEnd().GreaterOrEqual(date)
 
 			items := h.ProductPricelistItem().Search(rs.Env(),
 				q.ProductPricelistItem().Pricelist().Equals(rs).
