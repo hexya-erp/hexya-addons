@@ -1,0 +1,21 @@
+language: go
+go:
+ - "1.10"
+ - "tip"
+
+addons:
+  postgresql: "9.4"
+
+services:
+ - postgresql
+
+install:
+ - go get -t github.com/hexya-erp/hexya
+ - hexya generate --empty
+ - go get -t -d -v ./...
+
+script:
+ - ./run_tests.sh
+
+env:
+ - HEXYA_DB_DRIVER=postgres HEXYA_DB_USER=postgres HEXYA_DB_PASSWORD= HEXYA_DB_PREFIX=hexya
