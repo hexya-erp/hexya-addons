@@ -56,7 +56,7 @@ func init() {
 	})
 
 	h.CRMTeam().Methods().Create().Extend("",
-		func(rs h.CRMTeamSet, data *h.CRMTeamData) h.CRMTeamSet {
+		func(rs h.CRMTeamSet, data *h.CRMTeamData, fieldsToReset ...models.FieldNamer) h.CRMTeamSet {
 			return rs.WithContext("mail_create_nosubscribe", true).Super().Create(data)
 		})
 

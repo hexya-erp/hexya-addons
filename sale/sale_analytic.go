@@ -166,7 +166,7 @@ func init() {
 		})
 
 	h.AccountAnalyticLine().Methods().Create().Extend("",
-		func(rs h.AccountAnalyticLineSet, data *h.AccountAnalyticLineData) h.AccountAnalyticLineSet {
+		func(rs h.AccountAnalyticLineSet, data *h.AccountAnalyticLineData, fieldsToReset ...models.FieldNamer) h.AccountAnalyticLineSet {
 			line := rs.Super().Create(data)
 			vals := line.Sudo().GetSaleOrderLine(data)
 			line.WithContext("create", true).Write(vals, h.AccountAnalyticLine().SoLine())

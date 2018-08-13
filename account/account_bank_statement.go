@@ -605,7 +605,7 @@ set to draft and re-processed again.`},
 		})
 
 	h.AccountBankStatementLine().Methods().Create().Extend("",
-		func(rs h.AccountBankStatementLineSet, data *h.AccountBankStatementLineData) h.AccountBankStatementLineSet {
+		func(rs h.AccountBankStatementLineSet, data *h.AccountBankStatementLineData, fieldsToReset ...models.FieldNamer) h.AccountBankStatementLineSet {
 			//@api.model
 			/*def create(self, vals):
 			  line = super(AccountBankStatementLine, self).create(vals)

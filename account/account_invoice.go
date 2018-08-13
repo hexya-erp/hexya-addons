@@ -379,7 +379,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		})
 
 	h.AccountInvoice().Methods().Create().Extend("",
-		func(rs h.AccountInvoiceSet, data *h.AccountInvoiceData) h.AccountInvoiceSet {
+		func(rs h.AccountInvoiceSet, data *h.AccountInvoiceData, fieldsToReset ...models.FieldNamer) h.AccountInvoiceSet {
 			//@api.model
 			/*def create(self, vals):
 			  onchanges = {

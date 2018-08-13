@@ -165,7 +165,7 @@ will be created in 'Posted' status.'`},
 		})
 
 	h.AccountMove().Methods().Create().Extend("",
-		func(rs h.AccountMoveSet, data *h.AccountMoveData) h.AccountMoveSet {
+		func(rs h.AccountMoveSet, data *h.AccountMoveData, fieldsToReset ...models.FieldNamer) h.AccountMoveSet {
 			//@api.model
 			/*def create(self, vals):
 			  move = super(AccountMove, self.with_context(check_move_validity=False, partner_id=vals.get('partner_id'))).create(vals)
@@ -1341,7 +1341,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 		})
 
 	h.AccountMoveLine().Methods().Create().Extend("",
-		func(rs h.AccountMoveLineSet, data *h.AccountMoveLineData) h.AccountMoveLineSet {
+		func(rs h.AccountMoveLineSet, data *h.AccountMoveLineData, fieldsToReset ...models.FieldNamer) h.AccountMoveLineSet {
 			/*
 				@api.model
 				def create(self, vals):
@@ -1884,7 +1884,7 @@ but with the module account_tax_cash_basis, some will become exigible only when 
 		})
 
 	h.AccountPartialReconcile().Methods().Create().Extend("",
-		func(rs h.AccountPartialReconcileSet, data *h.AccountPartialReconcileData) h.AccountPartialReconcileSet {
+		func(rs h.AccountPartialReconcileSet, data *h.AccountPartialReconcileData, fieldsToReset ...models.FieldNamer) h.AccountPartialReconcileSet {
 			//@api.model
 			/*def create(self, vals):
 							res = super(AccountPartialReconcile, self).create(vals)

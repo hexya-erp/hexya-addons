@@ -561,7 +561,7 @@ to manage payments outside of the software.`},
 		})
 
 	h.AccountJournal().Methods().Create().Extend("",
-		func(rs h.AccountJournalSet, vals *h.AccountJournalData) h.AccountJournalSet {
+		func(rs h.AccountJournalSet, vals *h.AccountJournalData, fieldsToReset ...models.FieldNamer) h.AccountJournalSet {
 			company := vals.Company
 			if company.IsEmpty() {
 				company = h.User().NewSet(rs.Env()).CurrentUser().Company()

@@ -378,7 +378,7 @@ based on the template if online quotation is installed.`},
 	//	})
 
 	h.SaleOrder().Methods().Create().Extend("",
-		func(rs h.SaleOrderSet, data *h.SaleOrderData) h.SaleOrderSet {
+		func(rs h.SaleOrderSet, data *h.SaleOrderData, fieldsToReset ...models.FieldNamer) h.SaleOrderSet {
 			if data.Name == "" || data.Name == rs.T("New") {
 				seq := h.Sequence().NewSet(rs.Env())
 				if !data.Company.IsEmpty() {
@@ -1100,7 +1100,7 @@ based on the template if online quotation is installed.`},
 		})
 
 	h.SaleOrderLine().Methods().Create().Extend("",
-		func(rs h.SaleOrderLineSet, data *h.SaleOrderLineData) h.SaleOrderLineSet {
+		func(rs h.SaleOrderLineSet, data *h.SaleOrderLineData, fieldsToReset ...models.FieldNamer) h.SaleOrderLineSet {
 			data = rs.PrepareAddMissingFields(data)
 			line := rs.Super().Create(data)
 			if line.Order().State() == "sale" {
