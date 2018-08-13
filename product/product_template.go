@@ -13,6 +13,7 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
+	"github.com/hexya-erp/hexya/hexya/tools/b64image"
 	"github.com/hexya-erp/hexya/pool/h"
 	"github.com/hexya-erp/hexya/pool/q"
 )
@@ -314,9 +315,29 @@ Use this field anywhere a small image is required.`},
 			return new(h.ProductTemplateData), []models.FieldNamer{}
 		})
 
+	h.ProductTemplate().Methods().ResizeImageData().DeclareMethod(
+		`ResizeImageData returns the given data struct with images set for the different sizes.`,
+		func(set h.ProductTemplateSet, data *h.ProductTemplateData) *h.ProductTemplateData {
+			switch {
+			case data.Image != "":
+				data.Image = b64image.Resize(data.Image, 1024, 1024, true)
+				data.ImageMedium = b64image.Resize(data.Image, 128, 128, false)
+				data.ImageSmall = b64image.Resize(data.Image, 64, 64, false)
+			case data.ImageMedium != "":
+				data.Image = b64image.Resize(data.ImageMedium, 1024, 1024, true)
+				data.ImageMedium = b64image.Resize(data.ImageMedium, 128, 128, true)
+				data.ImageSmall = b64image.Resize(data.ImageMedium, 64, 64, false)
+			case data.ImageSmall != "":
+				data.Image = b64image.Resize(data.ImageSmall, 1024, 1024, true)
+				data.ImageMedium = b64image.Resize(data.ImageSmall, 128, 128, true)
+				data.ImageSmall = b64image.Resize(data.ImageSmall, 64, 64, true)
+			}
+			return data
+		})
+
 	h.ProductTemplate().Methods().Create().Extend("",
 		func(rs h.ProductTemplateSet, data *h.ProductTemplateData, fieldsToReset ...models.FieldNamer) h.ProductTemplateSet {
-			// tools.image_resize_images(vals)
+			data = rs.ResizeImageData(data)
 			template := rs.Super().Create(data)
 			if !rs.Env().Context().HasKey("create_product_product") {
 				template.WithContext("create_from_tmpl", true).CreateVariants()
@@ -340,7 +361,7 @@ Use this field anywhere a small image is required.`},
 
 	h.ProductTemplate().Methods().Write().Extend("",
 		func(rs h.ProductTemplateSet, vals *h.ProductTemplateData, fieldsToUnset ...models.FieldNamer) bool {
-			// tools.image_resize_images(vals)
+			vals = rs.ResizeImageData(vals)
 			res := rs.Super().Write(vals, fieldsToUnset...)
 			if _, exists := vals.Get(h.ProductTemplate().AttributeLines(), fieldsToUnset...); exists || vals.Active {
 				rs.CreateVariants()

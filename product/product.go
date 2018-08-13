@@ -17,6 +17,7 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
+	"github.com/hexya-erp/hexya/hexya/tools/b64image"
 	"github.com/hexya-erp/hexya/pool/h"
 	"github.com/hexya-erp/hexya/pool/q"
 )
@@ -299,34 +300,36 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	h.ProductProduct().Methods().ComputeImages().DeclareMethod(
 		`ComputeImages computes the images in different sizes.`,
 		func(rs h.ProductProductSet) *h.ProductProductData {
-			// TODO implement image resizing
-			//@api.depends('image_variant','product_tmpl_id.image')
-			/*def _compute_images(self):
-			  if self._context.get('bin_size'):
-			      self.image_medium = self.image_variant
-			      self.image_small = self.image_variant
-			      self.image = self.image_variant
-			  else:
-			      resized_images = tools.image_get_resized_images(self.image_variant, return_big=True, avoid_resize_medium=True)
-			      self.image_medium = resized_images['image_medium']
-			      self.image_small = resized_images['image_small']
-			      self.image = resized_images['image']
-			  if not self.image_medium:
-			      self.image_medium = self.product_tmpl_id.image_medium
-			  if not self.image_small:
-			      self.image_small = self.product_tmpl_id.image_small
-			  if not self.image:
-			      self.image = self.product_tmpl_id.image
-
-			*/
-			return &h.ProductProductData{}
+			var imageMedium, imageSmall, image string
+			if rs.Env().Context().GetBool("bin_size") {
+				imageMedium = rs.ImageVariant()
+				imageSmall = rs.ImageVariant()
+				image = rs.ImageVariant()
+			} else {
+				imageMedium = b64image.Resize(rs.ImageVariant(), 128, 128, true)
+				imageSmall = b64image.Resize(rs.ImageVariant(), 64, 64, false)
+				image = b64image.Resize(rs.ImageVariant(), 1024, 1024, true)
+			}
+			if imageMedium == "" {
+				imageMedium = rs.ProductTmpl().ImageMedium()
+			}
+			if imageSmall == "" {
+				imageSmall = rs.ProductTmpl().ImageSmall()
+			}
+			if image == "" {
+				image = rs.ProductTmpl().Image()
+			}
+			return &h.ProductProductData{
+				ImageSmall:  imageSmall,
+				ImageMedium: imageMedium,
+				Image:       image,
+			}
 		})
 
 	h.ProductProduct().Methods().InverseImageValue().DeclareMethod(
 		`InverseImageValue sets all images from the given image`,
 		func(rs h.ProductProductSet, image string) {
-			// TODO Resize image
-			//image = tools.image_resize_image_big(value)
+			image = b64image.Resize(image, 1024, 1024, true)
 			if rs.ProductTmpl().Image() == "" {
 				rs.ProductTmpl().SetImage(image)
 				return
