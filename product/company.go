@@ -17,7 +17,7 @@ func init() {
 	})
 
 	h.Company().Methods().Create().Extend("",
-		func(rs h.CompanySet, vals *h.CompanyData) h.CompanySet {
+		func(rs h.CompanySet, vals *h.CompanyData, fieldsToReset ...models.FieldNamer) h.CompanySet {
 			newCompany := rs.Super().Create(vals)
 			priceList := h.ProductPricelist().Search(rs.Env(),
 				q.ProductPricelist().Currency().Equals(newCompany.Currency()).And().Company().IsNull()).Limit(1)

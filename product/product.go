@@ -139,8 +139,8 @@ func init() {
 		"PartnerRef": models.CharField{String: "Customer Ref",
 			Compute: h.ProductProduct().Methods().ComputePartnerRef(), Depends: []string{""}},
 		"Active": models.BooleanField{String: "Active",
-			Default: models.DefaultValue(true),
-			Help:    "If unchecked, it will allow you to hide the product without removing it."},
+			Default: models.DefaultValue(true), Required: true,
+			Help: "If unchecked, it will allow you to hide the product without removing it."},
 		"ProductTmpl": models.Many2OneField{String: "Product Template", RelationModel: h.ProductTemplate(),
 			Index: true, OnDelete: models.Cascade, Required: true, Embed: true},
 		"Barcode": models.CharField{String: "Barcode", NoCopy: true, /*Unique: true,*/
@@ -262,12 +262,10 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			for _, supplierInfo := range rs.Sellers().Records() {
 				if supplierInfo.Name().ID() == rs.Env().Context().GetInteger("partner_id") {
 					code = supplierInfo.ProductCode()
-					if code != "" {
-						break
-					}
+					break
 				}
 			}
-			if code != "" {
+			if code == "" {
 				code = rs.DefaultCode()
 			}
 			return &h.ProductProductData{
@@ -283,13 +281,8 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			for _, supplierInfo := range rs.Sellers().Records() {
 				if supplierInfo.Name().ID() == rs.Env().Context().GetInteger("partner_id") {
 					code = supplierInfo.ProductCode()
-					if code != "" {
-						break
-					}
 					productName = supplierInfo.ProductName()
-					if productName != "" {
-						break
-					}
+					break
 				}
 			}
 			if code == "" {
@@ -376,7 +369,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		})
 
 	h.ProductProduct().Methods().Create().Extend("",
-		func(rs h.ProductProductSet, data *h.ProductProductData) h.ProductProductSet {
+		func(rs h.ProductProductSet, data *h.ProductProductData, fieldsToReset ...models.FieldNamer) h.ProductProductSet {
 			product := rs.WithContext("create_product_product", true).Super().Create(data)
 			// When a unique variant is created from tmpl then the standard price is set by DefineStandardPrice
 			if !rs.Env().Context().HasKey("create_from_tmpl") && product.ProductTmpl().ProductVariants().Len() == 1 {
@@ -413,6 +406,17 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			// products due to ondelete='cascade'
 			unlinkTemplates.Unlink()
 			return res
+		})
+
+	h.ProductProduct().Methods().UnlinkOrDeactivate().DeclareMethod(
+		`UnlinkOrDeactivate tries to unlink this product. If it fails, it simply deactivate it.`,
+		func(rs h.ProductProductSet) {
+			defer func() {
+				if r := recover(); r != nil {
+					rs.SetActive(false)
+				}
+			}()
+			rs.Unlink()
 		})
 
 	h.ProductProduct().Methods().Copy().Extend("",

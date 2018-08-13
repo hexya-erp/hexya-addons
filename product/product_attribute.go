@@ -5,9 +5,7 @@ package product
 
 import (
 	"fmt"
-
 	"log"
-
 	"strings"
 
 	"github.com/hexya-erp/hexya-addons/decimalPrecision"
@@ -153,7 +151,21 @@ You are trying to delete an attribute value with a reference on a product varian
 			Constraint: h.ProductAttributeLine().Methods().CheckValidAttribute()},
 		"Values": models.Many2ManyField{String: "Attribute Values", RelationModel: h.ProductAttributeValue(),
 			JSON: "value_ids", Constraint: h.ProductAttributeLine().Methods().CheckValidAttribute()},
+		"Name": models.CharField{Compute: h.ProductAttributeLine().Methods().ComputeName(), Stored: true,
+			Depends: []string{"Attribute", "Attribute.Name", "Values", "Values.Name"}},
 	})
+
+	h.ProductAttributeLine().Methods().ComputeName().DeclareMethod(
+		`Name returns a standard name with the attribute name and the values for searching`,
+		func(rs h.ProductAttributeLineSet) *h.ProductAttributeLineData {
+			var values []string
+			for _, value := range rs.Values().Records() {
+				values = append(values, value.Name())
+			}
+			return &h.ProductAttributeLineData{
+				Name: rs.Attribute().Name() + ": " + strings.Join(values, ", "),
+			}
+		})
 
 	h.ProductAttributeLine().Methods().CheckValidAttribute().DeclareMethod(
 		`CheckValidAttribute check that attributes values are valid for the given attributes.`,

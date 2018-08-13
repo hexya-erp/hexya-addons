@@ -315,7 +315,7 @@ Use this field anywhere a small image is required.`},
 		})
 
 	h.ProductTemplate().Methods().Create().Extend("",
-		func(rs h.ProductTemplateSet, data *h.ProductTemplateData) h.ProductTemplateSet {
+		func(rs h.ProductTemplateSet, data *h.ProductTemplateData, fieldsToReset ...models.FieldNamer) h.ProductTemplateSet {
 			// tools.image_resize_images(vals)
 			template := rs.Super().Create(data)
 			if !rs.Env().Context().HasKey("create_product_product") {
@@ -432,21 +432,20 @@ Use this field anywhere a small image is required.`},
 			for _, tmpl := range rs.WithContext("active_test", false).Records() {
 				// adding an attribute with only one value should not recreate product
 				// write this attribute on every product to make sure we don't lose them
-				variantAlone := h.ProductAttributeValue().NewSet(rs.Env())
-				for _, attrLine := range tmpl.AttributeLines().Records() {
-					if attrLine.Values().Len() == 1 {
-						variantAlone = variantAlone.Union(attrLine.Values())
-					}
-				}
-				for _, value := range variantAlone.Records() {
-					for _, prod := range tmpl.ProductVariants().Records() {
-						valuesAttributes := h.ProductAttribute().NewSet(rs.Env())
-						for _, val := range prod.AttributeValues().Records() {
-							valuesAttributes = valuesAttributes.Union(val.Attribute())
+				variantAloneLines := tmpl.AttributeLines().Filtered(func(r h.ProductAttributeLineSet) bool {
+					return r.Attribute().CreateVariant() && r.Values().Len() == 1
+				})
+				for _, v := range variantAloneLines.Records() {
+					value := v.Values()
+					updatedProducts := tmpl.ProductVariants().Filtered(func(r h.ProductProductSet) bool {
+						prodAttrs := h.ProductAttribute().NewSet(rs.Env())
+						for _, pa := range r.AttributeValues().Records() {
+							prodAttrs = prodAttrs.Union(pa.Attribute())
 						}
-						if value.Attribute().Intersect(valuesAttributes).IsEmpty() {
-							prod.SetAttributeValues(prod.AttributeValues().Union(value))
-						}
+						return value.Attribute().Intersect(prodAttrs).IsEmpty()
+					})
+					for _, prod := range updatedProducts.Records() {
+						prod.SetAttributeValues(prod.AttributeValues().Union(value))
 					}
 				}
 
@@ -527,9 +526,9 @@ Use this field anywhere a small image is required.`},
 					})
 				}
 
-				// inactive product
+				// unlink or inactive product
 				if !variantsToUnlink.IsEmpty() {
-					variantsToUnlink.SetActive(false)
+					variantsToUnlink.UnlinkOrDeactivate()
 				}
 
 			}

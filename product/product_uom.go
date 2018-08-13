@@ -77,7 +77,7 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 		})
 
 	h.ProductUom().Methods().Create().Extend("",
-		func(rs h.ProductUomSet, data *h.ProductUomData) h.ProductUomSet {
+		func(rs h.ProductUomSet, data *h.ProductUomData, fieldsToReset ...models.FieldNamer) h.ProductUomSet {
 			if data.FactorInv != 0 {
 				data.Factor = 1 / data.FactorInv
 				data.FactorInv = 0
