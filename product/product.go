@@ -167,7 +167,7 @@ resized as a 1024x1024px image, with aspect ratio preserved.`},
 			Depends: []string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"},
 			Inverse: h.ProductProduct().Methods().InverseImageValue(),
 			Help:    "Image of the product variant (Medium-sized image of product template if false)."},
-		"StandardPrice": models.FloatField{String: "Cost", /*, CompanyDependent : true*/
+		"StandardPrice": models.FloatField{String: "Cost", Contexts: base.CompanyDependent,
 			Digits: decimalPrecision.GetPrecision("Product Price"),
 			Help: `Cost of the product template used for standard stock valuation in accounting and used as a
 base price on purchase orders. Expressed in the default unit of measure of the product.`},

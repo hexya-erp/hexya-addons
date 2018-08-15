@@ -4,6 +4,7 @@
 package product
 
 import (
+	"github.com/hexya-erp/hexya-base/base"
 	"github.com/hexya-erp/hexya/hexya/models"
 	"github.com/hexya-erp/hexya/pool/h"
 	"github.com/hexya-erp/hexya/pool/q"
@@ -17,7 +18,8 @@ func init() {
 			Depends: []string{"Country"},
 			Inverse: h.Partner().Methods().InverseProductPricelist(),
 			Help:    "This pricelist will be used instead of the default one for sales to the current partner"},
-		"ProductPricelist": models.Many2OneField{String: "Stored Pricelist", RelationModel: h.ProductPricelist()},
+		"ProductPricelist": models.Many2OneField{String: "Stored Pricelist", RelationModel: h.ProductPricelist(),
+			Contexts: base.CompanyDependent},
 	})
 
 	h.Partner().Methods().ComputeProductPricelist().DeclareMethod(
