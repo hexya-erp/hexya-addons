@@ -94,7 +94,7 @@ based on the template if online quotation is installed.`},
 			ReverseFK: "Order",
 			/*[ states {'cancel': [('readonly'] [ True)]]*/
 			/*[ 'done': [('readonly'] [ True)]}]*/
-			NoCopy: false},
+			Copy: true},
 		"InvoiceCount": models.IntegerField{String: "# of Invoices",
 			Compute: h.SaleOrder().Methods().GetInvoiced(),
 			Depends: []string{"state", "OrderLine.InvoiceStatus"}, GoType: new(int)},
@@ -378,7 +378,7 @@ based on the template if online quotation is installed.`},
 	//	})
 
 	h.SaleOrder().Methods().Create().Extend("",
-		func(rs h.SaleOrderSet, data *h.SaleOrderData) h.SaleOrderSet {
+		func(rs h.SaleOrderSet, data *h.SaleOrderData, fieldsToReset ...models.FieldNamer) h.SaleOrderSet {
 			if data.Name == "" || data.Name == rs.T("New") {
 				seq := h.Sequence().NewSet(rs.Env())
 				if !data.Company.IsEmpty() {
@@ -801,7 +801,7 @@ based on the template if online quotation is installed.`},
 			Required: true, OnDelete: models.Cascade, Index: true, NoCopy: true},
 		"Name":     models.TextField{String: "Description", Required: true},
 		"Sequence": models.IntegerField{String: "Sequence", Default: models.DefaultValue(10)},
-		"InvoiceLines": models.Many2ManyField{String: "Invoice Lines",
+		"InvoiceLines": models.Many2ManyField{String: "Invoice Lines", JSON: "invoice_lines",
 			RelationModel: h.AccountInvoiceLine(), NoCopy: true},
 		"InvoiceStatus": models.SelectionField{Selection: types.Selection{
 			"upselling":  "Upselling Opportunity",
@@ -1100,7 +1100,7 @@ based on the template if online quotation is installed.`},
 		})
 
 	h.SaleOrderLine().Methods().Create().Extend("",
-		func(rs h.SaleOrderLineSet, data *h.SaleOrderLineData) h.SaleOrderLineSet {
+		func(rs h.SaleOrderLineSet, data *h.SaleOrderLineData, fieldsToReset ...models.FieldNamer) h.SaleOrderLineSet {
 			data = rs.PrepareAddMissingFields(data)
 			line := rs.Super().Create(data)
 			if line.Order().State() == "sale" {
@@ -1149,13 +1149,13 @@ based on the template if online quotation is installed.`},
 		`PrepareInvoiceLine prepares the data to create the new invoice line for a sales order line.`,
 		func(rs h.SaleOrderLineSet, qty float64) *h.AccountInvoiceLineData {
 			rs.EnsureOne()
-			account := rs.Product().Categ().PropertyAccountIncomeCateg()
+			account := rs.Product().Category().PropertyAccountIncomeCateg()
 			if !rs.Product().PropertyAccountIncome().IsEmpty() {
 				account = rs.Product().PropertyAccountIncome()
 			}
 			if account.IsEmpty() {
 				panic(rs.T("Please define income account for this product: '%s' (id:%d) - or for its category: '%s'.",
-					rs.Product().Name(), rs.Product().ID(), rs.Product().Categ().Name()))
+					rs.Product().Name(), rs.Product().ID(), rs.Product().Category().Name()))
 			}
 			fPos := rs.Order().Partner().PropertyAccountPosition()
 			if !rs.Order().FiscalPosition().IsEmpty() {

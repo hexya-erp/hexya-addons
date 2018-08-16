@@ -46,9 +46,9 @@ team estimates to be able to invoice this month.`},
 			if len(amounts) == 0 {
 				return &h.CRMTeamData{}
 			}
-			amount, _ := amounts[0].Values.Get("AmountTotal", h.SaleOrder().Underlying())
+			amount := amounts[0].Values.AmountTotal
 			return &h.CRMTeamData{
-				SalesToInvoiceAmount: amount.(float64),
+				SalesToInvoiceAmount: amount,
 			}
 		})
 
@@ -68,9 +68,9 @@ team estimates to be able to invoice this month.`},
 			if len(invoices) == 0 {
 				return &h.CRMTeamData{}
 			}
-			amount, _ := invoices[0].Values.Get("AmountUntaxedSigned", h.AccountInvoice().Underlying())
+			amount := invoices[0].Values.AmountUntaxedSigned
 			return &h.CRMTeamData{
-				Invoiced: amount.(float64),
+				Invoiced: amount,
 			}
 		})
 

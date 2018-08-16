@@ -60,9 +60,7 @@ Delivered Quantity: Invoiced based on the quantity the vendor delivered (time or
 			action := actions.Registry.MustGetById("sale_action_product_sale_list")
 			products := rs.WithContext("active_test", false).ProductVariants()
 			returnedAction := *action
-			returnedAction.Context = types.NewContext(map[string]interface{}{
-				"default_product_id": products.Ids()[0],
-			})
+			returnedAction.Context = types.NewContext().WithKey("default_product_id", products.Ids()[0])
 			returnedAction.Domain = fmt.Sprintf("[('state', 'in', ['sale', 'done']), ('product_id.product_tmpl_id', '=', %d)]", rs.ID())
 			return &returnedAction
 		})

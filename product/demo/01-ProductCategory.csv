@@ -1,0 +1,5 @@
+"ID","Name","Parent","Type"
+"product_product_category_2","Internal","product_product_category_all","normal"
+"product_product_category_3","Services","product_product_category_1","normal"
+"product_product_category_4","Software","product_product_category_1","normal"
+"product_product_category_5","Physical","product_product_category_1","normal"

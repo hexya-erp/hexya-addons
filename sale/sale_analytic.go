@@ -29,17 +29,11 @@ func init() {
 				Aggregates(h.AccountAnalyticLine().ProductUom(), h.AccountAnalyticLine().SoLine(),
 					h.AccountAnalyticLine().UnitAmount())
 			for _, d := range data {
-				pUom, _ := d.Values.Get("ProductUom", h.AccountAnalyticLine().Underlying())
-				soLineID, _ := d.Values.Get("SOLine", h.AccountAnalyticLine().Underlying())
-				unitAmount, _ := d.Values.Get("UnitAmount", h.AccountAnalyticLine().Underlying())
-				if pUom.(models.RecordSet).IsEmpty() {
-					continue
-				}
-				line := h.SaleOrderLine().Browse(rs.Env(), []int64{soLineID.(int64)})
-				uom := h.ProductUom().Browse(rs.Env(), []int64{pUom.(int64)})
-				qty := unitAmount.(float64)
+				uom := d.Values.ProductUom
+				line := d.Values.SoLine
+				qty := d.Values.UnitAmount
 				if line.ProductUom().Category().Equals(uom.Category()) {
-					qty = uom.ComputeQuantity(unitAmount.(float64), line.ProductUom(), true)
+					qty = uom.ComputeQuantity(qty, line.ProductUom(), true)
 				}
 				lines[line.ID()] += qty
 			}
@@ -172,7 +166,7 @@ func init() {
 		})
 
 	h.AccountAnalyticLine().Methods().Create().Extend("",
-		func(rs h.AccountAnalyticLineSet, data *h.AccountAnalyticLineData) h.AccountAnalyticLineSet {
+		func(rs h.AccountAnalyticLineSet, data *h.AccountAnalyticLineData, fieldsToReset ...models.FieldNamer) h.AccountAnalyticLineSet {
 			line := rs.Super().Create(data)
 			vals := line.Sudo().GetSaleOrderLine(data)
 			line.WithContext("create", true).Write(vals, h.AccountAnalyticLine().SoLine())

@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	h.ProductUomCateg().Methods().Load().AllowGroup(base.GroupUser)
+	h.ProductUomCategory().Methods().Load().AllowGroup(base.GroupUser)
 	h.ProductUom().Methods().Load().AllowGroup(base.GroupUser)
 	h.ProductCategory().Methods().Load().AllowGroup(base.GroupUser)
 	h.ProductTemplate().Methods().Load().AllowGroup(base.GroupUser)

@@ -537,7 +537,7 @@ to manage payments outside of the software.`},
 			)
 			for num := 1; num < 100; num++ {
 				newCode = strings.Replace(
-					fmt.Sprintf("%-[1]*[2]d%d", codeDigits-1, accountCodePrefix, num), " ", "0", -1)
+					fmt.Sprintf("%-[1]*[2]s%d", codeDigits-1, accountCodePrefix, num), " ", "0", -1)
 				rec := h.AccountAccount().Search(rs.Env(),
 					q.AccountAccount().Code().Equals(newCode).And().Company().Equals(company)).Limit(1)
 				if rec.IsEmpty() {
@@ -561,7 +561,7 @@ to manage payments outside of the software.`},
 		})
 
 	h.AccountJournal().Methods().Create().Extend("",
-		func(rs h.AccountJournalSet, vals *h.AccountJournalData) h.AccountJournalSet {
+		func(rs h.AccountJournalSet, vals *h.AccountJournalData, fieldsToReset ...models.FieldNamer) h.AccountJournalSet {
 			company := vals.Company
 			if company.IsEmpty() {
 				company = h.User().NewSet(rs.Env()).CurrentUser().Company()
@@ -809,8 +809,9 @@ to the same analytic account as the invoice line (if any)`},
 			}, Required: true},
 	})
 
-	h.AccountTax().AddSQLConstraint("name_company_uniq", "unique(name, company_id, type_tax_use)",
-		"Tax names must be unique !")
+	// TODO Convert to constrains method
+	//h.AccountTax().AddSQLConstraint("name_company_uniq", "unique(name, company_id, type_tax_use)",
+	//	"Tax names must be unique !")
 
 	h.AccountTax().Methods().Unlink().Extend("",
 		func(rs h.AccountTaxSet) int64 {

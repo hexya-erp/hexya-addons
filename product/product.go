@@ -17,6 +17,7 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
+	"github.com/hexya-erp/hexya/hexya/tools/b64image"
 	"github.com/hexya-erp/hexya/pool/h"
 	"github.com/hexya-erp/hexya/pool/q"
 )
@@ -34,7 +35,7 @@ func init() {
 			ReverseFK: "Parent", JSON: "child_id"},
 		"Type": models.SelectionField{String: "Category Type", Selection: types.Selection{"view": "View", "normal": "Normal"},
 			Default: models.DefaultValue("normal"), Help: "A category of the view type is a virtual category that can be used as the parent of another category to create a hierarchical structure."},
-		"Products": models.One2ManyField{RelationModel: h.ProductTemplate(), ReverseFK: "Categ"},
+		"Products": models.One2ManyField{RelationModel: h.ProductTemplate(), ReverseFK: "Category"},
 		"ProductCount": models.IntegerField{String: "# Products", Compute: h.ProductCategory().Methods().ComputeProductCount(),
 			Help:    "The number of products under this category (Does not consider the children categories)",
 			Depends: []string{"Products"}, GoType: new(int)},
@@ -44,7 +45,7 @@ func init() {
 		`ComputeProductCount returns the number of products within this category (not considering children categories)`,
 		func(rs h.ProductCategorySet) *h.ProductCategoryData {
 			return &h.ProductCategoryData{
-				ProductCount: h.ProductTemplate().Search(rs.Env(), q.ProductTemplate().Categ().Equals(rs)).SearchCount(),
+				ProductCount: h.ProductTemplate().Search(rs.Env(), q.ProductTemplate().Category().Equals(rs)).SearchCount(),
 			}
 		})
 
@@ -52,7 +53,7 @@ func init() {
 		`CheckCategoryRecursion panics if there is a recursion in the category tree.`,
 		func(rs h.ProductCategorySet) {
 			if !rs.CheckRecursion() {
-				log.Panic(rs.T("Error ! You cannot create recursive categories."))
+				panic(rs.T("Error ! You cannot create recursive categories."))
 			}
 		})
 
@@ -139,8 +140,8 @@ func init() {
 		"PartnerRef": models.CharField{String: "Customer Ref",
 			Compute: h.ProductProduct().Methods().ComputePartnerRef(), Depends: []string{""}},
 		"Active": models.BooleanField{String: "Active",
-			Default: models.DefaultValue(true),
-			Help:    "If unchecked, it will allow you to hide the product without removing it."},
+			Default: models.DefaultValue(true), Required: true,
+			Help: "If unchecked, it will allow you to hide the product without removing it."},
 		"ProductTmpl": models.Many2OneField{String: "Product Template", RelationModel: h.ProductTemplate(),
 			Index: true, OnDelete: models.Cascade, Required: true, Embed: true},
 		"Barcode": models.CharField{String: "Barcode", NoCopy: true, /*Unique: true,*/
@@ -166,8 +167,11 @@ resized as a 1024x1024px image, with aspect ratio preserved.`},
 			Depends: []string{"ImageVariant", "ProductTmpl", "ProductTmpl.Image"},
 			Inverse: h.ProductProduct().Methods().InverseImageValue(),
 			Help:    "Image of the product variant (Medium-sized image of product template if false)."},
-		"StandardPrice": models.FloatField{String: "Cost", /*, CompanyDependent : true*/
+		"StandardPrice": models.FloatField{String: "Cost", Contexts: base.CompanyDependent,
 			Digits: decimalPrecision.GetPrecision("Product Price"),
+			InvisibleFunc: func(env models.Environment) (bool, models.Conditioner) {
+				return !security.Registry.HasMembership(env.Uid(), base.GroupUser), nil
+			},
 			Help: `Cost of the product template used for standard stock valuation in accounting and used as a
 base price on purchase orders. Expressed in the default unit of measure of the product.`},
 		"Volume": models.FloatField{Help: "The volume in m3."},
@@ -176,8 +180,6 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		"PricelistItems": models.Many2ManyField{RelationModel: h.ProductPricelistItem(),
 			JSON: "pricelist_item_ids", Compute: h.ProductProduct().Methods().GetPricelistItems()},
 	})
-
-	h.ProductProduct().Fields().StandardPrice().RevokeAccess(security.GroupEveryone, security.All).GrantAccess(base.GroupUser, security.All)
 
 	h.ProductProduct().Methods().ComputeProductPrice().DeclareMethod(
 		`ComputeProductPrice computes the price of this product based on the given context keys:
@@ -201,7 +203,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			partnerID := rs.Env().Context().GetInteger("partner")
 			partner := h.Partner().Browse(rs.Env(), []int64{partnerID})
 			return &h.ProductProductData{
-				Price: priceList.GetProductPrice(rs, quantity, partner, dates.Today(), h.ProductUom().NewSet(rs.Env())),
+				Price: priceList.GetProductPrice(rs, quantity, partner, dates.Date{}, h.ProductUom().NewSet(rs.Env())),
 			}
 		})
 
@@ -262,12 +264,10 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			for _, supplierInfo := range rs.Sellers().Records() {
 				if supplierInfo.Name().ID() == rs.Env().Context().GetInteger("partner_id") {
 					code = supplierInfo.ProductCode()
-					if code != "" {
-						break
-					}
+					break
 				}
 			}
-			if code != "" {
+			if code == "" {
 				code = rs.DefaultCode()
 			}
 			return &h.ProductProductData{
@@ -283,13 +283,8 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			for _, supplierInfo := range rs.Sellers().Records() {
 				if supplierInfo.Name().ID() == rs.Env().Context().GetInteger("partner_id") {
 					code = supplierInfo.ProductCode()
-					if code != "" {
-						break
-					}
 					productName = supplierInfo.ProductName()
-					if productName != "" {
-						break
-					}
+					break
 				}
 			}
 			if code == "" {
@@ -306,34 +301,36 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	h.ProductProduct().Methods().ComputeImages().DeclareMethod(
 		`ComputeImages computes the images in different sizes.`,
 		func(rs h.ProductProductSet) *h.ProductProductData {
-			// TODO implement image resizing
-			//@api.depends('image_variant','product_tmpl_id.image')
-			/*def _compute_images(self):
-			  if self._context.get('bin_size'):
-			      self.image_medium = self.image_variant
-			      self.image_small = self.image_variant
-			      self.image = self.image_variant
-			  else:
-			      resized_images = tools.image_get_resized_images(self.image_variant, return_big=True, avoid_resize_medium=True)
-			      self.image_medium = resized_images['image_medium']
-			      self.image_small = resized_images['image_small']
-			      self.image = resized_images['image']
-			  if not self.image_medium:
-			      self.image_medium = self.product_tmpl_id.image_medium
-			  if not self.image_small:
-			      self.image_small = self.product_tmpl_id.image_small
-			  if not self.image:
-			      self.image = self.product_tmpl_id.image
-
-			*/
-			return &h.ProductProductData{}
+			var imageMedium, imageSmall, image string
+			if rs.Env().Context().GetBool("bin_size") {
+				imageMedium = rs.ImageVariant()
+				imageSmall = rs.ImageVariant()
+				image = rs.ImageVariant()
+			} else {
+				imageMedium = b64image.Resize(rs.ImageVariant(), 128, 128, true)
+				imageSmall = b64image.Resize(rs.ImageVariant(), 64, 64, false)
+				image = b64image.Resize(rs.ImageVariant(), 1024, 1024, true)
+			}
+			if imageMedium == "" {
+				imageMedium = rs.ProductTmpl().ImageMedium()
+			}
+			if imageSmall == "" {
+				imageSmall = rs.ProductTmpl().ImageSmall()
+			}
+			if image == "" {
+				image = rs.ProductTmpl().Image()
+			}
+			return &h.ProductProductData{
+				ImageSmall:  imageSmall,
+				ImageMedium: imageMedium,
+				Image:       image,
+			}
 		})
 
 	h.ProductProduct().Methods().InverseImageValue().DeclareMethod(
 		`InverseImageValue sets all images from the given image`,
 		func(rs h.ProductProductSet, image string) {
-			// TODO Resize image
-			//image = tools.image_resize_image_big(value)
+			image = b64image.Resize(image, 1024, 1024, true)
 			if rs.ProductTmpl().Image() == "" {
 				rs.ProductTmpl().SetImage(image)
 				return
@@ -376,7 +373,7 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		})
 
 	h.ProductProduct().Methods().Create().Extend("",
-		func(rs h.ProductProductSet, data *h.ProductProductData) h.ProductProductSet {
+		func(rs h.ProductProductSet, data *h.ProductProductData, fieldsToReset ...models.FieldNamer) h.ProductProductSet {
 			product := rs.WithContext("create_product_product", true).Super().Create(data)
 			// When a unique variant is created from tmpl then the standard price is set by DefineStandardPrice
 			if !rs.Env().Context().HasKey("create_from_tmpl") && product.ProductTmpl().ProductVariants().Len() == 1 {
@@ -415,6 +412,17 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 			return res
 		})
 
+	h.ProductProduct().Methods().UnlinkOrDeactivate().DeclareMethod(
+		`UnlinkOrDeactivate tries to unlink this product. If it fails, it simply deactivate it.`,
+		func(rs h.ProductProductSet) {
+			defer func() {
+				if r := recover(); r != nil {
+					rs.SetActive(false)
+				}
+			}()
+			rs.Unlink()
+		})
+
 	h.ProductProduct().Methods().Copy().Extend("",
 		func(rs h.ProductProductSet, overrides *h.ProductProductData, fieldsToReset ...models.FieldNamer) h.ProductProductSet {
 			if rs.Env().Context().HasKey("variant") {
@@ -431,9 +439,9 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 	h.ProductProduct().Methods().Search().Extend("",
 		func(rs h.ProductProductSet, cond q.ProductProductCondition) h.ProductProductSet {
 			// FIXME: strange...
-			if categID := rs.Env().Context().GetInteger("search_default_categ_id"); categID != 0 {
+			if categID := rs.Env().Context().GetInteger("search_default_category_id"); categID != 0 {
 				categ := h.ProductCategory().Browse(rs.Env(), []int64{categID})
-				cond = cond.AndCond(q.ProductProduct().Categ().ChildOf(categ))
+				cond = cond.AndCond(q.ProductProduct().Category().ChildOf(categ))
 			}
 			return rs.Super().Search(cond)
 		})
@@ -624,6 +632,15 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		for the given company.`,
 		func(rs h.ProductProductSet, priceType models.FieldNamer, uom h.ProductUomSet, currency h.CurrencySet, company h.CompanySet) float64 {
 			rs.EnsureOne()
+			// FIXME: delegate to template or not ? fields are reencoded here ...
+			// compatibility about context keys used a bit everywhere in the code
+			if uom.IsEmpty() && rs.Env().Context().HasKey("uom") {
+				uom = h.ProductUom().NewSet(rs.Env()).Browse([]int64{rs.Env().Context().GetInteger("uom")})
+			}
+			if currency.IsEmpty() && rs.Env().Context().HasKey("currency") {
+				currency = h.Currency().NewSet(rs.Env()).Browse([]int64{rs.Env().Context().GetInteger("currency")})
+			}
+
 			product := rs
 			if priceType == h.ProductProduct().StandardPrice() {
 				// StandardPrice field can only be seen by users in base.group_user

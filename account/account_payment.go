@@ -279,7 +279,7 @@ set to draft and re-processed again." `},
 		"WriteoffAccount": models.Many2OneField{String: "Difference Account", RelationModel: h.AccountAccount(),
 			Filter: q.AccountAccount().Deprecated().Equals(false)},
 		"MoveLines": models.One2ManyField{RelationModel: h.AccountMoveLine(), ReverseFK: "Payment",
-			JSON: "move_line_ids", ReadOnly: true, NoCopy: true},
+			JSON: "move_line_ids", ReadOnly: true},
 	})
 
 	//h.AccountPayment().Fields().PaymentType().

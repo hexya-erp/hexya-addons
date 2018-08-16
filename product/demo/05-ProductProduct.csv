@@ -1,0 +1,41 @@
+ID,Name,DefaultCode,Type,Active,Category,ListPrice,StandardPrice,ProductTmpl,UomPo,Uom,AttributeValues,Description,Image
+product_product_product_24,Graphics Card,CARD,consu,True,product_product_category_5,885,876,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_24-image.jpg
+product_product_product_16,Computer Case,C-Case,consu,True,product_product_category_5,25,20,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_16-image.jpg
+product_consu_delivery_01,Server,CONS_DEL01,consu,True,product_product_category_5,60000,65000,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_consu_delivery_02,Little server,CONS_DEL02,consu,True,product_product_category_5,40000,45000,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_consu_delivery_03,Basic Computer,CONS_DEL03,consu,True,product_product_category_5,23500,25000,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_product_product_22,Processor Core i5 2.70 Ghz,CPUi5,consu,True,product_product_category_5,2100,2010,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_22-image.jpg
+product_product_product_4,iPad Retina Display,E-COM01,consu,True,product_product_category_5,750,500,"",product_product_uom_unit,product_product_uom_unit,product_product_attribute_value_1|product_product_attribute_value_3|product_product_attribute_value_5,,img/product_product_4-image.png
+product_product_product_4b,iPad Retina Display,E-COM02,consu,True,product_product_category_5,0,0,product_product_product_4_product_template,product_product_uom_unit,product_product_uom_unit,product_product_attribute_value_4|product_product_attribute_value_1|product_product_attribute_value_5,,""
+product_product_product_4c,iPad Retina Display,E-COM03,consu,True,product_product_category_5,0,0,product_product_product_4_product_template,product_product_uom_unit,product_product_uom_unit,product_product_attribute_value_3|product_product_attribute_value_2|product_product_attribute_value_5,,""
+product_product_product_5b,Bose Mini Bluetooth Speaker,E-COM05,consu,True,product_product_category_5,247,140,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_5-image.png
+product_product_product_5,Custom Computer (kit),E-COM06,consu,True,product_product_category_5,147,600,"",product_product_uom_unit,product_product_uom_unit,,Custom computer shipped in kit.,img/product_product_5-image.jpg
+product_product_product_6,iPad Mini,E-COM07,consu,True,product_product_category_5,320,800,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_6-image.png
+product_product_product_7,Apple In-Ear Headphones,E-COM08,consu,True,product_product_category_5,79,70,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_7-image.png
+product_product_product_8,iMac,E-COM09,consu,True,product_product_category_5,1799,1299,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_8-image.png
+product_product_product_9,Apple Wireless Keyboard,E-COM10,consu,True,product_product_category_5,47,10,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_9-image.png
+product_product_product_10,"Mouse, Optical",E-COM11,consu,True,product_product_category_5,14,12.5,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_10-image.jpg
+product_product_product_11,iPod,E-COM12,consu,True,product_product_category_5,16.5,14,"",product_product_uom_unit,product_product_uom_unit,product_product_attribute_value_1,,img/product_product_11-image.png
+product_product_product_11b,iPod,E-COM13,consu,True,product_product_category_5,0,0,product_product_product_11_product_template,product_product_uom_unit,product_product_uom_unit,product_product_attribute_value_2,,""
+product_product_product_17,HDD SH-1,HDD-SH1,consu,True,product_product_category_5,975,860,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_17-image.jpg
+product_product_product_27,Laptop Customized,LAP-CUS,consu,True,product_product_category_5,3645,3300,"",product_product_uom_unit,product_product_uom_unit,,Custom Laptop based on customer's requirement.,img/product_product_27-image.jpg
+product_product_product_25,Laptop E5023,LAP-E5,consu,True,product_product_category_5,2950,2870,"",product_product_uom_unit,product_product_uom_unit,,"17"" Monitor
+4GB RAM
+Standard-1294P Processor
+QWERTY keyboard",img/product_product_25-image.jpg
+product_product_product_20,Motherboard I9P57,MBi9,consu,True,product_product_category_5,1950,1700,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_20-image.jpg
+product_product_product_12,"Mouse, Wireless",M-Wir,consu,True,product_product_category_5,12.5,18,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_12-image.jpg
+product_product_product_3,Computer SC234,PCSC234,consu,True,product_product_category_5,450,300,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_3-image.jpg
+product_product_delivery_01,"Switch, 24 ports",PROD_DEL,consu,True,product_product_category_5,70,55,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_product_delivery_02,Datacard,PROD_DEL02,consu,True,product_product_category_5,40,35,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_product_order_01,Zed+ Antivirus,PROD_ORDER,consu,True,product_product_category_4,280,235,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_product_product_13,RAM SR5,RAM-SR5,consu,True,product_product_category_5,85,78,"",product_product_uom_unit,product_product_uom_unit,,,img/product_product_13-image.jpg
+product_service_cost_01,External Audit,SERV_COST,service,True,product_product_category_3,180,160,"",product_product_uom_unit,product_product_uom_unit,,Example of products to invoice based on cost.,""
+product_service_delivery,Cost-plus Contract,SERV_DEL,service,True,product_product_category_5,180,200,"",product_product_uom_unit,product_product_uom_unit,,,""
+product_service_order_01,Prepaid Consulting,SERV_ORDER,service,True,product_product_category_3,90,40,"",product_product_uom_hour,product_product_uom_hour,,Example of product to invoice on order.,""
+product_product_product_1,GAP Analysis Service,,service,True,product_product_category_3,30.75,20.5,"",product_product_uom_hour,product_product_uom_hour,,Example of products to invoice based on delivery.,img/product_product_1-image.jpg
+product_product_product_2,Support Services,,service,True,product_product_category_3,38.25,25.5,"",product_product_uom_hour,product_product_uom_hour,,Example of product to invoice based on delivery.,img/product_product_2-image.jpg
+product_product_product_4d,iPad Retina Display,E-COM04,consu,False,product_product_category_5,0,0,product_product_product_4_product_template,product_product_uom_unit,product_product_uom_unit,"product_product_attribute_value_2|product_product_attribute_value_4,product_product_attribute_value_5",,""
+product_membership_2,Basic Membership,,service,False,product_product_category_1,40,0,"",product_product_uom_unit,product_product_uom_unit,,,img/membership_2-image.jpg
+product_membership_0,Gold Membership,,service,False,product_product_category_1,180,0,"",product_product_uom_unit,product_product_uom_unit,,,img/membership_0-image.jpg
+product_membership_1,Silver Membership,,service,False,product_product_category_1,80,0,"",product_product_uom_unit,product_product_uom_unit,,,img/membership_1-image.jpg

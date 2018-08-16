@@ -108,9 +108,9 @@ The payment term may compute several due dates, for example 50% now, 50% in one 
 		"InvoiceLines": models.One2ManyField{String: "Invoice Lines", RelationModel: h.AccountInvoiceLine(),
 			ReverseFK: "Invoice", JSON: "invoice_line_ids", /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/
 			OnChange: h.AccountInvoice().Methods().OnchangeInvoiceLines(),
-			NoCopy:   false},
+			Copy:     true},
 		"TaxLines": models.One2ManyField{RelationModel: h.AccountInvoiceTax(), ReverseFK: "Invoice",
-			JSON: "tax_line_ids" /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/, NoCopy: false},
+			JSON: "tax_line_ids" /* readonly */ /*[ states {'draft': [('readonly']*/ /*[ False)]}]*/, Copy: true},
 		"Move": models.Many2OneField{String: "Journal Entry", RelationModel: h.AccountMove(), ReadOnly: true,
 			Index: true, OnDelete: models.Restrict, NoCopy: true,
 			Help: "Link to the automatically generated Journal Items."},
@@ -379,7 +379,7 @@ A Company bank account if this is a Customer Invoice or Vendor Refund, otherwise
 		})
 
 	h.AccountInvoice().Methods().Create().Extend("",
-		func(rs h.AccountInvoiceSet, data *h.AccountInvoiceData) h.AccountInvoiceSet {
+		func(rs h.AccountInvoiceSet, data *h.AccountInvoiceData, fieldsToReset ...models.FieldNamer) h.AccountInvoiceSet {
 			//@api.model
 			/*def create(self, vals):
 			  onchanges = {

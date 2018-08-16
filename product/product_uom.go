@@ -14,9 +14,9 @@ import (
 
 func init() {
 
-	h.ProductUomCateg().DeclareModel()
+	h.ProductUomCategory().DeclareModel()
 
-	h.ProductUomCateg().AddFields(map[string]models.FieldDefinition{
+	h.ProductUomCategory().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Name", Required: true, Translate: true},
 	})
 
@@ -25,7 +25,7 @@ func init() {
 
 	h.ProductUom().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Unit of Measure", Required: true, Translate: true},
-		"Category": models.Many2OneField{RelationModel: h.ProductUomCateg(), Required: true, OnDelete: models.Cascade,
+		"Category": models.Many2OneField{RelationModel: h.ProductUomCategory(), Required: true, OnDelete: models.Cascade,
 			Help: `Conversion between Units of Measure can only occur if they belong to the same category.
 The conversion will be made based on the ratios.`},
 		"Factor": models.FloatField{String: "Ratio", Default: models.DefaultValue(1.0), Required: true,
@@ -39,7 +39,7 @@ The conversion will be made based on the ratios.`},
 		"Rounding": models.FloatField{String: "Rounding Precision", Default: models.DefaultValue(0.01),
 			Required: true, Help: `The computed quantity will be a multiple of this value.
 Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
-		"Active": models.BooleanField{Default: models.DefaultValue(true),
+		"Active": models.BooleanField{Default: models.DefaultValue(true), Required: true,
 			Help: "Uncheck the active field to disable a unit of measure without deleting it."},
 		"UomType": models.SelectionField{String: "Type", Selection: types.Selection{
 			"bigger":    "Bigger than the reference Unit of Measure",
@@ -77,7 +77,7 @@ Use 1.0 for a Unit of Measure that cannot be further split, such as a piece.`},
 		})
 
 	h.ProductUom().Methods().Create().Extend("",
-		func(rs h.ProductUomSet, data *h.ProductUomData) h.ProductUomSet {
+		func(rs h.ProductUomSet, data *h.ProductUomData, fieldsToReset ...models.FieldNamer) h.ProductUomSet {
 			if data.FactorInv != 0 {
 				data.Factor = 1 / data.FactorInv
 				data.FactorInv = 0

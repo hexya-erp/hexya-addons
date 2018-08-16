@@ -112,7 +112,7 @@ the procurement manager to force an unusual behavior.`},
 	//		  */})
 
 	h.ProcurementOrder().Methods().Create().Extend("",
-		func(rs h.ProcurementOrderSet, data *h.ProcurementOrderData) h.ProcurementOrderSet {
+		func(rs h.ProcurementOrderSet, data *h.ProcurementOrderData, fieldsToReset ...models.FieldNamer) h.ProcurementOrderSet {
 			procurement := rs.Super().Create(data)
 			if !rs.Env().Context().HasKey("procurement_autorun_defer") {
 				procurement.Run(false)

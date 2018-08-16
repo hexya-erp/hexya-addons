@@ -26,10 +26,10 @@ func init() {
 
 	h.ProductPricelist().AddFields(map[string]models.FieldDefinition{
 		"Name": models.CharField{String: "Pricelist Name", Required: true, Translate: true},
-		"Active": models.BooleanField{Default: models.DefaultValue(true),
+		"Active": models.BooleanField{Default: models.DefaultValue(true), Required: true,
 			Help: "If unchecked, it will allow you to hide the pricelist without removing it."},
 		"Items": models.One2ManyField{String: "Pricelist Items", RelationModel: h.ProductPricelistItem(),
-			ReverseFK: "Pricelist", JSON: "item_ids", NoCopy: false,
+			ReverseFK: "Pricelist", JSON: "item_ids", Copy: true,
 			Default: func(env models.Environment) interface{} {
 				listItems := h.ProductPricelistItem().NewSet(env)
 				values, _ := listItems.DataStruct(listItems.DefaultGet())
@@ -81,7 +81,7 @@ func init() {
 			}
 
 			categs := h.ProductCategory().NewSet(rs.Env())
-			for categ := product.Categ(); !categ.IsEmpty(); categ = categ.Parent() {
+			for categ := product.Category(); !categ.IsEmpty(); categ = categ.Parent() {
 				categs = categs.Union(categ)
 			}
 
@@ -90,9 +90,9 @@ func init() {
 			// Load all rules
 			tmplCond := q.ProductPricelistItem().ProductTmpl().IsNull().Or().ProductTmpl().Equals(prodTmpl)
 			prodCond := q.ProductPricelistItem().Product().IsNull().Or().Product().Equals(product)
-			categCond := q.ProductPricelistItem().Categ().IsNull().Or().Categ().In(categs)
+			categCond := q.ProductPricelistItem().Category().IsNull().Or().Category().In(categs)
 			dateStartCond := q.ProductPricelistItem().DateStart().IsNull().Or().DateStart().LowerOrEqual(date)
-			dateEndCond := q.ProductPricelistItem().DateEnd().IsNull().Or().DateEnd().LowerOrEqual(date)
+			dateEndCond := q.ProductPricelistItem().DateEnd().IsNull().Or().DateEnd().GreaterOrEqual(date)
 
 			items := h.ProductPricelistItem().Search(rs.Env(),
 				q.ProductPricelistItem().Pricelist().Equals(rs).
@@ -100,25 +100,25 @@ func init() {
 					AndCond(prodCond).
 					AndCond(categCond).
 					AndCond(dateStartCond).
-					AndCond(dateEndCond)).OrderBy("AppliedOn", "MinQuantity DESC", "Categ.Name")
+					AndCond(dateEndCond)).OrderBy("AppliedOn", "MinQuantity DESC", "Category.Name")
 
 			var price float64
 			suitableRule := h.ProductPricelistItem().NewSet(rs.Env())
 			// Final unit price is computed according to `qty` in the `qty_uom_id` UoM.
 			// An intermediary unit price may be computed according to a different UoM, in
 			// which case the price_uom_id contains that UoM.
-			// The final price will be converted to match `qty_uom_id`.
+			// The final price will be converted to match `qtyUom`.
 			qtyUom := product.Uom()
 			if rs.Env().Context().HasKey("uom") {
 				qtyUom = h.ProductUom().Browse(rs.Env(), []int64{rs.Env().Context().GetInteger("uom")})
 			}
-			priceUom := product.Uom()
 			qtyInProductUom := quantity
 			if !qtyUom.Equals(product.Uom()) {
 				if qtyUom.Category().Equals(product.Uom().Category()) {
 					qtyInProductUom = qtyUom.ComputeQuantity(quantity, product.Uom(), true)
 				}
 			}
+			priceUom := qtyUom
 			price = product.PriceCompute(h.ProductProduct().ListPrice(),
 				h.ProductUom().NewSet(rs.Env()), h.Currency().NewSet(rs.Env()), h.Company().NewSet(rs.Env()))
 
@@ -132,10 +132,10 @@ func init() {
 				if !rule.Product().IsEmpty() && !product.Equals(rule.Product()) {
 					continue
 				}
-				if !rule.Categ().IsEmpty() {
-					cat := product.Categ()
+				if !rule.Category().IsEmpty() {
+					cat := product.Category()
 					for ; !cat.IsEmpty(); cat = cat.Parent() {
-						if cat.Equals(rule.Categ()) {
+						if cat.Equals(rule.Category()) {
 							break
 						}
 					}
@@ -149,7 +149,7 @@ func init() {
 					price = rule.BasePricelist().Currency().Compute(priceTmp, rs.Currency(), false)
 				} else {
 					// if base option is public price take sale price else cost price of product
-					// price_compute returns the price in the context UoM, i.e. qty_uom_id
+					// price_compute returns the price in the context UoM, i.e. QtyUom
 					price = product.PriceCompute(models.FieldName(rule.Base()), h.ProductUom().NewSet(rs.Env()),
 						h.Currency().NewSet(rs.Env()), h.Company().NewSet(rs.Env()))
 				}
@@ -250,7 +250,7 @@ func init() {
 	})
 
 	h.ProductPricelistItem().DeclareModel()
-	h.ProductPricelistItem().SetDefaultOrder("AppliedOn", "MinQuantity DESC", "Categ DESC", "ID")
+	h.ProductPricelistItem().SetDefaultOrder("AppliedOn", "MinQuantity DESC", "Category DESC", "ID")
 
 	h.ProductPricelistItem().AddFields(map[string]models.FieldDefinition{
 		"ProductTmpl": models.Many2OneField{String: "Product Template", RelationModel: h.ProductTemplate(),
@@ -258,7 +258,7 @@ func init() {
 			Help:     "Specify a template if this rule only applies to one product template. Keep empty otherwise."},
 		"Product": models.Many2OneField{RelationModel: h.ProductProduct(), OnDelete: models.Cascade,
 			Help: "Specify a product if this rule only applies to one product. Keep empty otherwise."},
-		"Categ": models.Many2OneField{String: "Product Category", RelationModel: h.ProductCategory(),
+		"Category": models.Many2OneField{String: "Product Category", RelationModel: h.ProductCategory(),
 			OnDelete: models.Cascade,
 			Help: `Specify a product category if this rule only applies to products belonging to this category or 
 its children categories. Keep empty otherwise.`},
@@ -281,7 +281,7 @@ to lowest sequence and stops as soon as a matching item is found.`},
 			"ListPrice":     "Public Price",
 			"StandardPrice": "Cost",
 			"pricelist":     "Other Pricelist",
-		}, Default: models.DefaultValue("list_price"), Required: true,
+		}, Default: models.DefaultValue("ListPrice"), Required: true,
 			Help: `Base price for computation.
 - Public Price: The base price will be the Sale/public Price.
 - Cost Price : The base price will be the cost price.
@@ -353,8 +353,8 @@ To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 		func(rs h.ProductPricelistItemSet) *h.ProductPricelistItemData {
 			var name, price string
 			switch {
-			case !rs.Categ().IsEmpty():
-				name = rs.T("Category: %s", rs.Categ().Name())
+			case !rs.Category().IsEmpty():
+				name = rs.T("Category: %s", rs.Category().Name())
 			case !rs.ProductTmpl().IsEmpty():
 				name = rs.ProductTmpl().Name()
 			case !rs.Product().IsEmpty():
@@ -388,7 +388,7 @@ To have prices that end in 9.99, set rounding 10, surcharge -0.01`},
 				fieldsToReset = append(fieldsToReset, h.ProductPricelistItem().ProductTmpl())
 			}
 			if rs.AppliedOn() != "2_product_category" {
-				fieldsToReset = append(fieldsToReset, h.ProductPricelistItem().Categ())
+				fieldsToReset = append(fieldsToReset, h.ProductPricelistItem().Category())
 			}
 			return new(h.ProductPricelistItemData), fieldsToReset
 		})

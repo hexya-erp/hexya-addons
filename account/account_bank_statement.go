@@ -161,7 +161,7 @@ func init() {
 			Help:    "Difference between the computed ending balance and the specified ending balance."},
 		"Lines": models.One2ManyField{String: "Statement Line",
 			RelationModel: h.AccountBankStatementLine(), ReverseFK: "Statement", JSON: "line_ids",
-			/*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/ NoCopy: false},
+			/*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/ Copy: true},
 		"MoveLines": models.One2ManyField{String: "Entry Lines", RelationModel: h.AccountMoveLine(),
 			ReverseFK: "Statement", JSON: "move_line_ids" /*[ states {'confirm': [('readonly']*/ /*[ True)]}]*/},
 		"AllLinesReconciled": models.BooleanField{
@@ -571,7 +571,7 @@ when the partner doesn't exist yet in the database (or cannot be found).`},
 			Default: models.DefaultValue(1)},
 		"Company": models.Many2OneField{RelationModel: h.Company(), Related: "Statement.Company", ReadOnly: true},
 		"JournalEntries": models.One2ManyField{RelationModel: h.AccountMove(), ReverseFK: "StatementLine",
-			JSON: "journal_entry_ids", NoCopy: true, ReadOnly: true},
+			JSON: "journal_entry_ids", ReadOnly: true},
 		"AmountCurrency": models.FloatField{Constraint: h.AccountBankStatementLine().Methods().CheckAmount(),
 			Help: "The amount expressed in an optional other currency if it is a multi-currency entry."},
 		"Currency": models.Many2OneField{RelationModel: h.Currency(),
@@ -605,7 +605,7 @@ set to draft and re-processed again.`},
 		})
 
 	h.AccountBankStatementLine().Methods().Create().Extend("",
-		func(rs h.AccountBankStatementLineSet, data *h.AccountBankStatementLineData) h.AccountBankStatementLineSet {
+		func(rs h.AccountBankStatementLineSet, data *h.AccountBankStatementLineData, fieldsToReset ...models.FieldNamer) h.AccountBankStatementLineSet {
 			//@api.model
 			/*def create(self, vals):
 			  line = super(AccountBankStatementLine, self).create(vals)

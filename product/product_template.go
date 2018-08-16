@@ -13,6 +13,7 @@ import (
 	"github.com/hexya-erp/hexya/hexya/models/security"
 	"github.com/hexya-erp/hexya/hexya/models/types"
 	"github.com/hexya-erp/hexya/hexya/models/types/dates"
+	"github.com/hexya-erp/hexya/hexya/tools/b64image"
 	"github.com/hexya-erp/hexya/pool/h"
 	"github.com/hexya-erp/hexya/pool/q"
 )
@@ -46,13 +47,13 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 	the e-commerce such as e-books, music, pictures,...
 	The "Digital Product" module has to be installed.`},
 		"Rental": models.BooleanField{String: "Can be Rent"},
-		"Categ": models.Many2OneField{String: "Internal Category", RelationModel: h.ProductCategory(),
+		"Category": models.Many2OneField{String: "Internal Category", RelationModel: h.ProductCategory(),
 			Default: func(env models.Environment) interface{} {
-				if env.Context().HasKey("categ_id") {
-					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("categ_id")})
+				if env.Context().HasKey("category_id") {
+					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("category_id")})
 				}
-				if env.Context().HasKey("default_categ_id") {
-					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("default_categ_id")})
+				if env.Context().HasKey("default_category_id") {
+					return h.ProductCategory().Browse(env, []int64{env.Context().GetInteger("default_category_id")})
 				}
 				category := h.ProductCategory().Search(env, q.ProductCategory().HexyaExternalID().Equals("product_product_category_all"))
 				if category.Type() != "normal" {
@@ -76,7 +77,10 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 			Depends: []string{"ProductVariants", "ProductVariants.StandardPrice"},
 			Inverse: h.ProductTemplate().Methods().InverseStandardPrice(),
 			Digits:  decimalPrecision.GetPrecision("Product Price"),
-			Help:    "Cost of the product, in the default unit of measure of the product."},
+			InvisibleFunc: func(env models.Environment) (bool, models.Conditioner) {
+				return !security.Registry.HasMembership(env.Uid(), base.GroupUser), nil
+			},
+			Help: "Cost of the product, in the default unit of measure of the product."},
 		"Volume": models.FloatField{Compute: h.ProductTemplate().Methods().ComputeVolume(),
 			Depends: []string{"ProductVariants", "ProductVariants.Volume"},
 			Inverse: h.ProductTemplate().Methods().InverseVolume(), Help: "The volume in m3.", Stored: true},
@@ -112,7 +116,7 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 the picking order and is mainly used if you use the EDI module.`},
 		"Sellers": models.One2ManyField{String: "Vendors", RelationModel: h.ProductSupplierinfo(),
 			ReverseFK: "ProductTmpl", JSON: "seller_ids"},
-		"Active": models.BooleanField{Default: models.DefaultValue(true),
+		"Active": models.BooleanField{Default: models.DefaultValue(true), Required: true,
 			Help: "If unchecked, it will allow you to hide the product without removing it."},
 		"Color": models.IntegerField{String: "Color Index"},
 		"AttributeLines": models.One2ManyField{String: "Product Attributes",
@@ -144,9 +148,6 @@ Use this field in form views or some kanban views.`},
 resized as a 64x64px image, with aspect ratio preserved.
 Use this field anywhere a small image is required.`},
 	})
-
-	h.ProductTemplate().Fields().StandardPrice().RevokeAccess(security.GroupEveryone, security.All)
-	h.ProductTemplate().Fields().StandardPrice().GrantAccess(base.GroupUser, security.All)
 
 	h.ProductTemplate().Methods().ComputeProductVariant().DeclareMethod(
 		`ComputeProductVariant returns the first variant of this template`,
@@ -314,9 +315,29 @@ Use this field anywhere a small image is required.`},
 			return new(h.ProductTemplateData), []models.FieldNamer{}
 		})
 
+	h.ProductTemplate().Methods().ResizeImageData().DeclareMethod(
+		`ResizeImageData returns the given data struct with images set for the different sizes.`,
+		func(set h.ProductTemplateSet, data *h.ProductTemplateData) *h.ProductTemplateData {
+			switch {
+			case data.Image != "":
+				data.Image = b64image.Resize(data.Image, 1024, 1024, true)
+				data.ImageMedium = b64image.Resize(data.Image, 128, 128, false)
+				data.ImageSmall = b64image.Resize(data.Image, 64, 64, false)
+			case data.ImageMedium != "":
+				data.Image = b64image.Resize(data.ImageMedium, 1024, 1024, true)
+				data.ImageMedium = b64image.Resize(data.ImageMedium, 128, 128, true)
+				data.ImageSmall = b64image.Resize(data.ImageMedium, 64, 64, false)
+			case data.ImageSmall != "":
+				data.Image = b64image.Resize(data.ImageSmall, 1024, 1024, true)
+				data.ImageMedium = b64image.Resize(data.ImageSmall, 128, 128, true)
+				data.ImageSmall = b64image.Resize(data.ImageSmall, 64, 64, true)
+			}
+			return data
+		})
+
 	h.ProductTemplate().Methods().Create().Extend("",
-		func(rs h.ProductTemplateSet, data *h.ProductTemplateData) h.ProductTemplateSet {
-			// tools.image_resize_images(vals)
+		func(rs h.ProductTemplateSet, data *h.ProductTemplateData, fieldsToReset ...models.FieldNamer) h.ProductTemplateSet {
+			data = rs.ResizeImageData(data)
 			template := rs.Super().Create(data)
 			if !rs.Env().Context().HasKey("create_product_product") {
 				template.WithContext("create_from_tmpl", true).CreateVariants()
@@ -329,13 +350,18 @@ Use this field anywhere a small image is required.`},
 				Volume:        data.Volume,
 				Weight:        data.Weight,
 			}
-			template.Write(relatedVals)
+			template.Write(relatedVals,
+				h.ProductTemplate().Barcode(),
+				h.ProductTemplate().DefaultCode(),
+				h.ProductTemplate().StandardPrice(),
+				h.ProductTemplate().Volume(),
+				h.ProductTemplate().Weight())
 			return template
 		})
 
 	h.ProductTemplate().Methods().Write().Extend("",
 		func(rs h.ProductTemplateSet, vals *h.ProductTemplateData, fieldsToUnset ...models.FieldNamer) bool {
-			// tools.image_resize_images(vals)
+			vals = rs.ResizeImageData(vals)
 			res := rs.Super().Write(vals, fieldsToUnset...)
 			if _, exists := vals.Get(h.ProductTemplate().AttributeLines(), fieldsToUnset...); exists || vals.Active {
 				rs.CreateVariants()
@@ -427,21 +453,20 @@ Use this field anywhere a small image is required.`},
 			for _, tmpl := range rs.WithContext("active_test", false).Records() {
 				// adding an attribute with only one value should not recreate product
 				// write this attribute on every product to make sure we don't lose them
-				variantAlone := h.ProductAttributeValue().NewSet(rs.Env())
-				for _, attrLine := range tmpl.AttributeLines().Records() {
-					if attrLine.Values().Len() == 1 {
-						variantAlone = variantAlone.Union(attrLine.Values())
-					}
-				}
-				for _, value := range variantAlone.Records() {
-					for _, prod := range tmpl.ProductVariants().Records() {
-						valuesAttributes := h.ProductAttribute().NewSet(rs.Env())
-						for _, val := range prod.AttributeValues().Records() {
-							valuesAttributes = valuesAttributes.Union(val.Attribute())
+				variantAloneLines := tmpl.AttributeLines().Filtered(func(r h.ProductAttributeLineSet) bool {
+					return r.Attribute().CreateVariant() && r.Values().Len() == 1
+				})
+				for _, v := range variantAloneLines.Records() {
+					value := v.Values()
+					updatedProducts := tmpl.ProductVariants().Filtered(func(r h.ProductProductSet) bool {
+						prodAttrs := h.ProductAttribute().NewSet(rs.Env())
+						for _, pa := range r.AttributeValues().Records() {
+							prodAttrs = prodAttrs.Union(pa.Attribute())
 						}
-						if value.Attribute().Intersect(valuesAttributes).IsEmpty() {
-							prod.SetAttributeValues(prod.AttributeValues().Union(value))
-						}
+						return value.Attribute().Intersect(prodAttrs).IsEmpty()
+					})
+					for _, prod := range updatedProducts.Records() {
+						prod.SetAttributeValues(prod.AttributeValues().Union(value))
 					}
 				}
 
@@ -522,9 +547,9 @@ Use this field anywhere a small image is required.`},
 					})
 				}
 
-				// inactive product
+				// unlink or inactive product
 				if !variantsToUnlink.IsEmpty() {
-					variantsToUnlink.SetActive(false)
+					variantsToUnlink.UnlinkOrDeactivate()
 				}
 
 			}
