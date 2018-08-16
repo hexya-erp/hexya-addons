@@ -77,7 +77,10 @@ This description will be copied to every Sale Order, Delivery Order and Customer
 			Depends: []string{"ProductVariants", "ProductVariants.StandardPrice"},
 			Inverse: h.ProductTemplate().Methods().InverseStandardPrice(),
 			Digits:  decimalPrecision.GetPrecision("Product Price"),
-			Help:    "Cost of the product, in the default unit of measure of the product."},
+			InvisibleFunc: func(env models.Environment) (bool, models.Conditioner) {
+				return !security.Registry.HasMembership(env.Uid(), base.GroupUser), nil
+			},
+			Help: "Cost of the product, in the default unit of measure of the product."},
 		"Volume": models.FloatField{Compute: h.ProductTemplate().Methods().ComputeVolume(),
 			Depends: []string{"ProductVariants", "ProductVariants.Volume"},
 			Inverse: h.ProductTemplate().Methods().InverseVolume(), Help: "The volume in m3.", Stored: true},
@@ -145,9 +148,6 @@ Use this field in form views or some kanban views.`},
 resized as a 64x64px image, with aspect ratio preserved.
 Use this field anywhere a small image is required.`},
 	})
-
-	h.ProductTemplate().Fields().StandardPrice().RevokeAccess(security.GroupEveryone, security.All)
-	h.ProductTemplate().Fields().StandardPrice().GrantAccess(base.GroupUser, security.All)
 
 	h.ProductTemplate().Methods().ComputeProductVariant().DeclareMethod(
 		`ComputeProductVariant returns the first variant of this template`,

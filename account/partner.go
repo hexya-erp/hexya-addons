@@ -279,8 +279,11 @@ func init() {
 		"Debit": models.FloatField{String: "Total Payable",
 			Compute: h.Partner().Methods().ComputeCreditDebit(), /* Search: "_debit_search"*/
 			Help:    "Total amount you have to pay to this vendor."},
-		"DebitLimit":    models.FloatField{String: "Payable Limit"},
-		"TotalInvoiced": models.FloatField{Compute: h.Partner().Methods().ComputeTotalInvoiced()},
+		"DebitLimit": models.FloatField{String: "Payable Limit"},
+		"TotalInvoiced": models.FloatField{Compute: h.Partner().Methods().ComputeTotalInvoiced(),
+			InvisibleFunc: func(env models.Environment) (bool, models.Conditioner) {
+				return !security.Registry.HasMembership(env.Uid(), GroupAccountInvoice), nil
+			}},
 		"Currency": models.Many2OneField{String: "Currency", RelationModel: h.Currency(),
 			Compute: h.Partner().Methods().ComputeCurrency(),
 			Help:    "Utility field to express amount currency"},
@@ -337,10 +340,6 @@ credit or if you click the "Done" button.`},
 			/*Help: base.WarningHelp*/ Required: true, Default: models.DefaultValue("no-message")},
 		"InvoiceWarnMsg": models.TextField{String: "Message for Invoice"},
 	})
-
-	h.Partner().Fields().TotalInvoiced().
-		RevokeAccess(security.GroupEveryone, security.All).
-		GrantAccess(GroupAccountInvoice, security.All)
 
 	h.Partner().Methods().ComputeCreditDebit().DeclareMethod(
 		`CreditDebitGet`,

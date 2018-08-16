@@ -169,6 +169,9 @@ resized as a 1024x1024px image, with aspect ratio preserved.`},
 			Help:    "Image of the product variant (Medium-sized image of product template if false)."},
 		"StandardPrice": models.FloatField{String: "Cost", Contexts: base.CompanyDependent,
 			Digits: decimalPrecision.GetPrecision("Product Price"),
+			InvisibleFunc: func(env models.Environment) (bool, models.Conditioner) {
+				return !security.Registry.HasMembership(env.Uid(), base.GroupUser), nil
+			},
 			Help: `Cost of the product template used for standard stock valuation in accounting and used as a
 base price on purchase orders. Expressed in the default unit of measure of the product.`},
 		"Volume": models.FloatField{Help: "The volume in m3."},
@@ -177,8 +180,6 @@ base price on purchase orders. Expressed in the default unit of measure of the p
 		"PricelistItems": models.Many2ManyField{RelationModel: h.ProductPricelistItem(),
 			JSON: "pricelist_item_ids", Compute: h.ProductProduct().Methods().GetPricelistItems()},
 	})
-
-	h.ProductProduct().Fields().StandardPrice().RevokeAccess(security.GroupEveryone, security.All).GrantAccess(base.GroupUser, security.All)
 
 	h.ProductProduct().Methods().ComputeProductPrice().DeclareMethod(
 		`ComputeProductPrice computes the price of this product based on the given context keys:
