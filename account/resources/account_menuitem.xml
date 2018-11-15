@@ -1,6 +1,7 @@
 <hexya>
     <data>
         <menuitem id="account_menu_finance" name="Invoicing" sequence="40"
+                  web_icon="/static/account/description/icon.png"
                   groups="group_account_user,group_account_manager,group_account_invoice"/>
         <menuitem id="account_menu_finance_receivables" name="Sales" sequence="2" parent="account_menu_finance"/>
         <menuitem id="account_menu_finance_payables" name="Purchases" sequence="3" parent="account_menu_finance"/>

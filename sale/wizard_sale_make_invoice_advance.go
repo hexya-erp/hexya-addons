@@ -99,8 +99,8 @@ func init() {
 				//account_id = order.fiscal_position_id.map_account(inc_acc).id if inc_acc else False
 			}
 			if account.IsEmpty() {
-				panic(rs.T("There is no income account defined for this product: '%s'."+
-					" You may have to install a chart of account from Accounting app, settings menu.",
+				panic(rs.T(`There is no income account defined for this product: '%s'.
+You may have to install a chart of account from Accounting app, settings menu.`,
 					rs.Product().Name()))
 			}
 			if rs.Amount() <= 0 {
@@ -241,7 +241,7 @@ Please use another product or update this product.`))
 				Type:                  "service",
 				InvoicePolicy:         "order",
 				PropertyAccountIncome: rs.DepositAccount(),
-				Taxes: rs.DepositTaxes(),
+				Taxes:                 rs.DepositTaxes(),
 			}
 		})
 
