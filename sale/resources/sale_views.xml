@@ -658,7 +658,7 @@
         <action id="sale_action_account_invoice_report_salesteam" type="ir.actions.act_window" name="Invoices Analysis"
                 model="AccountInvoiceReport" view_mode="graph"/>
 
-        <menuitem id="sale_teams_menu_base_partner" name="Sales"/>
+        <menuitem id="sale_teams_menu_base_partner" name="Sales" web_icon="static/sale/description/icon.png"/>
         <menuitem id="sale_menu_sales_config" name="Sales" sequence="1" parent="sale_teams_menu_sale_config"
                   groups="sale_teams_group_sale_manager,sale_teams_group_sale_salesman,account_group_account_manager,account_group_account_user"/>
         <menuitem id="sale_menu_product" name="Product Variants" sequence="9" parent="sale_teams_menu_base_partner"
