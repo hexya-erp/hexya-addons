@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: sl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. selection:BusPresence.Status
+msgid "Away"
+msgstr "Odsoten"
+
+#. field:BusBus.Channel
+msgid "Channel"
+msgstr "Kanal"
+
+#. field:User.ID
+#. field:BusBus.ID
+#. field:BusPresence.ID
+#. field:Partner.ID
+msgid "ID"
+msgstr "ID"
+
+#. field:User.ImStatus
+#. field:BusPresence.Status
+#. field:Partner.ImStatus
+msgid "IM Status"
+msgstr "IM status"
+
+#. field:BusPresence.LastPoll
+msgid "Last Poll"
+msgstr "Zadnje glasovanje"
+
+#. field:BusPresence.LastPresence
+msgid "Last Presence"
+msgstr "Zadnja prisotnost"
+
+#. field:BusBus.Message
+msgid "Message"
+msgstr "Sporočilo"
+
+#. selection:BusPresence.Status
+msgid "Offline"
+msgstr "Brez povezave"
+
+#. selection:BusPresence.Status
+msgid "Online"
+msgstr "Spletno"
+
+#. field:BusPresence.User
+msgid "Users"
+msgstr "Uporabniki"
+

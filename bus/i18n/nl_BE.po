@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: nl_BE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. selection:BusPresence.Status
+msgid "Away"
+msgstr ""
+
+#. field:BusBus.Channel
+msgid "Channel"
+msgstr "Kanaal"
+
+#. field:Partner.ID
+#. field:User.ID
+#. field:BusBus.ID
+#. field:BusPresence.ID
+msgid "ID"
+msgstr "ID"
+
+#. field:Partner.ImStatus
+#. field:User.ImStatus
+#. field:BusPresence.Status
+msgid "IM Status"
+msgstr ""
+
+#. field:BusPresence.LastPoll
+msgid "Last Poll"
+msgstr ""
+
+#. field:BusPresence.LastPresence
+msgid "Last Presence"
+msgstr ""
+
+#. field:BusBus.Message
+msgid "Message"
+msgstr "Bericht"
+
+#. selection:BusPresence.Status
+msgid "Offline"
+msgstr "Offline"
+
+#. selection:BusPresence.Status
+msgid "Online"
+msgstr ""
+
+#. field:BusPresence.User
+msgid "Users"
+msgstr "Gebruikers"
+

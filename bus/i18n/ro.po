@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. selection:BusPresence.Status
+msgid "Away"
+msgstr "Absent"
+
+#. field:BusBus.Channel
+msgid "Channel"
+msgstr "Canal"
+
+#. field:BusBus.ID
+#. field:BusPresence.ID
+#. field:Partner.ID
+#. field:User.ID
+msgid "ID"
+msgstr "ID"
+
+#. field:BusPresence.Status
+#. field:Partner.ImStatus
+#. field:User.ImStatus
+msgid "IM Status"
+msgstr "Status IM"
+
+#. field:BusPresence.LastPoll
+msgid "Last Poll"
+msgstr "Ultimul sondaj"
+
+#. field:BusPresence.LastPresence
+msgid "Last Presence"
+msgstr "Ultima prezență"
+
+#. field:BusBus.Message
+msgid "Message"
+msgstr "Mesaj"
+
+#. selection:BusPresence.Status
+msgid "Offline"
+msgstr "Deconectat"
+
+#. selection:BusPresence.Status
+msgid "Online"
+msgstr "Activ"
+
+#. field:BusPresence.User
+msgid "Users"
+msgstr "Utilizatori"
+

@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: lt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. selection:BusPresence.Status
+msgid "Away"
+msgstr "Nutolęs"
+
+#. field:BusBus.Channel
+msgid "Channel"
+msgstr "Kanalas"
+
+#. field:User.ID
+#. field:BusBus.ID
+#. field:BusPresence.ID
+#. field:Partner.ID
+msgid "ID"
+msgstr "ID"
+
+#. field:User.ImStatus
+#. field:BusPresence.Status
+#. field:Partner.ImStatus
+msgid "IM Status"
+msgstr "IM būsena"
+
+#. field:BusPresence.LastPoll
+msgid "Last Poll"
+msgstr "Paskutinė apklausa"
+
+#. field:BusPresence.LastPresence
+msgid "Last Presence"
+msgstr "Paskutinis buvimas"
+
+#. field:BusBus.Message
+msgid "Message"
+msgstr "Pranešimas"
+
+#. selection:BusPresence.Status
+msgid "Offline"
+msgstr "Neprisijungta"
+
+#. selection:BusPresence.Status
+msgid "Online"
+msgstr "Prisijungta"
+
+#. field:BusPresence.User
+msgid "Users"
+msgstr "Naudotojai"
+

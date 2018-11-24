@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. selection:BusPresence.Status
+msgid "Away"
+msgstr "بعيد"
+
+#. field:BusBus.Channel
+msgid "Channel"
+msgstr "القناة"
+
+#. field:BusBus.ID
+#. field:BusPresence.ID
+#. field:Partner.ID
+#. field:User.ID
+msgid "ID"
+msgstr "المعرف"
+
+#. field:BusPresence.Status
+#. field:Partner.ImStatus
+#. field:User.ImStatus
+msgid "IM Status"
+msgstr "حالة المحادثات"
+
+#. field:BusPresence.LastPoll
+msgid "Last Poll"
+msgstr "آخر استطلاع"
+
+#. field:BusPresence.LastPresence
+msgid "Last Presence"
+msgstr "آخر حضور"
+
+#. field:BusBus.Message
+msgid "Message"
+msgstr "الرسالة"
+
+#. selection:BusPresence.Status
+msgid "Offline"
+msgstr "مقطوع"
+
+#. selection:BusPresence.Status
+msgid "Online"
+msgstr "متصل"
+
+#. field:BusPresence.User
+msgid "Users"
+msgstr "المستخدمون"
+

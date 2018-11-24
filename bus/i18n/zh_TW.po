@@ -1,0 +1,59 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#. selection:BusPresence.Status
+msgid "Away"
+msgstr "離開"
+
+#. field:BusBus.Channel
+msgid "Channel"
+msgstr "頻道"
+
+#. field:BusBus.ID
+#. field:BusPresence.ID
+#. field:Partner.ID
+#. field:User.ID
+msgid "ID"
+msgstr "編號"
+
+#. field:BusPresence.Status
+#. field:Partner.ImStatus
+#. field:User.ImStatus
+msgid "IM Status"
+msgstr "即時通訊狀態"
+
+#. field:BusPresence.LastPoll
+msgid "Last Poll"
+msgstr "最後更新"
+
+#. field:BusPresence.LastPresence
+msgid "Last Presence"
+msgstr "上次現狀"
+
+#. field:BusBus.Message
+msgid "Message"
+msgstr "訊息"
+
+#. selection:BusPresence.Status
+msgid "Offline"
+msgstr "離線"
+
+#. selection:BusPresence.Status
+msgid "Online"
+msgstr "在線"
+
+#. field:BusPresence.User
+msgid "Users"
+msgstr "用戶"
+
